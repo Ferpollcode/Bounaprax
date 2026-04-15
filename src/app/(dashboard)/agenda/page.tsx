@@ -118,10 +118,10 @@ export default function AgendaPage() {
   const todayStr = today.toISOString().split('T')[0]
 
   return (
-    <div className="p-6 max-w-7xl" style={{ minHeight: '100vh' }}>
+    <div className="p-4 sm:p-6 max-w-7xl" style={{ minHeight: '100vh' }}>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 anim-fade-up">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 anim-fade-up">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
             Agenda
@@ -132,9 +132,9 @@ export default function AgendaPage() {
         </div>
 
         {/* Month nav */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button onClick={goToday}
-            className="h-9 px-4 rounded-xl text-xs font-semibold transition-all hover:opacity-80"
+            className="h-9 px-3 rounded-xl text-xs font-semibold transition-all hover:opacity-80"
             style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.2)', color: TEAL }}>
             Hoy
           </button>
@@ -146,7 +146,7 @@ export default function AgendaPage() {
                 <path d="M15 18l-6-6 6-6" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span className="px-3 text-sm font-semibold min-w-[140px] text-center" style={{ color: '#C8D4E8' }}>
+            <span className="px-2 text-sm font-semibold w-[130px] text-center" style={{ color: '#C8D4E8' }}>
               {MONTHS[month]} {year}
             </span>
             <button onClick={nextMonth}
@@ -159,7 +159,7 @@ export default function AgendaPage() {
         </div>
       </div>
 
-      <div className="flex gap-5 anim-fade-up">
+      <div className="flex flex-col lg:flex-row gap-4 anim-fade-up">
 
         {/* Calendar */}
         <div className="flex-1 rounded-2xl overflow-hidden"
@@ -202,8 +202,8 @@ export default function AgendaPage() {
                     disabled={!inMonth}
                     className="relative text-left transition-colors"
                     style={{
-                      minHeight: 88,
-                      padding: '8px',
+                      minHeight: 72,
+                      padding: '6px',
                       borderRight:  (i + 1) % 7 !== 0 ? '1px solid rgba(255,255,255,0.04)' : 'none',
                       borderBottom: !isLastRow ? '1px solid rgba(255,255,255,0.04)' : 'none',
                       background: isSelected ? 'rgba(62,201,201,0.06)' : 'transparent',
@@ -265,7 +265,7 @@ export default function AgendaPage() {
         </div>
 
         {/* Side panel */}
-        <div className="w-72 flex-shrink-0 rounded-2xl overflow-hidden"
+        <div className="w-full lg:w-72 flex-shrink-0 rounded-2xl overflow-hidden"
           style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)', alignSelf: 'flex-start' }}>
 
           {/* Panel header */}

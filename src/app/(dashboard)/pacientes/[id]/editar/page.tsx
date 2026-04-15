@@ -125,7 +125,7 @@ export default function EditarPacientePage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex items-center gap-4 mb-8 anim-fade-up">
           <Link href={`/pacientes/${id}`}
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
@@ -148,7 +148,7 @@ export default function EditarPacientePage() {
               <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
             </svg>
           }>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><Label text="Nombre" required /><TInput field="nombre" placeholder="Juan" required /></div>
               <div><Label text="Apellido" required /><TInput field="apellido" placeholder="García" required /></div>
               <div><Label text="DNI" /><TInput field="dni" placeholder="12.345.678" /></div>
@@ -161,7 +161,7 @@ export default function EditarPacientePage() {
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           }>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><Label text="Teléfono" /><TInput field="telefono" placeholder="+54 9 11 1234-5678" /></div>
               <div><Label text="Email" /><TInput field="email" type="email" placeholder="paciente@email.com" /></div>
             </div>
@@ -172,7 +172,7 @@ export default function EditarPacientePage() {
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           }>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><Label text="Obra social / prepaga" /><TInput field="obra_social" placeholder="OSDE, Swiss Medical…" /></div>
               <div><Label text="Nº de afiliado" /><TInput field="numero_afiliado" placeholder="123456789" /></div>
             </div>
@@ -200,7 +200,7 @@ export default function EditarPacientePage() {
             </div>
             <div>
               <Label text="Estado" />
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {estadoOpts.map(opt => (
                   <button key={opt.value} type="button" onClick={() => set('estado')(opt.value)}
                     className="h-9 rounded-xl text-xs font-semibold transition-all"

@@ -38,9 +38,9 @@ export default async function PacientesPage() {
   }
 
   return (
-    <div className="p-8 max-w-7xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8 anim-fade-up">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 sm:mb-8 anim-fade-up">
         <div>
           <h1 className="text-2xl font-bold mb-1"
             style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
@@ -82,7 +82,7 @@ export default async function PacientesPage() {
 
       {/* List */}
       {lista.length === 0 ? (
-        <div className="rounded-2xl p-16 text-center anim-fade-up"
+        <div className="rounded-2xl p-10 sm:p-16 text-center anim-fade-up"
           style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
             style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)' }}>
@@ -110,8 +110,9 @@ export default async function PacientesPage() {
       ) : (
         <div className="rounded-2xl overflow-hidden anim-fade-up"
           style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
-          {/* Table header */}
-          <div className="grid grid-cols-12 px-6 py-3 text-xs font-semibold tracking-wide uppercase"
+
+          {/* Desktop table header */}
+          <div className="hidden md:grid grid-cols-12 px-6 py-3 text-xs font-semibold tracking-wide uppercase"
             style={{ color: '#3A4560', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <span className="col-span-5">Paciente</span>
             <span className="col-span-3">Contacto</span>
@@ -128,52 +129,62 @@ export default async function PacientesPage() {
                 <Link
                   key={p.id}
                   href={`/pacientes/${p.id}`}
-                  className="grid grid-cols-12 px-6 py-4 items-center transition-all hover:bg-white/[0.02] anim-fade-up"
-                  style={{ borderBottom: i < lista.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}
+                  className="anim-fade-up transition-all hover:bg-white/[0.02]"
+                  style={{ borderBottom: i < lista.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', display: 'block' }}
                 >
-                  {/* Name + avatar */}
-                  <div className="col-span-5 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  {/* Mobile layout */}
+                  <div className="flex items-center gap-3 px-4 py-3.5 md:hidden">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{ background: `${color}1A`, color, border: `1px solid ${color}30` }}>
                       {initials(p.nombre, p.apellido)}
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium" style={{ color: '#E8EDF5' }}>
                         {p.apellido}, {p.nombre}
                       </p>
-                      {p.fecha_nacimiento && (
-                        <p className="text-xs" style={{ color: '#3A4560' }}>
-                          {new Date().getFullYear() - new Date(p.fecha_nacimiento).getFullYear()} años
-                        </p>
-                      )}
+                      <p className="text-xs truncate mt-0.5" style={{ color: '#5A6A88' }}>
+                        {p.telefono || p.email || (p.obra_social ? p.obra_social : '—')}
+                      </p>
                     </div>
-                  </div>
-
-                  {/* Contact */}
-                  <div className="col-span-3">
-                    {p.telefono && (
-                      <p className="text-sm" style={{ color: '#6B7A99' }}>{p.telefono}</p>
-                    )}
-                    {p.email && (
-                      <p className="text-xs truncate" style={{ color: '#3A4560' }}>{p.email}</p>
-                    )}
-                  </div>
-
-                  {/* Obra social */}
-                  <div className="col-span-2">
-                    {p.obra_social ? (
-                      <p className="text-sm truncate" style={{ color: '#6B7A99' }}>{p.obra_social}</p>
-                    ) : (
-                      <span className="text-xs" style={{ color: '#3A4560' }}>—</span>
-                    )}
-                  </div>
-
-                  {/* Estado */}
-                  <div className="col-span-2 flex justify-end">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium"
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium flex-shrink-0"
                       style={{ background: est.bg, color: est.color }}>
                       {est.label}
                     </span>
+                  </div>
+
+                  {/* Desktop layout */}
+                  <div className="hidden md:grid grid-cols-12 px-6 py-4 items-center">
+                    <div className="col-span-5 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                        style={{ background: `${color}1A`, color, border: `1px solid ${color}30` }}>
+                        {initials(p.nombre, p.apellido)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium" style={{ color: '#E8EDF5' }}>
+                          {p.apellido}, {p.nombre}
+                        </p>
+                        {p.fecha_nacimiento && (
+                          <p className="text-xs" style={{ color: '#3A4560' }}>
+                            {new Date().getFullYear() - new Date(p.fecha_nacimiento).getFullYear()} años
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-span-3 min-w-0">
+                      {p.telefono && <p className="text-sm" style={{ color: '#6B7A99' }}>{p.telefono}</p>}
+                      {p.email && <p className="text-xs truncate" style={{ color: '#3A4560' }}>{p.email}</p>}
+                    </div>
+                    <div className="col-span-2 min-w-0">
+                      {p.obra_social
+                        ? <p className="text-sm truncate" style={{ color: '#6B7A99' }}>{p.obra_social}</p>
+                        : <span className="text-xs" style={{ color: '#3A4560' }}>—</span>}
+                    </div>
+                    <div className="col-span-2 flex justify-end">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium"
+                        style={{ background: est.bg, color: est.color }}>
+                        {est.label}
+                      </span>
+                    </div>
                   </div>
                 </Link>
               )

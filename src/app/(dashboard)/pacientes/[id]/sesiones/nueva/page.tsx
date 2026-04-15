@@ -132,7 +132,7 @@ export default function NuevaSesionPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
-      <div className="max-w-3xl mx-auto px-6 py-8">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         <div className="flex items-center gap-4 mb-8 anim-fade-up">
           <Link href={`/pacientes/${id}`}
@@ -157,7 +157,7 @@ export default function NuevaSesionPage() {
               <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           }>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="col-span-1">
                 <Label text="Fecha" required />
                 <input type="date" value={form.fecha} onChange={e => set('fecha')(e.target.value)} required
@@ -245,7 +245,7 @@ export default function NuevaSesionPage() {
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           }>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label text="Monto ($)" />
                 <input type="number" min="0" step="0.01" value={form.monto}
