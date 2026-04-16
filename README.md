@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HealthPro — Gestión de Pacientes para Profesionales de la Salud
 
-## Getting Started
+Plataforma web para que profesionales de la salud gestionen su consultorio de forma digital: pacientes, sesiones, pagos y documentos, desde cualquier dispositivo.
 
-First, run the development server:
+---
+
+## Características
+
+- **Pacientes** — Historia clínica completa, datos de contacto, obra social, estado (activo, inactivo, alta, derivado)
+- **Sesiones** — Registro de encuentros presenciales y virtuales, notas clínicas, evolución, próximos pasos
+- **Pagos** — Control de ingresos por período, múltiples métodos de pago, estado de cobro por sesión
+- **Documentos** — Carga de archivos médicos (informes, análisis, fotos, tests) con drag & drop
+- **Consultorios** — Soporte multi-consultorio con colores personalizados
+- **Agenda** — Vista de calendario de sesiones
+- **Seguridad** — Cada profesional solo ve sus propios datos (Row-Level Security en Supabase)
+
+---
+
+## Stack
+
+| Capa | Tecnología |
+|------|-----------|
+| Framework | Next.js 16 + React 19 |
+| Lenguaje | TypeScript 5 |
+| Estilos | Tailwind CSS 4 + shadcn/ui |
+| Base de datos | Supabase (PostgreSQL + Auth + Storage) |
+| Deploy recomendado | Vercel + Supabase Pro |
+
+---
+
+## Requisitos
+
+- Node.js 18+
+- Una cuenta en [Supabase](https://supabase.com)
+
+---
+
+## Instalación
 
 ```bash
+# 1. Clonar el repositorio
+git clone https://github.com/tu-usuario/healthpro-app.git
+cd healthpro-app
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar variables de entorno
+cp .env.example .env.local
+# Editar .env.local con tus credenciales de Supabase
+
+# 4. Inicializar la base de datos
+# Ejecutar supabase-schema.sql en el SQL Editor de tu proyecto Supabase
+
+# 5. Iniciar el servidor de desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abrir [http://localhost:3000](http://localhost:3000) en el navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variables de entorno
 
-## Learn More
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+```
 
-To learn more about Next.js, take a look at the following resources:
+Estas claves se encuentran en **Supabase → Project Settings → API**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Scripts
 
-## Deploy on Vercel
+```bash
+npm run dev      # Servidor de desarrollo
+npm run build    # Build de producción
+npm start        # Servidor de producción
+npm run lint     # Linter
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Estructura del proyecto
+
+```
+src/
+├── app/
+│   ├── (auth)/          # Login y registro
+│   └── (dashboard)/     # Pacientes, sesiones, pagos, agenda, consultorios
+├── components/          # Componentes reutilizables
+├── lib/                 # Clientes de Supabase (browser / server)
+└── types/               # Interfaces TypeScript
+supabase-schema.sql      # Schema completo de la base de datos
+```
+
+---
+
+## Base de datos
+
+El archivo `supabase-schema.sql` contiene el schema completo con todas las tablas, políticas de Row-Level Security y triggers necesarios para inicializar el proyecto desde cero.
+
+**Tablas principales:** `pacientes`, `sesiones`, `pagos`, `documentos`, `tests`, `consultorios`
+
+---
+
+## Deploy
+
+**Vercel + Supabase Pro** es la combinación recomendada para producción:
+
+1. Conectar el repositorio en [vercel.com](https://vercel.com)
+2. Agregar las variables de entorno en Vercel
+3. Cada push a `master` despliega automáticamente
+
+---
+
+## Licencia
+
+Uso privado — todos los derechos reservados.
