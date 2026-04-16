@@ -112,7 +112,7 @@ export default async function PacientesPage() {
           style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
 
           {/* Desktop table header */}
-          <div className="hidden md:grid grid-cols-12 px-6 py-3 text-xs font-semibold tracking-wide uppercase"
+          <div className="hidden lg:grid grid-cols-12 px-6 py-3 text-xs font-semibold tracking-wide uppercase"
             style={{ color: '#3A4560', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <span className="col-span-5">Paciente</span>
             <span className="col-span-3">Contacto</span>
@@ -133,7 +133,7 @@ export default async function PacientesPage() {
                   style={{ borderBottom: i < lista.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', display: 'block' }}
                 >
                   {/* Mobile layout */}
-                  <div className="flex items-center gap-3 px-4 py-3.5 md:hidden">
+                  <div className="flex items-center gap-3 px-4 py-3.5 lg:hidden">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{ background: `${color}1A`, color, border: `1px solid ${color}30` }}>
                       {initials(p.nombre, p.apellido)}
@@ -153,7 +153,7 @@ export default async function PacientesPage() {
                   </div>
 
                   {/* Desktop layout */}
-                  <div className="hidden md:grid grid-cols-12 px-6 py-4 items-center">
+                  <div className="hidden lg:grid grid-cols-12 px-6 py-4 items-center">
                     <div className="col-span-5 flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
                         style={{ background: `${color}1A`, color, border: `1px solid ${color}30` }}>

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import type { Paciente, Sesion, Pago, Documento } from '@/types'
+import type { Paciente, Sesion, Pago, Documento, Consultorio } from '@/types'
 import { PatientDetailClient, type DocWithPath } from './PatientDetailClient'
 
 export default async function PacienteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -12,11 +12,13 @@ export default async function PacienteDetailPage({ params }: { params: Promise<{
     { data: sesiones },
     { data: pagos },
     { data: documentos },
+    { data: consultorios },
   ] = await Promise.all([
     supabase.from('pacientes').select('*').eq('id', id).single(),
     supabase.from('sesiones').select('*').eq('paciente_id', id).order('fecha', { ascending: false }),
     supabase.from('pagos').select('*').eq('paciente_id', id).order('fecha', { ascending: false }),
     supabase.from('documentos').select('*').eq('paciente_id', id).order('created_at', { ascending: false }),
+    supabase.from('consultorios').select('id, nombre, color').eq('activo', true).order('nombre'),
   ])
 
   if (!paciente) notFound()
@@ -34,6 +36,7 @@ export default async function PacienteDetailPage({ params }: { params: Promise<{
       sesiones={(sesiones ?? []) as Sesion[]}
       pagos={(pagos ?? []) as Pago[]}
       docs={docs}
+      consultorios={(consultorios ?? []) as Pick<Consultorio, 'id' | 'nombre' | 'color'>[]}
     />
   )
 }

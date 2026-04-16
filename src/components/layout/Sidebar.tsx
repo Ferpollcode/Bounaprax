@@ -28,6 +28,17 @@ const navItems = [
     ),
   },
   {
+    href: '/sesiones',
+    label: 'Sesiones',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="3" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+        <rect x="9" y="8" width="4" height="13" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+        <rect x="16" y="12" width="4" height="9" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+      </svg>
+    ),
+  },
+  {
     href: '/consultorios',
     label: 'Consultorios',
     icon: (
@@ -95,9 +106,10 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex"
         style={{
-          height: '64px',
           background: '#0D1220',
           borderTop: '1px solid rgba(255,255,255,0.07)',
+          paddingBottom: 'max(env(safe-area-inset-bottom), 0px)',
+          height: 'calc(56px + max(env(safe-area-inset-bottom), 0px))',
         }}
       >
         {navItems.map(item => {
@@ -106,24 +118,44 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
             <Link
               key={item.href}
               href={item.href}
-              className="flex-1 flex flex-col items-center justify-center gap-1 transition-opacity"
-              style={{ color: active ? '#3EC9C9' : '#5A6A88' }}
+              className="relative flex-1 flex flex-col items-center justify-center gap-1"
+              style={{ color: active ? '#3EC9C9' : '#4A5A78' }}
             >
-              <span style={{ color: active ? '#3EC9C9' : '#5A6A88' }}>{item.icon}</span>
-              <span style={{
-                fontSize: '10px',
-                fontWeight: 600,
-                letterSpacing: '0.02em',
-                color: active ? '#3EC9C9' : '#5A6A88',
-              }}>
-                {item.label}
-              </span>
+              {/* Indicator bar at top */}
               {active && (
                 <span
-                  className="absolute bottom-1 rounded-full"
-                  style={{ width: 20, height: 2, background: '#3EC9C9' }}
+                  className="absolute top-0 left-1/2 -translate-x-1/2"
+                  style={{
+                    width: 28,
+                    height: 2,
+                    background: '#3EC9C9',
+                    borderRadius: '0 0 3px 3px',
+                  }}
                 />
               )}
+              {/* Icon */}
+              <span
+                style={{
+                  color: active ? '#3EC9C9' : '#4A5A78',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {item.icon}
+              </span>
+              {/* Label — only on active item, very small */}
+              <span
+                style={{
+                  fontSize: '9px',
+                  fontWeight: 600,
+                  letterSpacing: '0.03em',
+                  color: active ? '#3EC9C9' : 'transparent',
+                  lineHeight: 1,
+                }}
+              >
+                {item.label.length > 8 ? item.label.slice(0, 7) + '…' : item.label}
+              </span>
             </Link>
           )
         })}

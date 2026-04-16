@@ -92,6 +92,16 @@
   }
 }
 
+/* Mobile bottom nav safe area */
+.mobile-safe-bottom {
+  padding-bottom: calc(56px + max(env(safe-area-inset-bottom), 0px));
+}
+@media (min-width: 1024px) {
+  .mobile-safe-bottom {
+    padding-bottom: 0;
+  }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

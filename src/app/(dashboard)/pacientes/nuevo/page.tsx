@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+
+type ConsultorioOpt = { id: string; nombre: string; color: string }
 
 /* ── helpers de estilo ─────────────────────────────────── */
 const TEAL = '#3EC9C9'
@@ -120,8 +122,17 @@ export default function NuevoPacientePage() {
     email: '', telefono: '', obra_social: '', numero_afiliado: '',
     motivo_consulta: '', diagnostico: '', estado: 'activo',
   })
+  const [consultorioId, setConsultorioId] = useState('')
+  const [consultorios, setConsultorios]   = useState<ConsultorioOpt[]>([])
   const [files, setFiles] = useState<FileItem[]>([])
   const [dragging, setDragging] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.from('consultorios').select('id, nombre, color')
+      .eq('activo', true).order('nombre')
+      .then(({ data }) => setConsultorios((data ?? []) as ConsultorioOpt[]))
+  }, [])
 
   function setField(field: string) {
     return (value: string) => setForm(f => ({ ...f, [field]: value }))
@@ -173,6 +184,7 @@ export default function NuevoPacientePage() {
       .insert({
         ...form,
         professional_id: user.id,
+        consultorio_id:   consultorioId           || null,
         fecha_nacimiento:  form.fecha_nacimiento  || null,
         dni:               form.dni               || null,
         email:             form.email             || null,
@@ -252,7 +264,7 @@ export default function NuevoPacientePage() {
               <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
             </svg>
           }>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label text="Nombre" required />
                 <TInput value={form.nombre} onChange={setField('nombre')} placeholder="Juan" required />
@@ -278,7 +290,7 @@ export default function NuevoPacientePage() {
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           }>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label text="Teléfono" />
                 <TInput value={form.telefono} onChange={setField('telefono')} placeholder="+54 9 11 1234-5678" />
@@ -296,7 +308,7 @@ export default function NuevoPacientePage() {
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           }>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label text="Obra social / prepaga" />
                 <TInput value={form.obra_social} onChange={setField('obra_social')} placeholder="OSDE, Swiss Medical…" />
@@ -307,6 +319,47 @@ export default function NuevoPacientePage() {
               </div>
             </div>
           </Card>
+
+          {/* ── Consultorio ── */}
+          {consultorios.length > 0 && (
+            <Card title="Consultorio" icon={
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            }>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {consultorios.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setConsultorioId(id => id === c.id ? '' : c.id)}
+                    className="flex items-center gap-3 h-11 px-4 rounded-xl text-sm font-medium transition-all text-left"
+                    style={{
+                      background: consultorioId === c.id ? `${c.color}15` : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${consultorioId === c.id ? c.color + '55' : 'rgba(255,255,255,0.07)'}`,
+                      color: consultorioId === c.id ? c.color : '#6B7A99',
+                    }}
+                  >
+                    <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: c.color }} />
+                    {c.nombre}
+                    {consultorioId === c.id && (
+                      <svg className="ml-auto flex-shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {consultorioId && (
+                <button type="button" onClick={() => setConsultorioId('')}
+                  className="text-xs transition-opacity hover:opacity-70 mt-1"
+                  style={{ color: '#5A6A88' }}>
+                  Quitar asignación
+                </button>
+              )}
+            </Card>
+          )}
 
           {/* ── Info clínica ── */}
           <Card title="Información clínica" icon={

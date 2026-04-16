@@ -171,18 +171,22 @@ function Modal({ open, onClose, title, subtitle, wide, children }: {
         onClick={onClose}
       />
       <div
-        className={`relative z-10 w-full ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'} max-h-[92vh] sm:max-h-[88vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl`}
+        className={`relative z-10 w-full ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'} max-h-[90dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl`}
         style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.1)' }}
       >
-        <div className="flex items-start justify-between px-6 py-5 sticky top-0 z-10"
+        {/* Drag pill indicator (mobile only) */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
+        </div>
+        <div className="flex items-start justify-between px-5 py-4 sticky top-0 z-10"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#0F1524' }}>
           <div>
-            <h2 className="text-lg font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>{title}</h2>
-            {subtitle && <p className="text-sm mt-0.5" style={{ color: '#5A6A88' }}>{subtitle}</p>}
+            <h2 className="text-base font-bold sm:text-lg" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>{title}</h2>
+            {subtitle && <p className="text-xs sm:text-sm mt-0.5" style={{ color: '#5A6A88' }}>{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ml-4 mt-0.5 transition-opacity hover:opacity-70"
+            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ml-3 transition-opacity hover:opacity-70"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
@@ -190,15 +194,17 @@ function Modal({ open, onClose, title, subtitle, wide, children }: {
             </svg>
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>
   )
 }
 
 /* ── SesionForm ─────────────────────────────────────────── */
-function SesionForm({ pacienteId, onSuccess, onCancel }: {
+function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess, onCancel }: {
   pacienteId: string
+  consultorios: { id: string; nombre: string; color: string }[]
+  defaultConsultorioId?: string
   onSuccess: () => void
   onCancel: () => void
 }) {
@@ -208,6 +214,7 @@ function SesionForm({ pacienteId, onSuccess, onCancel }: {
     tipo: 'presencial', estado: 'realizada',
     observaciones: '', tratamiento: '', objetivo: '',
     evolucion: '', proximos_pasos: '', monto: '', pagado: false,
+    consultorio_id: defaultConsultorioId ?? '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -225,6 +232,7 @@ function SesionForm({ pacienteId, onSuccess, onCancel }: {
     const { error: err } = await supabase.from('sesiones').insert({
       paciente_id:     pacienteId,
       professional_id: user.id,
+      consultorio_id:  form.consultorio_id || null,
       fecha:           form.fecha,
       hora_inicio:     form.hora_inicio  || null,
       hora_fin:        form.hora_fin     || null,
@@ -251,7 +259,7 @@ function SesionForm({ pacienteId, onSuccess, onCancel }: {
           <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
       }>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
             <Label text="Fecha" required />
             <input type="date" value={form.fecha} onChange={e => setStr('fecha')(e.target.value)} required
@@ -285,6 +293,34 @@ function SesionForm({ pacienteId, onSuccess, onCancel }: {
           ]} />
         </div>
       </FormCard>
+
+      {consultorios.length > 0 && (
+        <FormCard title="Consultorio" icon={
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 22V12h6v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        }>
+          <div className="flex flex-wrap gap-2">
+            {consultorios.map(c => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setForm(f => ({ ...f, consultorio_id: f.consultorio_id === c.id ? '' : c.id }))}
+                className="flex items-center gap-2 h-9 px-3 rounded-xl text-xs font-medium transition-all"
+                style={{
+                  background: form.consultorio_id === c.id ? `${c.color}15` : 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${form.consultorio_id === c.id ? c.color + '55' : 'rgba(255,255,255,0.07)'}`,
+                  color: form.consultorio_id === c.id ? c.color : '#5A6A88',
+                }}
+              >
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
+                {c.nombre}
+              </button>
+            ))}
+          </div>
+        </FormCard>
+      )}
 
       <FormCard title="Notas clínicas" icon={
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -333,7 +369,7 @@ function SesionForm({ pacienteId, onSuccess, onCancel }: {
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
       }>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label text="Monto ($)" />
             <input type="number" min="0" step="0.01" value={form.monto}
@@ -368,14 +404,14 @@ function SesionForm({ pacienteId, onSuccess, onCancel }: {
         </div>
       )}
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex items-center gap-3 pt-1">
         <button type="button" onClick={onCancel}
-          className="h-10 px-5 rounded-xl text-sm font-medium flex items-center transition-opacity hover:opacity-70"
+          className="flex-1 sm:flex-none h-11 px-5 rounded-xl text-sm font-medium flex items-center justify-center transition-opacity hover:opacity-70"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
           Cancelar
         </button>
         <button type="submit" disabled={saving}
-          className="h-10 px-6 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-90"
+          className="flex-1 sm:flex-none h-11 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
           style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
           {saving
             ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -453,7 +489,7 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
 
       <div>
         <Label text="Forma de pago" />
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+        <div className="grid grid-cols-3 gap-2 md:grid-cols-5">
           {tiposPago.map(t => (
             <button key={t.value} type="button" onClick={() => setStr('tipo')(t.value)}
               className="flex flex-col items-center gap-1.5 py-3 rounded-xl text-xs font-medium transition-all"
@@ -497,14 +533,14 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
         </div>
       )}
 
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex items-center gap-3 pt-2">
         <button type="button" onClick={onCancel}
-          className="h-10 px-5 rounded-xl text-sm font-medium flex items-center transition-opacity hover:opacity-70"
+          className="flex-1 sm:flex-none h-11 px-5 rounded-xl text-sm font-medium flex items-center justify-center transition-opacity hover:opacity-70"
           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
           Cancelar
         </button>
         <button type="submit" disabled={saving}
-          className="h-10 px-6 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-90"
+          className="flex-1 sm:flex-none h-11 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
           style={{ background: saving ? 'rgba(245,166,35,0.35)' : 'linear-gradient(135deg,#F5A623,#D4891A)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
           {saving
             ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -630,10 +666,12 @@ function DocumentsSection({ pacienteId, initialDocs }: {
         </p>
         <button
           onClick={() => { setUploadOpen(o => !o); setNewFiles([]) }}
-          className="text-xs font-medium transition-opacity hover:opacity-80"
-          style={{ color: TEAL }}
+          className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
+          style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)' }}
         >
-          + Subir archivo
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
         </button>
       </div>
 
@@ -738,7 +776,7 @@ function DocumentsSection({ pacienteId, initialDocs }: {
                   {fmtDate(doc.created_at)}{doc.archivo_tamanio ? ` · ${formatBytes(doc.archivo_tamanio)}` : ''}
                 </p>
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center gap-1 flex-shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                 <button
                   type="button"
                   onClick={() => handleDownload(doc)}
@@ -832,16 +870,20 @@ function DocumentsSection({ pacienteId, initialDocs }: {
 }
 
 /* ── Main export ─────────────────────────────────────────── */
+type ConsultorioOpt = { id: string; nombre: string; color: string }
+
 export function PatientDetailClient({
   paciente,
   sesiones,
   pagos,
   docs,
+  consultorios = [],
 }: {
   paciente: Paciente
   sesiones: Sesion[]
   pagos: Pago[]
   docs: DocWithPath[]
+  consultorios?: ConsultorioOpt[]
 }) {
   const router = useRouter()
   const [sesionOpen, setSesionOpen] = useState(false)
@@ -850,16 +892,86 @@ export function PatientDetailClient({
   const p   = paciente
   const est = estadoConfig[p.estado] ?? estadoConfig.activo
   const edad = calcEdad(p.fecha_nacimiento)
+  const consultorioActivo = consultorios.find(c => c.id === p.consultorio_id)
 
   const totalPagado    = pagos.filter(pay => pay.estado === 'pagado').reduce((a, b) => a + (b.monto ?? 0), 0)
   const totalPendiente = pagos.filter(pay => pay.estado === 'pendiente').reduce((a, b) => a + (b.monto ?? 0), 0)
 
   return (
     <>
-      <div className="min-h-screen p-4 sm:p-6 lg:p-8 max-w-5xl">
+      <div className="min-h-screen max-w-5xl">
 
-        {/* ── Header ── */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6 anim-fade-up">
+        {/* ══════════════════════════════════════════════
+            MOBILE HEADER — compacto, una sola fila
+        ══════════════════════════════════════════════ */}
+        <div className="px-4 pt-4 pb-3 lg:hidden anim-fade-up">
+          {/* Fila 1: back + avatar + nombre + editar */}
+          <div className="flex items-center gap-3 mb-3">
+            <Link href="/pacientes"
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}>
+              {p.nombre[0]}{p.apellido[0]}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-bold leading-tight truncate"
+                style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+                {p.apellido}, {p.nombre}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
+                  style={{ background: est.bg, color: est.color }}>{est.label}</span>
+                {edad && <span className="text-xs" style={{ color: '#5A6A88' }}>{edad} a.</span>}
+                {consultorioActivo && (
+                  <span className="flex items-center gap-1 text-xs" style={{ color: '#5A6A88' }}>
+                    <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: consultorioActivo.color }} />
+                    {consultorioActivo.nombre}
+                  </span>
+                )}
+              </div>
+            </div>
+            <Link href={`/pacientes/${p.id}/editar`}
+              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          </div>
+
+          {/* Fila 2: CTA buttons — ancho completo */}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => setSesionOpen(true)}
+              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.25)', color: '#3EC9C9' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+              Nueva sesión
+            </button>
+            <button
+              onClick={() => setPagoOpen(true)}
+              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+              style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.25)', color: '#F5A623' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+              Registrar pago
+            </button>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════
+            DESKTOP HEADER — igual que antes
+        ══════════════════════════════════════════════ */}
+        <div className="hidden lg:flex flex-col sm:flex-row sm:items-start justify-between gap-4 p-8 pb-0 mb-6 anim-fade-up">
           <div className="flex items-center gap-4">
             <Link href="/pacientes"
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
@@ -873,8 +985,8 @@ export function PatientDetailClient({
                 style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}>
                 {p.nombre[0]}{p.apellido[0]}
               </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
                   {p.apellido}, {p.nombre}
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -882,14 +994,18 @@ export function PatientDetailClient({
                     style={{ background: est.bg, color: est.color }}>{est.label}</span>
                   {edad && <span className="text-sm" style={{ color: '#5A6A88' }}>{edad} años</span>}
                   {p.obra_social && <span className="text-sm" style={{ color: '#5A6A88' }}>· {p.obra_social}</span>}
+                  {consultorioActivo && (
+                    <span className="flex items-center gap-1.5 text-sm" style={{ color: '#5A6A88' }}>
+                      · <span className="w-2 h-2 rounded-full inline-block" style={{ background: consultorioActivo.color }} />
+                      {consultorioActivo.nombre}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-
           <div className="flex items-center flex-wrap gap-2">
-            <button
-              onClick={() => setSesionOpen(true)}
+            <button onClick={() => setSesionOpen(true)}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
               style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -897,8 +1013,7 @@ export function PatientDetailClient({
               </svg>
               Sesión
             </button>
-            <button
-              onClick={() => setPagoOpen(true)}
+            <button onClick={() => setPagoOpen(true)}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
               style={{ background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.2)', color: '#F5A623' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -918,18 +1033,23 @@ export function PatientDetailClient({
           </div>
         </div>
 
+        {/* ══════════════════════════════════════════════
+            CONTENIDO (compartido mobile + desktop)
+        ══════════════════════════════════════════════ */}
+        <div className="px-4 lg:px-8 lg:pt-0">
+
         {/* ── Stats rápidas ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5 stagger">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4 lg:gap-3 lg:mb-5">
           {[
             { label: 'Sesiones',   value: String(sesiones.length), color: '#3EC9C9' },
             { label: 'Cobrado',    value: fmtMoney(totalPagado),    color: '#34D399' },
             { label: 'Pendiente',  value: fmtMoney(totalPendiente), color: '#FBBF24' },
-            { label: 'Documentos', value: String(docs.length),      color: '#A78BFA' },
+            { label: 'Docs',       value: String(docs.length),      color: '#A78BFA' },
           ].map(s => (
-            <div key={s.label} className="rounded-xl px-4 py-3 anim-fade-up"
+            <div key={s.label} className="rounded-xl p-3 lg:px-4 lg:py-3 min-w-0"
               style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <p className="text-xs mb-1" style={{ color: '#3A4560' }}>{s.label}</p>
-              <p className="text-lg font-bold" style={{ color: s.color, fontFamily: 'var(--font-display)' }}>{s.value}</p>
+              <p className="text-[10px] lg:text-xs mb-0.5 lg:mb-1 truncate" style={{ color: '#3A4560' }}>{s.label}</p>
+              <p className="text-sm lg:text-base font-bold truncate" style={{ color: s.color, fontFamily: 'var(--font-display)' }}>{s.value}</p>
             </div>
           ))}
         </div>
@@ -942,13 +1062,24 @@ export function PatientDetailClient({
             <div className="rounded-2xl p-5 space-y-3.5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#3A4560' }}>Datos personales</p>
-                <Link href={`/pacientes/${p.id}/editar`} className="text-xs font-medium transition-opacity hover:opacity-80" style={{ color: TEAL }}>Editar</Link>
+                <Link href={`/pacientes/${p.id}/editar`}
+                  className="text-xs font-medium transition-opacity hover:opacity-80 px-2 py-1.5 -mr-2 -my-1 rounded-lg"
+                  style={{ color: TEAL }}>Editar</Link>
               </div>
+              {consultorioActivo && (
+                <div className="flex items-center gap-2 pb-1 mb-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: consultorioActivo.color }} />
+                  <div>
+                    <p className="text-xs font-semibold tracking-widest uppercase mb-0" style={{ color: '#3A4560' }}>Consultorio</p>
+                    <p className="text-sm font-medium" style={{ color: consultorioActivo.color }}>{consultorioActivo.nombre}</p>
+                  </div>
+                </div>
+              )}
               <InfoItem label="DNI" value={p.dni} />
               <InfoItem label="Fecha de nac." value={p.fecha_nacimiento ? fmtDate(p.fecha_nacimiento) : null} />
               <InfoItem label="Teléfono" value={p.telefono} />
               <InfoItem label="Email" value={p.email} />
-              {!p.dni && !p.telefono && !p.email && !p.fecha_nacimiento && (
+              {!p.dni && !p.telefono && !p.email && !p.fecha_nacimiento && !consultorioActivo && (
                 <p className="text-xs" style={{ color: '#3A4560' }}>Sin datos adicionales</p>
               )}
             </div>
@@ -980,8 +1111,12 @@ export function PatientDetailClient({
                   Sesiones
                   <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: '#6B7A99' }}>{sesiones.length}</span>
                 </p>
-                <button onClick={() => setSesionOpen(true)} className="text-xs font-medium transition-opacity hover:opacity-80" style={{ color: TEAL }}>
-                  + Nueva sesión
+                <button onClick={() => setSesionOpen(true)}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
+                  style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
                 </button>
               </div>
               {sesiones.length === 0 ? (
@@ -1035,8 +1170,12 @@ export function PatientDetailClient({
                   Pagos
                   <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: '#6B7A99' }}>{pagos.length}</span>
                 </p>
-                <button onClick={() => setPagoOpen(true)} className="text-xs font-medium transition-opacity hover:opacity-80" style={{ color: AMBER }}>
-                  + Registrar pago
+                <button onClick={() => setPagoOpen(true)}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
+                  style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(245,166,35,0.15)' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke={AMBER} strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
                 </button>
               </div>
               {pagos.length === 0 ? (
@@ -1079,7 +1218,8 @@ export function PatientDetailClient({
 
           </div>
         </div>
-      </div>
+        </div>{/* /px-4 wrapper */}
+      </div>{/* /max-w-5xl */}
 
       {/* ── Modales ── */}
       <Modal
@@ -1091,6 +1231,8 @@ export function PatientDetailClient({
       >
         <SesionForm
           pacienteId={p.id}
+          consultorios={consultorios}
+          defaultConsultorioId={p.consultorio_id}
           onSuccess={() => { setSesionOpen(false); router.refresh() }}
           onCancel={() => setSesionOpen(false)}
         />
