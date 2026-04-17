@@ -9,15 +9,15 @@ const TEAL  = '#3EC9C9'
 const AMBER = '#F5A623'
 
 const estadoConfig: Record<string, { label: string; color: string; bg: string; dot: string }> = {
-  realizada:    { label: 'Realizada',    color: '#34D399', bg: 'rgba(52,211,153,0.12)',   dot: '#34D399' },
-  programada:   { label: 'Programada',   color: '#3EC9C9', bg: 'rgba(62,201,201,0.12)',   dot: '#3EC9C9' },
-  cancelada:    { label: 'Cancelada',    color: '#F87171', bg: 'rgba(248,113,113,0.12)',  dot: '#F87171' },
-  inasistencia: { label: 'Inasistencia', color: '#FBBF24', bg: 'rgba(251,191,36,0.12)',   dot: '#FBBF24' },
+  realizada:    { label: 'Realizada',    color: 'var(--success)', bg: 'rgba(52,211,153,0.12)',   dot: 'var(--success)' },
+  programada:   { label: 'Programada',   color: 'var(--primary)', bg: 'rgba(62,201,201,0.12)',   dot: 'var(--primary)' },
+  cancelada:    { label: 'Cancelada',    color: 'var(--danger)', bg: 'rgba(248,113,113,0.12)',  dot: 'var(--danger)' },
+  inasistencia: { label: 'Inasistencia', color: 'var(--warning)', bg: 'rgba(251,191,36,0.12)',   dot: 'var(--warning)' },
 }
 
 const tipoConfig: Record<string, { label: string; color: string }> = {
-  presencial: { label: 'Presencial', color: '#3EC9C9' },
-  virtual:    { label: 'Virtual',    color: '#A78BFA' },
+  presencial: { label: 'Presencial', color: 'var(--primary)' },
+  virtual:    { label: 'Virtual',    color: 'var(--virtual)' },
 }
 
 const DAYS_OF_WEEK = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -69,8 +69,8 @@ function fmtTime(t: string | null) {
 /* ── shared input styles ─────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8EDF5',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
 }
 const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
 
@@ -85,7 +85,7 @@ function blurReset(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
 
 function Label({ text, required }: { text: string; required?: boolean }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>
+    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>
       {text}{required && <span style={{ color: TEAL }}> *</span>}
     </p>
   )
@@ -107,7 +107,7 @@ function ToggleGroup({ value, onChange, options }: {
             style={{
               background: active ? `${color}18` : 'rgba(255,255,255,0.03)',
               border: `1px solid ${active ? color + '45' : 'rgba(255,255,255,0.07)'}`,
-              color: active ? color : '#5A6A88',
+              color: active ? color : 'var(--text-dim)',
             }}>{opt.label}</button>
         )
       })}
@@ -200,7 +200,7 @@ function NuevaSesionModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/70" style={{ backdropFilter: 'blur(6px)' }} onClick={onClose} />
       <div className="relative z-10 w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl"
-        style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.1)' }}>
+        style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
 
         {/* Drag pill */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden">
@@ -209,12 +209,12 @@ function NuevaSesionModal({
 
         {/* Header */}
         <div className="flex items-start justify-between px-5 py-4 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#0F1524' }}>
+          style={{ borderBottom: '1px solid var(--border)', background: 'var(--card)' }}>
           <div>
-            <h2 className="text-base font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+            <h2 className="text-base font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
               Nueva sesión
             </h2>
-            <p className="text-xs mt-0.5" style={{ color: '#5A6A88' }}>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
               {DAYS_OF_WEEK[new Date(form.fecha + 'T12:00:00').getDay()]}{' '}
               {new Date(form.fecha + 'T12:00:00').getDate()} de{' '}
               {MONTHS[new Date(form.fecha + 'T12:00:00').getMonth()]}
@@ -222,9 +222,9 @@ function NuevaSesionModal({
           </div>
           <button onClick={onClose}
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ml-3 transition-opacity hover:opacity-70"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M18 6L6 18M6 6l12 12" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
@@ -255,7 +255,7 @@ function NuevaSesionModal({
             )}
             {showDropdown && filtered.length > 0 && (
               <div data-dropdown className="absolute z-20 left-0 right-0 mt-1 rounded-xl overflow-hidden shadow-xl"
-                style={{ background: '#161D30', border: '1px solid rgba(255,255,255,0.1)' }}>
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                 {filtered.map(p => (
                   <button key={p.id} type="button" onMouseDown={() => selectPac(p)}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/5">
@@ -263,7 +263,7 @@ function NuevaSesionModal({
                       style={{ background: `${avatarColors(p.id)}1A`, color: avatarColors(p.id) }}>
                       {initials(p.nombre, p.apellido)}
                     </div>
-                    <span className="text-sm" style={{ color: '#C8D4E8' }}>
+                    <span className="text-sm" style={{ color: 'var(--foreground-muted)' }}>
                       {p.apellido}, {p.nombre}
                     </span>
                   </button>
@@ -272,7 +272,7 @@ function NuevaSesionModal({
             )}
             {showDropdown && search.length > 0 && filtered.length === 0 && (
               <div className="absolute z-20 left-0 right-0 mt-1 rounded-xl px-4 py-3 text-sm"
-                style={{ background: '#161D30', border: '1px solid rgba(255,255,255,0.1)', color: '#5A6A88' }}>
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text-dim)' }}>
                 Sin resultados
               </div>
             )}
@@ -302,7 +302,7 @@ function NuevaSesionModal({
             <Label text="Modalidad" />
             <ToggleGroup value={form.tipo} onChange={setStr('tipo')} options={[
               { value: 'presencial', label: 'Presencial', color: TEAL },
-              { value: 'virtual',    label: 'Virtual',    color: '#A78BFA' },
+              { value: 'virtual',    label: 'Virtual',    color: 'var(--virtual)' },
             ]} />
           </div>
 
@@ -310,9 +310,9 @@ function NuevaSesionModal({
             <Label text="Estado" />
             <ToggleGroup value={form.estado} onChange={setStr('estado')} options={[
               { value: 'programada',   label: 'Programada',   color: TEAL },
-              { value: 'realizada',    label: 'Realizada',    color: '#34D399' },
-              { value: 'cancelada',    label: 'Cancelada',    color: '#F87171' },
-              { value: 'inasistencia', label: 'Inasistencia', color: '#FBBF24' },
+              { value: 'realizada',    label: 'Realizada',    color: 'var(--success)' },
+              { value: 'cancelada',    label: 'Cancelada',    color: 'var(--danger)' },
+              { value: 'inasistencia', label: 'Inasistencia', color: 'var(--warning)' },
             ]} />
           </div>
 
@@ -328,7 +328,7 @@ function NuevaSesionModal({
                     style={{
                       background: form.consultorio_id === c.id ? `${c.color}15` : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${form.consultorio_id === c.id ? c.color + '55' : 'rgba(255,255,255,0.07)'}`,
-                      color: form.consultorio_id === c.id ? c.color : '#5A6A88',
+                      color: form.consultorio_id === c.id ? c.color : 'var(--text-dim)',
                     }}>
                     <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
                     {c.nombre}
@@ -352,10 +352,10 @@ function NuevaSesionModal({
               style={{
                 background: form.pagado ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${form.pagado ? 'rgba(52,211,153,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                color: form.pagado ? '#34D399' : '#5A6A88',
+                color: form.pagado ? 'var(--success)' : 'var(--text-dim)',
               }}>
               <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all"
-                style={{ borderColor: form.pagado ? '#34D399' : '#3A4560', background: form.pagado ? '#34D399' : 'transparent' }}>
+                style={{ borderColor: form.pagado ? 'var(--success)' : 'var(--text-subtle)', background: form.pagado ? 'var(--success)' : 'transparent' }}>
                 {form.pagado && <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
                   <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>}
@@ -375,7 +375,7 @@ function NuevaSesionModal({
 
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm"
-              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
               {error}
             </div>
           )}
@@ -383,12 +383,12 @@ function NuevaSesionModal({
           <div className="flex items-center gap-3 pt-1">
             <button type="button" onClick={onClose}
               className="flex-1 sm:flex-none h-11 px-5 rounded-xl text-sm font-medium flex items-center justify-center transition-opacity hover:opacity-70"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               Cancelar
             </button>
             <button type="submit" disabled={saving}
               className="flex-1 h-11 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
               {saving
                 ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
@@ -481,10 +481,10 @@ export default function AgendaPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 anim-fade-up">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
             Agenda
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: '#5A6A88' }}>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>
             Sesiones programadas y realizadas
           </p>
         </div>
@@ -496,20 +496,20 @@ export default function AgendaPage() {
             Hoy
           </button>
           <div className="flex items-center gap-1 rounded-xl overflow-hidden"
-            style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
             <button onClick={prevMonth}
               className="w-9 h-9 flex items-center justify-center transition-colors hover:bg-white/5">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M15 18l-6-6 6-6" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            <span className="px-2 text-sm font-semibold w-[130px] text-center" style={{ color: '#C8D4E8' }}>
+            <span className="px-2 text-sm font-semibold w-[130px] text-center" style={{ color: 'var(--foreground-muted)' }}>
               {MONTHS[month]} {year}
             </span>
             <button onClick={nextMonth}
               className="w-9 h-9 flex items-center justify-center transition-colors hover:bg-white/5">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M9 18l6-6-6-6" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9 18l6-6-6-6" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
@@ -520,13 +520,13 @@ export default function AgendaPage() {
 
         {/* Calendar */}
         <div className="flex-1 rounded-2xl overflow-hidden"
-          style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
 
           {/* Day-of-week header */}
           <div className="grid grid-cols-7">
             {DAYS_OF_WEEK.map(d => (
               <div key={d} className="py-3 text-center text-xs font-semibold tracking-widest uppercase"
-                style={{ color: '#3A4560', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                style={{ color: 'var(--text-subtle)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 {d}
               </div>
             ))}
@@ -578,7 +578,7 @@ export default function AgendaPage() {
                             className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-semibold"
                             style={{
                               background: isToday ? TEAL : isSelected ? 'rgba(62,201,201,0.15)' : 'transparent',
-                              color: isToday ? '#0A0E1A' : isSelected ? TEAL : '#6B7A99',
+                              color: isToday ? 'var(--primary-foreground)' : isSelected ? TEAL : 'var(--muted-foreground)',
                             }}>
                             {dayNum}
                           </span>
@@ -610,7 +610,7 @@ export default function AgendaPage() {
                             )
                           })}
                           {daySess.length > 3 && (
-                            <p className="text-center" style={{ color: '#3A4560', fontSize: '10px' }}>
+                            <p className="text-center" style={{ color: 'var(--text-subtle)', fontSize: '10px' }}>
                               +{daySess.length - 3} más
                             </p>
                           )}
@@ -638,7 +638,7 @@ export default function AgendaPage() {
 
         {/* Side panel */}
         <div className="w-full lg:w-72 flex-shrink-0 rounded-2xl overflow-hidden"
-          style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)', alignSelf: 'flex-start' }}>
+          style={{ background: 'var(--card)', border: '1px solid var(--border)', alignSelf: 'flex-start' }}>
 
           {/* Panel header */}
           <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
@@ -646,13 +646,13 @@ export default function AgendaPage() {
               <>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs font-semibold tracking-widest uppercase mb-0.5" style={{ color: '#3A4560' }}>
+                    <p className="text-xs font-semibold tracking-widest uppercase mb-0.5" style={{ color: 'var(--text-subtle)' }}>
                       {DAYS_OF_WEEK[new Date(selectedDay + 'T12:00:00').getDay()]}
                     </p>
-                    <p className="text-lg font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+                    <p className="text-lg font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
                       {new Date(selectedDay + 'T12:00:00').getDate()} de {MONTHS[new Date(selectedDay + 'T12:00:00').getMonth()]}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: '#5A6A88' }}>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                       {daySesiones.length === 0
                         ? 'Sin sesiones'
                         : `${daySesiones.length} sesión${daySesiones.length > 1 ? 'es' : ''}`}
@@ -663,7 +663,7 @@ export default function AgendaPage() {
                     onClick={() => setModalOpen(true)}
                     title="Nueva sesión"
                     className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all hover:opacity-80"
-                    style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.25)' }}>
+                    style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.25)' }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                       <path d="M12 5v14M5 12h14" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round"/>
                     </svg>
@@ -671,7 +671,7 @@ export default function AgendaPage() {
                 </div>
               </>
             ) : (
-              <p className="text-sm" style={{ color: '#5A6A88' }}>Seleccioná un día</p>
+              <p className="text-sm" style={{ color: 'var(--text-dim)' }}>Seleccioná un día</p>
             )}
           </div>
 
@@ -686,11 +686,11 @@ export default function AgendaPage() {
                     <path d="M16 2v4M8 2v4M3 10h18" stroke={TEAL} strokeWidth="1.8" strokeLinecap="round"/>
                   </svg>
                 </div>
-                <p className="text-xs mb-3" style={{ color: '#3A4560' }}>No hay sesiones este día</p>
+                <p className="text-xs mb-3" style={{ color: 'var(--text-subtle)' }}>No hay sesiones este día</p>
                 <button
                   onClick={() => setModalOpen(true)}
                   className="h-8 px-4 rounded-xl text-xs font-semibold transition-opacity hover:opacity-80"
-                  style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)', color: TEAL }}>
+                  style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: TEAL }}>
                   + Agregar sesión
                 </button>
               </div>
@@ -717,11 +717,11 @@ export default function AgendaPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate" style={{ color: '#D8E4F0' }}>
+                        <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground-muted)' }}>
                           {pac ? `${pac.apellido}, ${pac.nombre}` : '—'}
                         </p>
                         {s.hora_inicio && (
-                          <p className="text-xs" style={{ color: '#5A6A88' }}>
+                          <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
                             {fmtTime(s.hora_inicio)}{s.hora_fin ? ` – ${fmtTime(s.hora_fin)}` : ''}
                           </p>
                         )}
@@ -742,7 +742,7 @@ export default function AgendaPage() {
                         <span className="px-2 py-0.5 rounded-md text-xs font-medium ml-auto"
                           style={{
                             background: s.pagado ? 'rgba(52,211,153,0.08)' : 'rgba(251,191,36,0.08)',
-                            color: s.pagado ? '#34D399' : '#FBBF24',
+                            color: s.pagado ? 'var(--success)' : 'var(--warning)',
                           }}>
                           ${s.monto.toLocaleString('es-AR')}
                         </span>
@@ -751,7 +751,7 @@ export default function AgendaPage() {
 
                     {s.observaciones && (
                       <p className="text-xs mt-2 leading-relaxed line-clamp-2"
-                        style={{ color: '#4A5A78' }}>
+                        style={{ color: 'var(--text-subtle)' }}>
                         {s.observaciones}
                       </p>
                     )}
@@ -774,7 +774,7 @@ export default function AgendaPage() {
           {/* Quick stats */}
           {sesiones.length > 0 && (
             <div className="px-5 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: '#3A4560' }}>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-3" style={{ color: 'var(--text-subtle)' }}>
                 Este mes
               </p>
               <div className="space-y-2">
@@ -785,7 +785,7 @@ export default function AgendaPage() {
                     <div key={key} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full" style={{ background: cfg.dot }} />
-                        <span className="text-xs" style={{ color: '#5A6A88' }}>{cfg.label}</span>
+                        <span className="text-xs" style={{ color: 'var(--text-dim)' }}>{cfg.label}</span>
                       </div>
                       <span className="text-xs font-semibold" style={{ color: cfg.color }}>{count}</span>
                     </div>

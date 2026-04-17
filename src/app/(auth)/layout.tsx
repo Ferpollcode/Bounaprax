@@ -25,7 +25,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
                 <path d="M12 3v18M3 12h18" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
             </div>
-            <span className="text-xl font-semibold tracking-tight" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+            <span className="text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
               HealthPro
             </span>
           </div>
@@ -35,11 +35,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <div className="relative z-10 space-y-8">
           <div className="space-y-4">
             <h1 className="text-4xl font-bold leading-tight"
-              style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
+              style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)', lineHeight: 1.2 }}>
               Tu consultorio,<br/>
-              <span style={{ color: '#3EC9C9' }}>siempre contigo.</span>
+              <span style={{ color: 'var(--primary)' }}>siempre contigo.</span>
             </h1>
-            <p className="text-base leading-relaxed max-w-xs" style={{ color: '#6B7A99' }}>
+            <p className="text-base leading-relaxed max-w-xs" style={{ color: 'var(--muted-foreground)' }}>
               Gestión completa de pacientes para profesionales de la salud.
               Accedé desde cualquier dispositivo, en cualquier momento.
             </p>
@@ -54,8 +54,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               { icon: '◆', label: 'Multi-consultorio, un solo login' },
             ].map((f) => (
               <div key={f.label} className="flex items-center gap-3">
-                <span className="text-xs" style={{ color: '#3EC9C9' }}>{f.icon}</span>
-                <span className="text-sm" style={{ color: '#8A9AB8' }}>{f.label}</span>
+                <span className="text-xs" style={{ color: 'var(--primary)' }}>{f.icon}</span>
+                <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{f.label}</span>
               </div>
             ))}
           </div>
@@ -63,7 +63,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Bottom */}
         <div className="relative z-10">
-          <p className="text-xs" style={{ color: '#3A4560' }}>
+          <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
             Datos seguros · Sincronización en tiempo real
           </p>
         </div>
@@ -71,7 +71,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Right panel — form */}
       <div className="flex-1 flex items-center justify-center p-8"
-        style={{ background: '#0A0E1A' }}>
+        style={{ background: 'var(--background)' }}>
         {children}
       </div>
     </div>

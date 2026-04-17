@@ -40,19 +40,19 @@ export default function LoginPage() {
             <path d="M12 3v18M3 12h18" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </div>
-        <span className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: '#E8EDF5' }}>HealthPro</span>
+        <span className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--foreground)' }}>HealthPro</span>
       </div>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-1" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+        <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
           Bienvenido de vuelta
         </h2>
-        <p className="text-sm" style={{ color: '#6B7A99' }}>Ingresá tus credenciales para continuar</p>
+        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>Ingresá tus credenciales para continuar</p>
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: '#6B7A99' }}>
+          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>
             Email
           </label>
           <input
@@ -64,9 +64,9 @@ export default function LoginPage() {
             placeholder="tu@email.com"
             className="w-full h-11 px-4 rounded-xl text-sm transition-all outline-none"
             style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              color: '#E8EDF5',
+              background: 'var(--overlay-sm)',
+              border: '1px solid var(--border)',
+              color: 'var(--foreground)',
             }}
             onFocus={e => {
               e.target.style.border = '1px solid rgba(62,201,201,0.5)'
@@ -81,10 +81,10 @@ export default function LoginPage() {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-medium tracking-wide uppercase" style={{ color: '#6B7A99' }}>
+            <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>
               Contraseña
             </label>
-            <Link href="#" className="text-xs transition-colors hover:opacity-80" style={{ color: '#3EC9C9' }}>
+            <Link href="#" className="text-xs transition-colors hover:opacity-80" style={{ color: 'var(--primary)' }}>
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
@@ -98,9 +98,9 @@ export default function LoginPage() {
               placeholder="••••••••"
               className="w-full h-11 px-4 pr-11 rounded-xl text-sm transition-all outline-none"
               style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                color: '#E8EDF5',
+                background: 'var(--overlay-sm)',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
               }}
               onFocus={e => {
                 e.target.style.border = '1px solid rgba(62,201,201,0.5)'
@@ -115,7 +115,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => setShowPassword(v => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-80"
-              style={{ color: '#6B7A99' }}
+              style={{ color: 'var(--muted-foreground)' }}
               tabIndex={-1}
             >
               {showPassword ? (
@@ -135,7 +135,7 @@ export default function LoginPage() {
 
         {error && (
           <div className="rounded-xl px-4 py-3 text-sm"
-            style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+            style={{ background: 'var(--danger-dim)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
             {error}
           </div>
         )}
@@ -146,7 +146,7 @@ export default function LoginPage() {
           className="w-full h-11 rounded-xl text-sm font-semibold transition-all mt-2"
           style={{
             background: loading ? 'rgba(62,201,201,0.5)' : 'linear-gradient(135deg, #3EC9C9, #2BA8A8)',
-            color: '#0A0E1A',
+            color: 'var(--primary-foreground)',
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
@@ -154,9 +154,9 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm" style={{ color: '#6B7A99' }}>
+      <p className="mt-6 text-center text-sm" style={{ color: 'var(--muted-foreground)' }}>
         ¿No tenés cuenta?{' '}
-        <Link href="/register" className="font-medium transition-colors hover:opacity-80" style={{ color: '#3EC9C9' }}>
+        <Link href="/register" className="font-medium transition-colors hover:opacity-80" style={{ color: 'var(--primary)' }}>
           Registrate gratis
         </Link>
       </p>

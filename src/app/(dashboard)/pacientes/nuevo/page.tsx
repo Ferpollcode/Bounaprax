@@ -23,14 +23,14 @@ function blurReset(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
 const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8EDF5',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
 }
 
 /* ── sub-componentes ───────────────────────────────────── */
 function Label({ text, required }: { text: string; required?: boolean }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>
+    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>
       {text}{required && <span style={{ color: TEAL }}> *</span>}
     </p>
   )
@@ -52,10 +52,10 @@ function TInput({ value, onChange, placeholder, type = 'text', required }: {
 
 function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
       <div className="flex items-center gap-2.5 px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <span style={{ color: TEAL }}>{icon}</span>
-        <span className="text-sm font-semibold" style={{ color: '#C8D4E8' }}>{title}</span>
+        <span className="text-sm font-semibold" style={{ color: 'var(--foreground-muted)' }}>{title}</span>
       </div>
       <div className="p-6 space-y-4">{children}</div>
     </div>
@@ -91,16 +91,16 @@ function fileIcon(file: File) {
   )
   if (file.type === 'application/pdf') return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#F87171" strokeWidth="1.8" strokeLinecap="round"/>
-      <polyline points="14,2 14,8 20,8" stroke="#F87171" strokeWidth="1.8" strokeLinecap="round"/>
-      <line x1="9" y1="13" x2="15" y2="13" stroke="#F87171" strokeWidth="1.8" strokeLinecap="round"/>
-      <line x1="9" y1="17" x2="13" y2="17" stroke="#F87171" strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="var(--danger)" strokeWidth="1.8" strokeLinecap="round"/>
+      <polyline points="14,2 14,8 20,8" stroke="var(--danger)" strokeWidth="1.8" strokeLinecap="round"/>
+      <line x1="9" y1="13" x2="15" y2="13" stroke="var(--danger)" strokeWidth="1.8" strokeLinecap="round"/>
+      <line x1="9" y1="17" x2="13" y2="17" stroke="var(--danger)" strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   )
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="#6B7A99" strokeWidth="1.8" strokeLinecap="round"/>
-      <polyline points="14,2 14,8 20,8" stroke="#6B7A99" strokeWidth="1.8" strokeLinecap="round"/>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="var(--muted-foreground)" strokeWidth="1.8" strokeLinecap="round"/>
+      <polyline points="14,2 14,8 20,8" stroke="var(--muted-foreground)" strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   )
 }
@@ -236,30 +236,30 @@ export default function NuevoPacientePage() {
   }
 
   const estadoOpts = [
-    { value: 'activo',   label: 'Activo',   color: '#34D399', bg: 'rgba(52,211,153,0.1)'   },
-    { value: 'inactivo', label: 'Inactivo', color: '#6B7A99', bg: 'rgba(107,122,153,0.1)'  },
-    { value: 'alta',     label: 'Alta',     color: '#FBBF24', bg: 'rgba(251,191,36,0.1)'   },
-    { value: 'derivado', label: 'Derivado', color: '#F87171', bg: 'rgba(248,113,113,0.1)'  },
+    { value: 'activo',   label: 'Activo',   color: 'var(--success)', bg: 'rgba(52,211,153,0.1)'   },
+    { value: 'inactivo', label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'rgba(107,122,153,0.1)'  },
+    { value: 'alta',     label: 'Alta',     color: 'var(--warning)', bg: 'rgba(251,191,36,0.1)'   },
+    { value: 'derivado', label: 'Derivado', color: 'var(--danger)', bg: 'rgba(248,113,113,0.1)'  },
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* ── Header ── */}
         <div className="flex items-center gap-4 mb-8 anim-fade-up">
           <Link href="/pacientes"
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 19l-7-7 7-7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 12H5M12 19l-7-7 7-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold leading-tight" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+            <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
               Nuevo paciente
             </h1>
-            <p className="text-sm mt-0.5" style={{ color: '#5A6A88' }}>Completá los datos para crear el perfil</p>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>Completá los datos para crear el perfil</p>
           </div>
         </div>
 
@@ -346,7 +346,7 @@ export default function NuevoPacientePage() {
                     style={{
                       background: consultorioId === c.id ? `${c.color}15` : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${consultorioId === c.id ? c.color + '55' : 'rgba(255,255,255,0.07)'}`,
-                      color: consultorioId === c.id ? c.color : '#6B7A99',
+                      color: consultorioId === c.id ? c.color : 'var(--muted-foreground)',
                     }}
                   >
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: c.color }} />
@@ -362,7 +362,7 @@ export default function NuevoPacientePage() {
               {consultorioId && (
                 <button type="button" onClick={() => setConsultorioId('')}
                   className="text-xs transition-opacity hover:opacity-70 mt-1"
-                  style={{ color: '#5A6A88' }}>
+                  style={{ color: 'var(--text-dim)' }}>
                   Quitar asignación
                 </button>
               )}
@@ -410,7 +410,7 @@ export default function NuevoPacientePage() {
                     style={{
                       background: form.estado === opt.value ? opt.bg : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${form.estado === opt.value ? opt.color + '50' : 'rgba(255,255,255,0.07)'}`,
-                      color: form.estado === opt.value ? opt.color : '#5A6A88',
+                      color: form.estado === opt.value ? opt.color : 'var(--text-dim)',
                     }}
                   >{opt.label}</button>
                 ))}
@@ -447,7 +447,7 @@ export default function NuevoPacientePage() {
                     style={{
                       background: form.condicion_iva === opt ? 'rgba(62,201,201,0.12)' : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${form.condicion_iva === opt ? 'rgba(62,201,201,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                      color: form.condicion_iva === opt ? '#3EC9C9' : '#5A6A88',
+                      color: form.condicion_iva === opt ? 'var(--primary)' : 'var(--text-dim)',
                     }}>{opt}</button>
                 ))}
               </div>
@@ -490,17 +490,17 @@ export default function NuevoPacientePage() {
               }}
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)' }}>
+                style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke={TEAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <polyline points="17,8 12,3 7,8" stroke={TEAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   <line x1="12" y1="3" x2="12" y2="15" stroke={TEAL} strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
-              <p className="text-sm font-medium" style={{ color: '#C8D4E8' }}>
+              <p className="text-sm font-medium" style={{ color: 'var(--foreground-muted)' }}>
                 {dragging ? 'Soltá los archivos aquí' : 'Arrastrá archivos o hacé click'}
               </p>
-              <p className="text-xs" style={{ color: '#5A6A88' }}>
+              <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
                 JPG, PNG, PDF, DOC · Máx. 20 MB por archivo
               </p>
             </div>
@@ -515,7 +515,7 @@ export default function NuevoPacientePage() {
               <div className="space-y-2 mt-1">
                 {files.map(item => (
                   <div key={item.id} className="rounded-xl p-3 flex items-center gap-3"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    style={{ background: 'var(--overlay-sm)', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <div className="flex-shrink-0">{fileIcon(item.file)}</div>
 
                     {/* Nombre editable */}
@@ -524,13 +524,13 @@ export default function NuevoPacientePage() {
                         value={item.nombre}
                         onChange={e => updateFile(item.id, { nombre: e.target.value })}
                         className="w-full bg-transparent text-sm outline-none font-medium"
-                        style={{ color: '#C8D4E8' }}
+                        style={{ color: 'var(--foreground-muted)' }}
                       />
-                      <p className="text-xs mt-0.5 truncate" style={{ color: '#5A6A88' }}>
+                      <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-dim)' }}>
                         {item.file.name} · {formatBytes(item.file.size)}
                       </p>
                       {item.error && (
-                        <p className="text-xs mt-0.5" style={{ color: '#F87171' }}>{item.error}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--danger)' }}>{item.error}</p>
                       )}
                     </div>
 
@@ -539,7 +539,7 @@ export default function NuevoPacientePage() {
                       value={item.tipo}
                       onChange={e => updateFile(item.id, { tipo: e.target.value as FileItem['tipo'] })}
                       className="text-xs h-7 px-2 rounded-lg outline-none"
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#8A9AB8' }}
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}
                     >
                       {TIPO_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
@@ -553,8 +553,8 @@ export default function NuevoPacientePage() {
                       <button type="button" onClick={() => removeFile(item.id)}
                         className="flex-shrink-0 transition-opacity hover:opacity-60">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <line x1="18" y1="6" x2="6" y2="18" stroke="#5A6A88" strokeWidth="2" strokeLinecap="round"/>
-                          <line x1="6" y1="6" x2="18" y2="18" stroke="#5A6A88" strokeWidth="2" strokeLinecap="round"/>
+                          <line x1="18" y1="6" x2="6" y2="18" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round"/>
+                          <line x1="6" y1="6" x2="18" y2="18" stroke="var(--text-dim)" strokeWidth="2" strokeLinecap="round"/>
                         </svg>
                       </button>
                     )}
@@ -567,7 +567,7 @@ export default function NuevoPacientePage() {
           {/* ── Error ── */}
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm flex items-center gap-2"
-              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                 <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -581,14 +581,14 @@ export default function NuevoPacientePage() {
           <div className="flex items-center justify-end gap-3 pt-1 pb-8">
             <Link href="/pacientes"
               className="h-10 px-5 rounded-xl text-sm font-medium flex items-center transition-opacity hover:opacity-70"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               Cancelar
             </Link>
             <button type="submit" disabled={saving}
               className="h-10 px-6 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-90"
               style={{
                 background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)',
-                color: '#0A0E1A',
+                color: 'var(--primary-foreground)',
                 cursor: saving ? 'not-allowed' : 'pointer',
               }}>
               {saving ? (

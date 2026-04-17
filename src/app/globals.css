@@ -42,8 +42,9 @@
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
-/* HealthPro dark theme — always dark */
-:root {
+/* HealthPro — dark theme (default) */
+:root,
+.dark {
   --background: #0A0E1A;
   --foreground: #E8EDF5;
   --card: #0F1524;
@@ -79,6 +80,69 @@
   --success: #34D399;
   --warning: #FBBF24;
   --danger: #F87171;
+  --sidebar-action-bg: rgba(255, 255, 255, 0.05);
+  --sidebar-action-border: rgba(255, 255, 255, 0.08);
+  --sidebar-user-bg: rgba(255, 255, 255, 0.03);
+  --foreground-muted: #C8D4E8;
+  --text-dim: #5A6A88;
+  --success-dim: rgba(52, 211, 153, 0.12);
+  --danger-dim: rgba(248, 113, 113, 0.12);
+  --warning-dim: rgba(251, 191, 36, 0.12);
+  --virtual-dim: rgba(167, 139, 250, 0.12);
+  --virtual: #A78BFA;
+  --overlay-sm: rgba(255, 255, 255, 0.05);
+  --overlay-md: rgba(255, 255, 255, 0.08);
+}
+
+/* HealthPro — light theme */
+.light {
+  --background: #F2F5FA;
+  --foreground: #0D1220;
+  --card: #FFFFFF;
+  --card-foreground: #0D1220;
+  --popover: #FFFFFF;
+  --popover-foreground: #0D1220;
+  --primary: #2BA8A8;
+  --primary-foreground: #FFFFFF;
+  --secondary: #E8EDF5;
+  --secondary-foreground: #0D1220;
+  --muted: #E8EDF5;
+  --muted-foreground: #6B7A99;
+  --accent: #D4900F;
+  --accent-foreground: #FFFFFF;
+  --destructive: #DC2626;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.07);
+  --ring: #2BA8A8;
+  --radius: 0.75rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0D1220;
+  --sidebar-primary: #2BA8A8;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: rgba(43, 168, 168, 0.1);
+  --sidebar-accent-foreground: #2BA8A8;
+  --sidebar-border: rgba(0, 0, 0, 0.07);
+  --sidebar-ring: #2BA8A8;
+  /* custom tokens */
+  --surface-2: #E8EDF5;
+  --text-subtle: #B0BCCC;
+  --teal-dim: rgba(43, 168, 168, 0.1);
+  --amber-dim: rgba(212, 144, 15, 0.1);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #DC2626;
+  --sidebar-action-bg: rgba(0, 0, 0, 0.04);
+  --sidebar-action-border: rgba(0, 0, 0, 0.08);
+  --sidebar-user-bg: rgba(0, 0, 0, 0.03);
+  --foreground-muted: #475569;
+  --text-dim: #94A3B8;
+  --success-dim: rgba(16, 185, 129, 0.12);
+  --danger-dim: rgba(220, 38, 38, 0.12);
+  --warning-dim: rgba(245, 158, 11, 0.12);
+  --virtual-dim: rgba(139, 92, 246, 0.12);
+  --virtual: #7C3AED;
+  --overlay-sm: rgba(0, 0, 0, 0.04);
+  --overlay-md: rgba(0, 0, 0, 0.07);
 }
 
 @layer base {

@@ -11,7 +11,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const userName = (user.user_metadata?.nombre as string | undefined) || undefined
 
   return (
-    <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <Sidebar userEmail={user.email} userName={userName} />
       <main className="lg:ml-[220px] min-h-screen pt-14 lg:pt-0 mobile-safe-bottom overflow-x-hidden">
         {children}

@@ -8,8 +8,8 @@ import { extractIdFromSlug } from '@/lib/utils'
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8EDF5',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
 }
 const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
 const TEAL = '#3EC9C9'
@@ -25,7 +25,7 @@ function blurReset(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
 
 function Label({ text, required }: { text: string; required?: boolean }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>
+    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>
       {text}{required && <span style={{ color: TEAL }}> *</span>}
     </p>
   )
@@ -33,10 +33,10 @@ function Label({ text, required }: { text: string; required?: boolean }) {
 
 function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
       <div className="flex items-center gap-2.5 px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <span style={{ color: TEAL }}>{icon}</span>
-        <span className="text-sm font-semibold" style={{ color: '#C8D4E8' }}>{title}</span>
+        <span className="text-sm font-semibold" style={{ color: 'var(--foreground-muted)' }}>{title}</span>
       </div>
       <div className="p-6 space-y-4">{children}</div>
     </div>
@@ -59,7 +59,7 @@ function ToggleGroup({ value, onChange, options }: {
             style={{
               background: active ? `${color}18` : 'rgba(255,255,255,0.03)',
               border: `1px solid ${active ? color + '45' : 'rgba(255,255,255,0.07)'}`,
-              color: active ? color : '#5A6A88',
+              color: active ? color : 'var(--text-dim)',
             }}>{opt.label}</button>
         )
       })}
@@ -133,20 +133,20 @@ export default function NuevaSesionPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         <div className="flex items-center gap-4 mb-8 anim-fade-up">
           <Link href={`/pacientes/${slug}`}
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 19l-7-7 7-7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 12H5M12 19l-7-7 7-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>Nueva sesión</h1>
-            <p className="text-sm mt-0.5" style={{ color: '#5A6A88' }}>Registrá el encuentro con el paciente</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>Nueva sesión</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>Registrá el encuentro con el paciente</p>
           </div>
         </div>
 
@@ -180,18 +180,18 @@ export default function NuevaSesionPage() {
             <div>
               <Label text="Modalidad" />
               <ToggleGroup value={form.tipo} onChange={set('tipo')} options={[
-                { value: 'presencial', label: 'Presencial', color: '#3EC9C9' },
-                { value: 'virtual',    label: 'Virtual',    color: '#A78BFA' },
+                { value: 'presencial', label: 'Presencial', color: 'var(--primary)' },
+                { value: 'virtual',    label: 'Virtual',    color: 'var(--virtual)' },
               ]} />
             </div>
 
             <div>
               <Label text="Estado" />
               <ToggleGroup value={form.estado} onChange={set('estado')} options={[
-                { value: 'realizada',    label: 'Realizada',    color: '#34D399' },
-                { value: 'programada',   label: 'Programada',   color: '#3EC9C9' },
-                { value: 'cancelada',    label: 'Cancelada',    color: '#F87171' },
-                { value: 'inasistencia', label: 'Inasistencia', color: '#FBBF24' },
+                { value: 'realizada',    label: 'Realizada',    color: 'var(--success)' },
+                { value: 'programada',   label: 'Programada',   color: 'var(--primary)' },
+                { value: 'cancelada',    label: 'Cancelada',    color: 'var(--danger)' },
+                { value: 'inasistencia', label: 'Inasistencia', color: 'var(--warning)' },
               ]} />
             </div>
           </Card>
@@ -261,10 +261,10 @@ export default function NuevaSesionPage() {
                   style={{
                     background: form.pagado ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.03)',
                     border: `1px solid ${form.pagado ? 'rgba(52,211,153,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                    color: form.pagado ? '#34D399' : '#5A6A88',
+                    color: form.pagado ? 'var(--success)' : 'var(--text-dim)',
                   }}>
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all`}
-                    style={{ borderColor: form.pagado ? '#34D399' : '#3A4560', background: form.pagado ? '#34D399' : 'transparent' }}>
+                    style={{ borderColor: form.pagado ? 'var(--success)' : 'var(--text-subtle)', background: form.pagado ? 'var(--success)' : 'transparent' }}>
                     {form.pagado && <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
                       <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>}
@@ -277,7 +277,7 @@ export default function NuevaSesionPage() {
 
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm flex items-center gap-2"
-              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
               {error}
             </div>
           )}
@@ -285,12 +285,12 @@ export default function NuevaSesionPage() {
           <div className="flex items-center justify-end gap-3 pt-1 pb-8">
             <Link href={`/pacientes/${slug}`}
               className="h-10 px-5 rounded-xl text-sm font-medium flex items-center transition-opacity hover:opacity-70"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               Cancelar
             </Link>
             <button type="submit" disabled={saving}
               className="h-10 px-6 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-90"
-              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
               {saving ? (<><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
               </svg>Guardando…</>) : (<>

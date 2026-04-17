@@ -10,8 +10,8 @@ type ConsultorioOpt = { id: string; nombre: string; color: string }
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8EDF5',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
 }
 const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
 const TEAL = '#3EC9C9'
@@ -27,7 +27,7 @@ function blurReset(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
 
 function Label({ text, required }: { text: string; required?: boolean }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>
+    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>
       {text}{required && <span style={{ color: TEAL }}> *</span>}
     </p>
   )
@@ -35,10 +35,10 @@ function Label({ text, required }: { text: string; required?: boolean }) {
 
 function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
       <div className="flex items-center gap-2.5 px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <span style={{ color: TEAL }}>{icon}</span>
-        <span className="text-sm font-semibold" style={{ color: '#C8D4E8' }}>{title}</span>
+        <span className="text-sm font-semibold" style={{ color: 'var(--foreground-muted)' }}>{title}</span>
       </div>
       <div className="p-6 space-y-4">{children}</div>
     </div>
@@ -46,10 +46,10 @@ function Card({ title, icon, children }: { title: string; icon: React.ReactNode;
 }
 
 const estadoOpts = [
-  { value: 'activo',   label: 'Activo',   color: '#34D399', bg: 'rgba(52,211,153,0.1)'  },
-  { value: 'inactivo', label: 'Inactivo', color: '#6B7A99', bg: 'rgba(107,122,153,0.1)' },
-  { value: 'alta',     label: 'Alta',     color: '#FBBF24', bg: 'rgba(251,191,36,0.1)'  },
-  { value: 'derivado', label: 'Derivado', color: '#F87171', bg: 'rgba(248,113,113,0.1)' },
+  { value: 'activo',   label: 'Activo',   color: 'var(--success)', bg: 'rgba(52,211,153,0.1)'  },
+  { value: 'inactivo', label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'rgba(107,122,153,0.1)' },
+  { value: 'alta',     label: 'Alta',     color: 'var(--warning)', bg: 'rgba(251,191,36,0.1)'  },
+  { value: 'derivado', label: 'Derivado', color: 'var(--danger)', bg: 'rgba(248,113,113,0.1)' },
 ]
 
 export default function EditarPacientePage() {
@@ -150,19 +150,19 @@ export default function EditarPacientePage() {
   )
 
   return (
-    <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="flex items-center gap-4 mb-8 anim-fade-up">
           <Link href={`/pacientes/${slug}`}
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 19l-7-7 7-7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 12H5M12 19l-7-7 7-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>Editar paciente</h1>
-            <p className="text-sm mt-0.5" style={{ color: '#5A6A88' }}>Modificá los datos del perfil</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>Editar paciente</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>Modificá los datos del perfil</p>
           </div>
         </div>
 
@@ -221,7 +221,7 @@ export default function EditarPacientePage() {
                     style={{
                       background: consultorioId === c.id ? `${c.color}15` : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${consultorioId === c.id ? c.color + '55' : 'rgba(255,255,255,0.07)'}`,
-                      color: consultorioId === c.id ? c.color : '#6B7A99',
+                      color: consultorioId === c.id ? c.color : 'var(--muted-foreground)',
                     }}
                   >
                     <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: c.color }} />
@@ -237,7 +237,7 @@ export default function EditarPacientePage() {
               {consultorioId && (
                 <button type="button" onClick={() => setConsultorioId('')}
                   className="text-xs transition-opacity hover:opacity-70 mt-1"
-                  style={{ color: '#5A6A88' }}>
+                  style={{ color: 'var(--text-dim)' }}>
                   Quitar asignación
                 </button>
               )}
@@ -273,7 +273,7 @@ export default function EditarPacientePage() {
                     style={{
                       background: form.estado === opt.value ? opt.bg : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${form.estado === opt.value ? opt.color + '50' : 'rgba(255,255,255,0.07)'}`,
-                      color: form.estado === opt.value ? opt.color : '#5A6A88',
+                      color: form.estado === opt.value ? opt.color : 'var(--text-dim)',
                     }}>{opt.label}</button>
                 ))}
               </div>
@@ -299,7 +299,7 @@ export default function EditarPacientePage() {
                     style={{
                       background: form.condicion_iva === opt ? 'rgba(62,201,201,0.12)' : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${form.condicion_iva === opt ? 'rgba(62,201,201,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                      color: form.condicion_iva === opt ? '#3EC9C9' : '#5A6A88',
+                      color: form.condicion_iva === opt ? 'var(--primary)' : 'var(--text-dim)',
                     }}>{opt}</button>
                 ))}
               </div>
@@ -313,7 +313,7 @@ export default function EditarPacientePage() {
 
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm flex items-center gap-2"
-              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
               {error}
             </div>
           )}
@@ -321,12 +321,12 @@ export default function EditarPacientePage() {
           <div className="flex items-center justify-end gap-3 pt-1 pb-8">
             <Link href={`/pacientes/${slug}`}
               className="h-10 px-5 rounded-xl text-sm font-medium flex items-center transition-opacity hover:opacity-70"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               Cancelar
             </Link>
             <button type="submit" disabled={saving}
               className="h-10 px-6 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-90"
-              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
               {saving ? (
                 <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>

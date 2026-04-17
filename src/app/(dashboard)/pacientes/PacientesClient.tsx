@@ -8,10 +8,10 @@ import type { Paciente } from '@/types'
 import { pacienteSlug } from '@/lib/utils'
 
 const estadoConfig = {
-  activo:   { label: 'Activo',   color: '#34D399', bg: 'rgba(52,211,153,0.1)'  },
-  inactivo: { label: 'Inactivo', color: '#6B7A99', bg: 'rgba(107,122,153,0.1)' },
-  alta:     { label: 'Alta',     color: '#FBBF24', bg: 'rgba(251,191,36,0.1)'  },
-  derivado: { label: 'Derivado', color: '#F87171', bg: 'rgba(248,113,113,0.1)' },
+  activo:   { label: 'Activo',   color: 'var(--success)', bg: 'rgba(52,211,153,0.1)'  },
+  inactivo: { label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'rgba(107,122,153,0.1)' },
+  alta:     { label: 'Alta',     color: 'var(--warning)', bg: 'rgba(251,191,36,0.1)'  },
+  derivado: { label: 'Derivado', color: 'var(--danger)', bg: 'rgba(248,113,113,0.1)' },
 }
 
 function initials(nombre: string, apellido: string) {
@@ -68,14 +68,14 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger">
         {[
-          { label: 'Total',      value: stats.total,    color: '#3EC9C9', bg: 'rgba(62,201,201,0.08)'  },
-          { label: 'Activos',    value: stats.activos,  color: '#34D399', bg: 'rgba(52,211,153,0.08)'  },
-          { label: 'Inactivos',  value: stats.inactivos,color: '#6B7A99', bg: 'rgba(107,122,153,0.08)' },
-          { label: 'Alta médica',value: stats.alta,     color: '#FBBF24', bg: 'rgba(251,191,36,0.08)'  },
+          { label: 'Total',      value: stats.total,    color: 'var(--primary)', bg: 'rgba(62,201,201,0.08)'  },
+          { label: 'Activos',    value: stats.activos,  color: 'var(--success)', bg: 'rgba(52,211,153,0.08)'  },
+          { label: 'Inactivos',  value: stats.inactivos,color: 'var(--muted-foreground)', bg: 'rgba(107,122,153,0.08)' },
+          { label: 'Alta médica',value: stats.alta,     color: 'var(--warning)', bg: 'rgba(251,191,36,0.08)'  },
         ].map((s) => (
           <div key={s.label} className="rounded-2xl p-5 anim-fade-up"
             style={{ background: s.bg, border: '1px solid rgba(255,255,255,0.05)' }}>
-            <p className="text-xs font-medium mb-2" style={{ color: '#6B7A99' }}>{s.label}</p>
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted-foreground)' }}>{s.label}</p>
             <p className="text-3xl font-bold" style={{ color: s.color, fontFamily: 'var(--font-display)' }}>
               {s.value}
             </p>
@@ -86,21 +86,21 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
       {/* List */}
       {lista.length === 0 ? (
         <div className="rounded-2xl p-10 sm:p-16 text-center anim-fade-up"
-          style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
+          style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center"
             style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)' }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#3EC9C9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="9" cy="7" r="4" stroke="#3EC9C9" strokeWidth="1.8"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#3EC9C9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="9" cy="7" r="4" stroke="var(--primary)" strokeWidth="1.8"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <p className="text-base font-medium mb-2" style={{ color: '#E8EDF5' }}>No hay pacientes aún</p>
-          <p className="text-sm mb-6" style={{ color: '#6B7A99' }}>Agregá tu primer paciente para comenzar</p>
+          <p className="text-base font-medium mb-2" style={{ color: 'var(--foreground)' }}>No hay pacientes aún</p>
+          <p className="text-sm mb-6" style={{ color: 'var(--muted-foreground)' }}>Agregá tu primer paciente para comenzar</p>
           <Link
             href="/pacientes/nuevo"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-            style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}
+            style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
@@ -110,11 +110,11 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
         </div>
       ) : (
         <div className="rounded-2xl overflow-hidden anim-fade-up"
-          style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
+          style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
 
           {/* Desktop table header */}
           <div className="hidden lg:grid grid-cols-12 px-6 py-3 text-xs font-semibold tracking-wide uppercase"
-            style={{ color: '#3A4560', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+            style={{ color: 'var(--text-subtle)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <span className="col-span-4">Paciente</span>
             <span className="col-span-3">Contacto</span>
             <span className="col-span-2">Obra Social</span>
@@ -145,10 +145,10 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
                         {initials(p.nombre, p.apellido)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium" style={{ color: '#E8EDF5' }}>
+                        <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
                           {p.apellido}, {p.nombre}
                         </p>
-                        <p className="text-xs truncate mt-0.5" style={{ color: '#5A6A88' }}>
+                        <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-dim)' }}>
                           {p.telefono || p.email || p.obra_social || '—'}
                         </p>
                       </div>
@@ -159,7 +159,7 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
                     </div>
                     <button
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-xl transition-all"
-                      style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.12)', color: '#F87171' }}
+                      style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.12)', color: 'var(--danger)' }}
                       onClick={() => setDeleteConfirm(p.id)}
                       aria-label="Eliminar paciente"
                     >
@@ -179,24 +179,24 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
                           {initials(p.nombre, p.apellido)}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium" style={{ color: '#E8EDF5' }}>
+                          <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>
                             {p.apellido}, {p.nombre}
                           </p>
                           {p.fecha_nacimiento && (
-                            <p className="text-xs" style={{ color: '#3A4560' }}>
+                            <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
                               {new Date().getFullYear() - new Date(p.fecha_nacimiento).getFullYear()} años
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="col-span-3 min-w-0">
-                        {p.telefono && <p className="text-sm" style={{ color: '#6B7A99' }}>{p.telefono}</p>}
-                        {p.email && <p className="text-xs truncate" style={{ color: '#3A4560' }}>{p.email}</p>}
+                        {p.telefono && <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{p.telefono}</p>}
+                        {p.email && <p className="text-xs truncate" style={{ color: 'var(--text-subtle)' }}>{p.email}</p>}
                       </div>
                       <div className="col-span-2 min-w-0">
                         {p.obra_social
-                          ? <p className="text-sm truncate" style={{ color: '#6B7A99' }}>{p.obra_social}</p>
-                          : <span className="text-xs" style={{ color: '#3A4560' }}>—</span>}
+                          ? <p className="text-sm truncate" style={{ color: 'var(--muted-foreground)' }}>{p.obra_social}</p>
+                          : <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>—</span>}
                       </div>
                       <div className="col-span-2 flex">
                         <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium"
@@ -209,7 +209,7 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
                     <div className="flex items-center px-4">
                       <button
                         className="w-8 h-8 flex items-center justify-center rounded-xl opacity-0 group-hover:opacity-100 transition-all"
-                        style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.12)', color: '#F87171' }}
+                        style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.12)', color: 'var(--danger)' }}
                         onClick={() => setDeleteConfirm(p.id)}
                         aria-label="Eliminar paciente"
                       >
@@ -233,29 +233,29 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
         >
           <div
             className="rounded-2xl p-6 max-w-sm w-full anim-fade-up"
-            style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
             onClick={e => e.stopPropagation()}
           >
             <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)' }}>
+              style={{ background: 'var(--danger-dim)', border: '1px solid rgba(248,113,113,0.2)' }}>
               <TrashIcon />
             </div>
             <h3 className="text-base font-semibold text-center mb-1"
-              style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+              style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
               ¿Eliminar paciente?
             </h3>
             {pacienteAEliminar && (
-              <p className="text-sm text-center mb-1" style={{ color: '#6B7A99' }}>
+              <p className="text-sm text-center mb-1" style={{ color: 'var(--muted-foreground)' }}>
                 {pacienteAEliminar.apellido}, {pacienteAEliminar.nombre}
               </p>
             )}
-            <p className="text-xs text-center mb-6" style={{ color: '#3A4560' }}>
+            <p className="text-xs text-center mb-6" style={{ color: 'var(--text-subtle)' }}>
               Esta acción eliminará el paciente y no se puede deshacer.
             </p>
             <div className="flex gap-3">
               <button
                 className="flex-1 h-10 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}
                 onClick={() => setDeleteConfirm(null)}
                 disabled={deleting}
               >
@@ -263,7 +263,7 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
               </button>
               <button
                 className="flex-1 h-10 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
-                style={{ background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.3)', color: '#F87171' }}
+                style={{ background: 'rgba(248,113,113,0.15)', border: '1px solid rgba(248,113,113,0.3)', color: 'var(--danger)' }}
                 onClick={handleDelete}
                 disabled={deleting}
               >

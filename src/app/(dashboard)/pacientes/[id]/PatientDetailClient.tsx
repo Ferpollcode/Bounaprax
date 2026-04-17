@@ -12,16 +12,16 @@ export type DocWithPath = Documento & { storagePath: string }
 
 /* ── constants ──────────────────────────────────────────── */
 const estadoConfig: Record<string, { label: string; color: string; bg: string }> = {
-  activo:   { label: 'Activo',   color: '#34D399', bg: 'rgba(52,211,153,0.1)'  },
-  inactivo: { label: 'Inactivo', color: '#6B7A99', bg: 'rgba(107,122,153,0.1)' },
-  alta:     { label: 'Alta',     color: '#FBBF24', bg: 'rgba(251,191,36,0.1)'  },
-  derivado: { label: 'Derivado', color: '#F87171', bg: 'rgba(248,113,113,0.1)' },
+  activo:   { label: 'Activo',   color: 'var(--success)', bg: 'rgba(52,211,153,0.1)'  },
+  inactivo: { label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'rgba(107,122,153,0.1)' },
+  alta:     { label: 'Alta',     color: 'var(--warning)', bg: 'rgba(251,191,36,0.1)'  },
+  derivado: { label: 'Derivado', color: 'var(--danger)', bg: 'rgba(248,113,113,0.1)' },
 }
 const sesionEstado: Record<string, { label: string; color: string }> = {
-  realizada:    { label: 'Realizada',    color: '#34D399' },
-  programada:   { label: 'Programada',   color: '#3EC9C9' },
-  cancelada:    { label: 'Cancelada',    color: '#F87171' },
-  inasistencia: { label: 'Inasistencia', color: '#FBBF24' },
+  realizada:    { label: 'Realizada',    color: 'var(--success)' },
+  programada:   { label: 'Programada',   color: 'var(--primary)' },
+  cancelada:    { label: 'Cancelada',    color: 'var(--danger)' },
+  inasistencia: { label: 'Inasistencia', color: 'var(--warning)' },
 }
 const tipoIcono: Record<string, string> = {
   foto: '🖼️', informe: '📄', analisis: '🔬', test: '📋', historia_clinica: '📚', otro: '📎',
@@ -47,9 +47,9 @@ const tiposPago = [
   { value: 'otro',          label: 'Otro',          icon: '•'  },
 ]
 const estadosPago = [
-  { value: 'pagado',    label: 'Pagado',    color: '#34D399' },
-  { value: 'pendiente', label: 'Pendiente', color: '#FBBF24' },
-  { value: 'devuelto',  label: 'Devuelto',  color: '#F87171' },
+  { value: 'pagado',    label: 'Pagado',    color: 'var(--success)' },
+  { value: 'pendiente', label: 'Pendiente', color: 'var(--warning)' },
+  { value: 'devuelto',  label: 'Devuelto',  color: 'var(--danger)' },
 ]
 
 /* ── helpers ────────────────────────────────────────────── */
@@ -75,8 +75,8 @@ function formatBytes(b: number) {
 /* ── shared form styles ─────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8EDF5',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
 }
 const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
 
@@ -94,15 +94,15 @@ function InfoItem({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null
   return (
     <div>
-      <p className="text-xs font-semibold tracking-widest uppercase mb-0.5" style={{ color: '#3A4560' }}>{label}</p>
-      <p className="text-sm" style={{ color: '#C8D4E8' }}>{value}</p>
+      <p className="text-xs font-semibold tracking-widest uppercase mb-0.5" style={{ color: 'var(--text-subtle)' }}>{label}</p>
+      <p className="text-sm" style={{ color: 'var(--foreground-muted)' }}>{value}</p>
     </div>
   )
 }
 
 function Label({ text, required }: { text: string; required?: boolean }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>
+    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>
       {text}{required && <span style={{ color: TEAL }}> *</span>}
     </p>
   )
@@ -110,10 +110,10 @@ function Label({ text, required }: { text: string; required?: boolean }) {
 
 function FormCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl mb-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="rounded-2xl mb-4" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)' }}>
       <div className="flex items-center gap-2.5 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <span style={{ color: TEAL }}>{icon}</span>
-        <span className="text-sm font-semibold" style={{ color: '#C8D4E8' }}>{title}</span>
+        <span className="text-sm font-semibold" style={{ color: 'var(--foreground-muted)' }}>{title}</span>
       </div>
       <div className="p-4 space-y-4">{children}</div>
     </div>
@@ -136,7 +136,7 @@ function ToggleGroup({ value, onChange, options }: {
             style={{
               background: active ? `${color}18` : 'rgba(255,255,255,0.03)',
               border: `1px solid ${active ? color + '45' : 'rgba(255,255,255,0.07)'}`,
-              color: active ? color : '#5A6A88',
+              color: active ? color : 'var(--text-dim)',
             }}>{opt.label}</button>
         )
       })}
@@ -173,25 +173,25 @@ function Modal({ open, onClose, title, subtitle, wide, children }: {
       />
       <div
         className={`relative z-10 w-full ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'} max-h-[90dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl`}
-        style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.1)' }}
+        style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
       >
         {/* Drag pill indicator (mobile only) */}
         <div className="flex justify-center pt-3 pb-1 sm:hidden">
           <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
         </div>
         <div className="flex items-start justify-between px-5 py-4 sticky top-0 z-10"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', background: '#0F1524' }}>
+          style={{ borderBottom: '1px solid var(--border)', background: 'var(--card)' }}>
           <div>
-            <h2 className="text-base font-bold sm:text-lg" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>{title}</h2>
-            {subtitle && <p className="text-xs sm:text-sm mt-0.5" style={{ color: '#5A6A88' }}>{subtitle}</p>}
+            <h2 className="text-base font-bold sm:text-lg" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>{title}</h2>
+            {subtitle && <p className="text-xs sm:text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ml-3 transition-opacity hover:opacity-70"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+            style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M18 6L6 18M6 6l12 12" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
@@ -281,16 +281,16 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
           <Label text="Modalidad" />
           <ToggleGroup value={form.tipo} onChange={setStr('tipo')} options={[
             { value: 'presencial', label: 'Presencial', color: TEAL },
-            { value: 'virtual',    label: 'Virtual',    color: '#A78BFA' },
+            { value: 'virtual',    label: 'Virtual',    color: 'var(--virtual)' },
           ]} />
         </div>
         <div>
           <Label text="Estado" />
           <ToggleGroup value={form.estado} onChange={setStr('estado')} options={[
-            { value: 'realizada',    label: 'Realizada',    color: '#34D399' },
+            { value: 'realizada',    label: 'Realizada',    color: 'var(--success)' },
             { value: 'programada',   label: 'Programada',   color: TEAL },
-            { value: 'cancelada',    label: 'Cancelada',    color: '#F87171' },
-            { value: 'inasistencia', label: 'Inasistencia', color: '#FBBF24' },
+            { value: 'cancelada',    label: 'Cancelada',    color: 'var(--danger)' },
+            { value: 'inasistencia', label: 'Inasistencia', color: 'var(--warning)' },
           ]} />
         </div>
       </FormCard>
@@ -312,7 +312,7 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
                 style={{
                   background: form.consultorio_id === c.id ? `${c.color}15` : 'rgba(255,255,255,0.03)',
                   border: `1px solid ${form.consultorio_id === c.id ? c.color + '55' : 'rgba(255,255,255,0.07)'}`,
-                  color: form.consultorio_id === c.id ? c.color : '#5A6A88',
+                  color: form.consultorio_id === c.id ? c.color : 'var(--text-dim)',
                 }}
               >
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
@@ -384,10 +384,10 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
               style={{
                 background: form.pagado ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${form.pagado ? 'rgba(52,211,153,0.4)' : 'rgba(255,255,255,0.08)'}`,
-                color: form.pagado ? '#34D399' : '#5A6A88',
+                color: form.pagado ? 'var(--success)' : 'var(--text-dim)',
               }}>
               <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all"
-                style={{ borderColor: form.pagado ? '#34D399' : '#3A4560', background: form.pagado ? '#34D399' : 'transparent' }}>
+                style={{ borderColor: form.pagado ? 'var(--success)' : 'var(--text-subtle)', background: form.pagado ? 'var(--success)' : 'transparent' }}>
                 {form.pagado && <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
                   <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>}
@@ -400,7 +400,7 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
 
       {error && (
         <div className="rounded-xl px-4 py-3 text-sm mb-4"
-          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
           {error}
         </div>
       )}
@@ -408,12 +408,12 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
       <div className="flex items-center gap-3 pt-1">
         <button type="button" onClick={onCancel}
           className="flex-1 sm:flex-none h-11 px-5 rounded-xl text-sm font-medium flex items-center justify-center transition-opacity hover:opacity-70"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
           Cancelar
         </button>
         <button type="submit" disabled={saving}
           className="flex-1 sm:flex-none h-11 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-          style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
+          style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
           {saving
             ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
@@ -469,7 +469,7 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
       <div className="text-center py-2">
         <Label text="Monto" required />
         <div className="flex items-center justify-center gap-2">
-          <span className="text-3xl font-semibold" style={{ color: '#5A6A88' }}>$</span>
+          <span className="text-3xl font-semibold" style={{ color: 'var(--text-dim)' }}>$</span>
           <input
             type="number" min="0" step="0.01" value={form.monto}
             onChange={e => setStr('monto')(e.target.value)}
@@ -480,7 +480,7 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
         </div>
       </div>
 
-      <div className="h-px" style={{ background: 'rgba(255,255,255,0.05)' }} />
+      <div className="h-px" style={{ background: 'var(--overlay-sm)' }} />
 
       <div>
         <Label text="Fecha" />
@@ -497,7 +497,7 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
               style={{
                 background: form.tipo === t.value ? 'rgba(245,166,35,0.1)' : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${form.tipo === t.value ? 'rgba(245,166,35,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                color: form.tipo === t.value ? AMBER : '#5A6A88',
+                color: form.tipo === t.value ? AMBER : 'var(--text-dim)',
               }}>
               <span className="text-base">{t.icon}</span>
               <span>{t.label}</span>
@@ -515,7 +515,7 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
               style={{
                 background: form.estado === s.value ? `${s.color}18` : 'rgba(255,255,255,0.03)',
                 border: `1px solid ${form.estado === s.value ? s.color + '45' : 'rgba(255,255,255,0.07)'}`,
-                color: form.estado === s.value ? s.color : '#5A6A88',
+                color: form.estado === s.value ? s.color : 'var(--text-dim)',
               }}>{s.label}</button>
           ))}
         </div>
@@ -529,7 +529,7 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
 
       {error && (
         <div className="rounded-xl px-4 py-3 text-sm"
-          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+          style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
           {error}
         </div>
       )}
@@ -537,12 +537,12 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
       <div className="flex items-center gap-3 pt-2">
         <button type="button" onClick={onCancel}
           className="flex-1 sm:flex-none h-11 px-5 rounded-xl text-sm font-medium flex items-center justify-center transition-opacity hover:opacity-70"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
           Cancelar
         </button>
         <button type="submit" disabled={saving}
           className="flex-1 sm:flex-none h-11 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-          style={{ background: saving ? 'rgba(245,166,35,0.35)' : 'linear-gradient(135deg,#F5A623,#D4891A)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
+          style={{ background: saving ? 'rgba(245,166,35,0.35)' : 'linear-gradient(135deg,#F5A623,#D4891A)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
           {saving
             ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
@@ -661,9 +661,9 @@ function DocumentsSection({ pacienteId, initialDocs }: {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2" style={{ color: '#3A4560' }}>
+        <p className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2" style={{ color: 'var(--text-subtle)' }}>
           Documentos
-          <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: '#6B7A99' }}>{docs.length}</span>
+          <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--muted-foreground)' }}>{docs.length}</span>
         </p>
         <button
           onClick={() => { setUploadOpen(o => !o); setNewFiles([]) }}
@@ -702,18 +702,18 @@ function DocumentsSection({ pacienteId, initialDocs }: {
               <line x1="12" y1="3" x2="12" y2="15" stroke={TEAL} strokeWidth="1.8" strokeLinecap="round"/>
             </svg>
             <p className="text-sm font-medium" style={{ color: TEAL }}>Arrastrá archivos o hacé clic</p>
-            <p className="text-xs mt-1" style={{ color: '#5A6A88' }}>Imágenes, PDF, DOC · Máx 20 MB c/u</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>Imágenes, PDF, DOC · Máx 20 MB c/u</p>
           </div>
 
           {newFiles.length > 0 && (
             <div className="mt-3 space-y-2">
               {newFiles.map(item => (
                 <div key={item.id} className="flex items-center gap-3 rounded-xl px-3 py-2.5"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
                   <span className="text-base flex-shrink-0">{item.tipo === 'foto' ? '🖼️' : '📎'}</span>
                   <input
                     className="flex-1 bg-transparent text-xs outline-none min-w-0"
-                    style={{ color: '#C8D4E8' }}
+                    style={{ color: 'var(--foreground-muted)' }}
                     value={item.nombre}
                     onChange={e => setNewFiles(prev => prev.map(f => f.id === item.id ? { ...f, nombre: e.target.value } : f))}
                   />
@@ -721,7 +721,7 @@ function DocumentsSection({ pacienteId, initialDocs }: {
                     value={item.tipo}
                     onChange={e => setNewFiles(prev => prev.map(f => f.id === item.id ? { ...f, tipo: e.target.value as Documento['tipo'] } : f))}
                     className="text-xs rounded-lg px-2 py-1 outline-none flex-shrink-0"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: '#8A9AB8' }}
+                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}
                   >
                     {TIPO_OPTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
@@ -729,7 +729,7 @@ function DocumentsSection({ pacienteId, initialDocs }: {
                     type="button"
                     onClick={() => setNewFiles(prev => prev.filter(f => f.id !== item.id))}
                     className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
-                    style={{ background: 'rgba(248,113,113,0.1)', color: '#F87171' }}>
+                    style={{ background: 'var(--danger-dim)', color: 'var(--danger)' }}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
                       <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
@@ -739,12 +739,12 @@ function DocumentsSection({ pacienteId, initialDocs }: {
               <div className="flex items-center justify-end gap-2 pt-1">
                 <button type="button" onClick={() => { setUploadOpen(false); setNewFiles([]) }}
                   className="h-8 px-4 rounded-xl text-xs font-medium"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
                   Cancelar
                 </button>
                 <button type="button" onClick={handleUpload} disabled={uploading}
                   className="h-8 px-4 rounded-xl text-xs font-semibold transition-opacity hover:opacity-90"
-                  style={{ background: uploading ? 'rgba(62,201,201,0.3)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A' }}>
+                  style={{ background: uploading ? 'rgba(62,201,201,0.3)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)' }}>
                   {uploading ? 'Subiendo…' : `Subir ${newFiles.length} archivo${newFiles.length !== 1 ? 's' : ''}`}
                 </button>
               </div>
@@ -754,7 +754,7 @@ function DocumentsSection({ pacienteId, initialDocs }: {
           {newFiles.length === 0 && (
             <div className="flex justify-end mt-2">
               <button type="button" onClick={() => setUploadOpen(false)}
-                className="text-xs transition-opacity hover:opacity-70" style={{ color: '#5A6A88' }}>
+                className="text-xs transition-opacity hover:opacity-70" style={{ color: 'var(--text-dim)' }}>
                 Cancelar
               </button>
             </div>
@@ -764,16 +764,16 @@ function DocumentsSection({ pacienteId, initialDocs }: {
 
       {/* Documents list */}
       {docs.length === 0 ? (
-        <p className="text-sm" style={{ color: '#3A4560' }}>Sin documentos adjuntos.</p>
+        <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>Sin documentos adjuntos.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {docs.map(doc => (
             <div key={doc.id} className="flex items-center gap-2.5 rounded-xl p-3 group"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              style={{ background: 'var(--overlay-sm)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <span className="text-lg flex-shrink-0">{tipoIcono[doc.tipo] ?? '📎'}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate" style={{ color: '#C8D4E8' }}>{doc.nombre}</p>
-                <p className="text-xs" style={{ color: '#5A6A88' }}>
+                <p className="text-xs font-medium truncate" style={{ color: 'var(--foreground-muted)' }}>{doc.nombre}</p>
+                <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
                   {fmtDate(doc.created_at)}{doc.archivo_tamanio ? ` · ${formatBytes(doc.archivo_tamanio)}` : ''}
                 </p>
               </div>
@@ -797,8 +797,8 @@ function DocumentsSection({ pacienteId, initialDocs }: {
                   className="w-7 h-7 rounded-lg flex items-center justify-center hover:opacity-80"
                   style={{ background: 'rgba(255,255,255,0.06)' }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
                 <button
@@ -809,9 +809,9 @@ function DocumentsSection({ pacienteId, initialDocs }: {
                   className="w-7 h-7 rounded-lg flex items-center justify-center hover:opacity-80 disabled:opacity-40"
                   style={{ background: 'rgba(248,113,113,0.12)' }}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
-                    <polyline points="3,6 5,6 21,6" stroke="#F87171" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M19 6l-1 14H6L5 6" stroke="#F87171" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M10 11v6M14 11v6" stroke="#F87171" strokeWidth="2" strokeLinecap="round"/>
+                    <polyline points="3,6 5,6 21,6" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M19 6l-1 14H6L5 6" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M10 11v6M14 11v6" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
                 </button>
               </div>
@@ -844,7 +844,7 @@ function DocumentsSection({ pacienteId, initialDocs }: {
                     style={{
                       background: editingDoc.tipo === t.value ? 'rgba(62,201,201,0.1)' : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${editingDoc.tipo === t.value ? 'rgba(62,201,201,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                      color: editingDoc.tipo === t.value ? TEAL : '#5A6A88',
+                      color: editingDoc.tipo === t.value ? TEAL : 'var(--text-dim)',
                     }}>
                     {tipoIcono[t.value] ?? '📎'} {t.label}
                   </button>
@@ -854,12 +854,12 @@ function DocumentsSection({ pacienteId, initialDocs }: {
             <div className="flex items-center justify-end gap-3 pt-2">
               <button type="button" onClick={() => setEditingDoc(null)}
                 className="h-9 px-4 rounded-xl text-sm font-medium"
-                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
                 Cancelar
               </button>
               <button type="button" onClick={handleEditSave}
                 className="h-9 px-5 rounded-xl text-sm font-semibold"
-                style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A' }}>
+                style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)' }}>
                 Guardar
               </button>
             </div>
@@ -1037,26 +1037,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
           <div className="flex items-center gap-3 mb-3">
             <Link href="/pacientes"
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M12 19l-7-7 7-7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}>
+              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}>
               {p.nombre[0]}{p.apellido[0]}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-base font-bold leading-tight truncate"
-                style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+                style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
                 {p.apellido}, {p.nombre}
               </p>
               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium"
                   style={{ background: est.bg, color: est.color }}>{est.label}</span>
-                {edad && <span className="text-xs" style={{ color: '#5A6A88' }}>{edad} a.</span>}
+                {edad && <span className="text-xs" style={{ color: 'var(--text-dim)' }}>{edad} a.</span>}
                 {consultorioActivo && (
-                  <span className="flex items-center gap-1 text-xs" style={{ color: '#5A6A88' }}>
+                  <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-dim)' }}>
                     <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: consultorioActivo.color }} />
                     {consultorioActivo.nombre}
                   </span>
@@ -1065,10 +1065,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </div>
             <Link href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/editar`}
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
           </div>
@@ -1078,7 +1078,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             <button
               onClick={() => setSesionOpen(true)}
               className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.25)', color: '#3EC9C9' }}>
+              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.25)', color: 'var(--primary)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
@@ -1087,7 +1087,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             <button
               onClick={() => setPagoOpen(true)}
               className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-              style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.25)', color: '#F5A623' }}>
+              style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.25)', color: 'var(--accent)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
@@ -1096,7 +1096,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             <button
               onClick={handleHistoriaClinica}
               className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-              style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)', color: '#A78BFA' }}>
+              style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)', color: 'var(--virtual)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -1108,7 +1108,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
               onClick={handleDownloadAll}
               disabled={docs.length === 0 || downloadingAll}
               className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
-              style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)', color: '#34D399' }}>
+              style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)', color: 'var(--success)' }}>
               {downloadingAll
                 ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
@@ -1131,27 +1131,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
           <div className="flex items-center gap-4">
             <Link href="/pacientes"
               className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M19 12H5M12 19l-7-7 7-7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19 12H5M12 19l-7-7 7-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold flex-shrink-0"
-                style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}>
+                style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}>
                 {p.nombre[0]}{p.apellido[0]}
               </div>
               <div className="min-w-0">
-                <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
                   {p.apellido}, {p.nombre}
                 </h1>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-medium"
                     style={{ background: est.bg, color: est.color }}>{est.label}</span>
-                  {edad && <span className="text-sm" style={{ color: '#5A6A88' }}>{edad} años</span>}
-                  {p.obra_social && <span className="text-sm" style={{ color: '#5A6A88' }}>· {p.obra_social}</span>}
+                  {edad && <span className="text-sm" style={{ color: 'var(--text-dim)' }}>{edad} años</span>}
+                  {p.obra_social && <span className="text-sm" style={{ color: 'var(--text-dim)' }}>· {p.obra_social}</span>}
                   {consultorioActivo && (
-                    <span className="flex items-center gap-1.5 text-sm" style={{ color: '#5A6A88' }}>
+                    <span className="flex items-center gap-1.5 text-sm" style={{ color: 'var(--text-dim)' }}>
                       · <span className="w-2 h-2 rounded-full inline-block" style={{ background: consultorioActivo.color }} />
                       {consultorioActivo.nombre}
                     </span>
@@ -1163,7 +1163,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
           <div className="flex items-center flex-wrap gap-2">
             <button onClick={() => setSesionOpen(true)}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}>
+              style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
@@ -1171,7 +1171,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </button>
             <button onClick={() => setPagoOpen(true)}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.2)', color: '#F5A623' }}>
+              style={{ background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.2)', color: 'var(--accent)' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
@@ -1179,7 +1179,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </button>
             <button onClick={handleHistoriaClinica}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', color: '#A78BFA' }}>
+              style={{ background: 'var(--virtual-dim)', border: '1px solid rgba(167,139,250,0.2)', color: 'var(--virtual)' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -1189,7 +1189,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </button>
             <button onClick={handleDownloadAll} disabled={docs.length === 0 || downloadingAll}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80 disabled:opacity-40"
-              style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)', color: '#34D399' }}>
+              style={{ background: 'var(--success-dim)', border: '1px solid rgba(52,211,153,0.2)', color: 'var(--success)' }}>
               {downloadingAll
                 ? <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
@@ -1204,7 +1204,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </button>
             <Link href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/editar`}
               className="h-9 px-3 rounded-xl flex items-center gap-1.5 transition-opacity hover:opacity-80"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#8A9AB8' }}>
+              style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1222,14 +1222,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
         {/* ── Stats rápidas ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4 lg:gap-3 lg:mb-5">
           {[
-            { label: 'Sesiones',   value: String(sesiones.length), color: '#3EC9C9' },
-            { label: 'Cobrado',    value: fmtMoney(totalPagado),    color: '#34D399' },
-            { label: 'Pendiente',  value: fmtMoney(totalPendiente), color: '#FBBF24' },
-            { label: 'Docs',       value: String(docs.length),      color: '#A78BFA' },
+            { label: 'Sesiones',   value: String(sesiones.length), color: 'var(--primary)' },
+            { label: 'Cobrado',    value: fmtMoney(totalPagado),    color: 'var(--success)' },
+            { label: 'Pendiente',  value: fmtMoney(totalPendiente), color: 'var(--warning)' },
+            { label: 'Docs',       value: String(docs.length),      color: 'var(--virtual)' },
           ].map(s => (
             <div key={s.label} className="rounded-xl p-3 lg:px-4 lg:py-3 min-w-0"
-              style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <p className="text-[10px] lg:text-xs mb-0.5 lg:mb-1 truncate" style={{ color: '#3A4560' }}>{s.label}</p>
+              style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-[10px] lg:text-xs mb-0.5 lg:mb-1 truncate" style={{ color: 'var(--text-subtle)' }}>{s.label}</p>
               <p className="text-sm lg:text-base font-bold truncate" style={{ color: s.color, fontFamily: 'var(--font-display)' }}>{s.value}</p>
             </div>
           ))}
@@ -1240,9 +1240,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
 
           {/* ── Columna izquierda ── */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="rounded-2xl p-5 space-y-3.5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="rounded-2xl p-5 space-y-3.5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#3A4560' }}>Datos personales</p>
+                <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-subtle)' }}>Datos personales</p>
                 <Link href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/editar`}
                   className="text-xs font-medium transition-opacity hover:opacity-80 px-2 py-1.5 -mr-2 -my-1 rounded-lg"
                   style={{ color: TEAL }}>Editar</Link>
@@ -1251,7 +1251,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                 <div className="flex items-center gap-2 pb-1 mb-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                   <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: consultorioActivo.color }} />
                   <div>
-                    <p className="text-xs font-semibold tracking-widest uppercase mb-0" style={{ color: '#3A4560' }}>Consultorio</p>
+                    <p className="text-xs font-semibold tracking-widest uppercase mb-0" style={{ color: 'var(--text-subtle)' }}>Consultorio</p>
                     <p className="text-sm font-medium" style={{ color: consultorioActivo.color }}>{consultorioActivo.nombre}</p>
                   </div>
                 </div>
@@ -1261,21 +1261,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
               <InfoItem label="Teléfono" value={p.telefono} />
               <InfoItem label="Email" value={p.email} />
               {!p.dni && !p.telefono && !p.email && !p.fecha_nacimiento && !consultorioActivo && (
-                <p className="text-xs" style={{ color: '#3A4560' }}>Sin datos adicionales</p>
+                <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>Sin datos adicionales</p>
               )}
             </div>
 
             {(p.obra_social || p.numero_afiliado) && (
-              <div className="rounded-2xl p-5 space-y-3.5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#3A4560' }}>Cobertura</p>
+              <div className="rounded-2xl p-5 space-y-3.5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: 'var(--text-subtle)' }}>Cobertura</p>
                 <InfoItem label="Obra social" value={p.obra_social} />
                 <InfoItem label="Nº afiliado"  value={p.numero_afiliado} />
               </div>
             )}
 
             {(p.motivo_consulta || p.diagnostico) && (
-              <div className="rounded-2xl p-5 space-y-3.5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: '#3A4560' }}>Info clínica</p>
+              <div className="rounded-2xl p-5 space-y-3.5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                <p className="text-xs font-semibold tracking-widest uppercase mb-4" style={{ color: 'var(--text-subtle)' }}>Info clínica</p>
                 <InfoItem label="Motivo" value={p.motivo_consulta} />
                 <InfoItem label="Diagnóstico" value={p.diagnostico} />
               </div>
@@ -1286,11 +1286,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
           <div className="lg:col-span-2 space-y-4">
 
             {/* Sesiones */}
-            <div className="rounded-2xl p-5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="rounded-2xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2" style={{ color: '#3A4560' }}>
+                <p className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2" style={{ color: 'var(--text-subtle)' }}>
                   Sesiones
-                  <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: '#6B7A99' }}>{sesiones.length}</span>
+                  <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--muted-foreground)' }}>{sesiones.length}</span>
                 </p>
                 <button onClick={() => setSesionOpen(true)}
                   className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
@@ -1301,7 +1301,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                 </button>
               </div>
               {sesiones.length === 0 ? (
-                <p className="text-sm" style={{ color: '#3A4560' }}>Sin sesiones registradas.</p>
+                <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>Sin sesiones registradas.</p>
               ) : (
                 <div className="space-y-2">
                   {sesiones.map(s => {
@@ -1321,20 +1321,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className="text-xs font-semibold" style={{ color: se.color }}>{se.label}</span>
-                            <span className="text-xs" style={{ color: '#3A4560' }}>·</span>
-                            <span className="text-xs capitalize" style={{ color: '#5A6A88' }}>{s.tipo}</span>
-                            {s.hora_inicio && <span className="text-xs" style={{ color: '#3A4560' }}>· {s.hora_inicio.slice(0, 5)}</span>}
+                            <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>·</span>
+                            <span className="text-xs capitalize" style={{ color: 'var(--text-dim)' }}>{s.tipo}</span>
+                            {s.hora_inicio && <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>· {s.hora_inicio.slice(0, 5)}</span>}
                           </div>
                           {s.observaciones && (
-                            <p className="text-xs leading-relaxed line-clamp-2" style={{ color: '#6B7A99' }}>{s.observaciones}</p>
+                            <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>{s.observaciones}</p>
                           )}
                         </div>
                         {s.monto != null && (
                           <div className="flex-shrink-0 text-right">
-                            <p className="text-sm font-semibold" style={{ color: s.pagado ? '#34D399' : '#FBBF24' }}>
+                            <p className="text-sm font-semibold" style={{ color: s.pagado ? 'var(--success)' : 'var(--warning)' }}>
                               {fmtMoney(s.monto)}
                             </p>
-                            <p className="text-xs" style={{ color: '#3A4560' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
+                            <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
                           </div>
                         )}
                       </div>
@@ -1345,11 +1345,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </div>
 
             {/* Pagos */}
-            <div className="rounded-2xl p-5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="rounded-2xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
               <div className="flex items-center justify-between mb-4">
-                <p className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2" style={{ color: '#3A4560' }}>
+                <p className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2" style={{ color: 'var(--text-subtle)' }}>
                   Pagos
-                  <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: '#6B7A99' }}>{pagos.length}</span>
+                  <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--muted-foreground)' }}>{pagos.length}</span>
                 </p>
                 <button onClick={() => setPagoOpen(true)}
                   className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
@@ -1360,21 +1360,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                 </button>
               </div>
               {pagos.length === 0 ? (
-                <p className="text-sm" style={{ color: '#3A4560' }}>Sin pagos registrados.</p>
+                <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>Sin pagos registrados.</p>
               ) : (
                 <div className="space-y-2">
                   {pagos.map(pay => {
-                    const ep = pay.estado === 'pagado' ? { color: '#34D399', label: 'Pagado' }
-                      : pay.estado === 'pendiente' ? { color: '#FBBF24', label: 'Pendiente' }
-                      : { color: '#F87171', label: 'Devuelto' }
+                    const ep = pay.estado === 'pagado' ? { color: 'var(--success)', label: 'Pagado' }
+                      : pay.estado === 'pendiente' ? { color: 'var(--warning)', label: 'Pendiente' }
+                      : { color: 'var(--danger)', label: 'Devuelto' }
                     return (
                       <div key={pay.id} className="flex items-center gap-3 rounded-xl px-3.5 py-3"
                         style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium" style={{ color: '#C8D4E8' }}>
+                          <p className="text-sm font-medium" style={{ color: 'var(--foreground-muted)' }}>
                             {pay.concepto || 'Consulta'}
                           </p>
-                          <p className="text-xs mt-0.5" style={{ color: '#5A6A88' }}>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                             {fmtDate(pay.fecha)} · {pay.tipo.replace('_', ' ')}
                           </p>
                         </div>
@@ -1382,7 +1382,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                           style={{ background: `${ep.color}15`, color: ep.color }}>
                           {ep.label}
                         </span>
-                        <p className="text-base font-bold flex-shrink-0" style={{ color: '#E8EDF5' }}>
+                        <p className="text-base font-bold flex-shrink-0" style={{ color: 'var(--foreground)' }}>
                           {fmtMoney(pay.monto)}
                         </p>
                       </div>
@@ -1393,7 +1393,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </div>
 
             {/* Documentos */}
-            <div className="rounded-2xl p-5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="rounded-2xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
               <DocumentsSection pacienteId={p.id} initialDocs={docs} />
             </div>
 

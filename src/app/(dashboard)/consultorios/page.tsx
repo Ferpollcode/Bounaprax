@@ -8,8 +8,8 @@ const COLORS = ['#3EC9C9','#F5A623','#A78BFA','#34D399','#FB7185','#60A5FA','#FB
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8EDF5',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
 }
 const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
 
@@ -101,15 +101,15 @@ export default function ConsultoriosPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 sm:mb-8 anim-fade-up">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>Consultorios</h1>
-          <p className="text-sm mt-0.5" style={{ color: '#5A6A88' }}>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>Consultorios</h1>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>
             {consultorios.length === 0 ? 'Agregá tus lugares de trabajo' : `${consultorios.length} consultorio${consultorios.length !== 1 ? 's' : ''} registrado${consultorios.length !== 1 ? 's' : ''}`}
           </p>
         </div>
         {!showForm && (
           <button onClick={startNew}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A' }}>
+            style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
             </svg>
@@ -121,49 +121,49 @@ export default function ConsultoriosPage() {
       {/* Formulario */}
       {showForm && (
         <form onSubmit={handleSave} className="rounded-2xl p-6 mb-6 space-y-4 anim-fade-up"
-          style={{ background: '#0F1524', border: '1px solid rgba(62,201,201,0.2)' }}>
+          style={{ background: 'var(--card)', border: '1px solid rgba(62,201,201,0.2)' }}>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold" style={{ color: '#E8EDF5' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
               {editing ? 'Editar consultorio' : 'Nuevo consultorio'}
             </p>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null) }}
               className="transition-opacity hover:opacity-60">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <line x1="18" y1="6" x2="6" y2="18" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="6" y1="6" x2="18" y2="18" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="18" y1="6" x2="6" y2="18" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="6" y1="6" x2="18" y2="18" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
               </svg>
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>
-                Nombre <span style={{ color: '#3EC9C9' }}>*</span>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>
+                Nombre <span style={{ color: 'var(--primary)' }}>*</span>
               </p>
               <input type="text" value={form.nombre} onChange={e => set('nombre')(e.target.value)} required
                 placeholder="Consultorio Centro, Clínica San Martín…"
                 className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>Dirección</p>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>Dirección</p>
               <input type="text" value={form.direccion} onChange={e => set('direccion')(e.target.value)}
                 placeholder="Av. Corrientes 1234"
                 className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>Ciudad</p>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>Ciudad</p>
               <input type="text" value={form.ciudad} onChange={e => set('ciudad')(e.target.value)}
                 placeholder="Buenos Aires"
                 className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>Teléfono</p>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>Teléfono</p>
               <input type="text" value={form.telefono} onChange={e => set('telefono')(e.target.value)}
                 placeholder="+54 11 1234-5678"
                 className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
             </div>
             <div>
-              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>Color</p>
+              <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>Color</p>
               <div className="flex gap-2 flex-wrap">
                 {COLORS.map(c => (
                   <button key={c} type="button" onClick={() => set('color')(c)}
@@ -180,18 +180,18 @@ export default function ConsultoriosPage() {
           </div>
 
           {error && (
-            <p className="text-sm" style={{ color: '#F87171' }}>{error}</p>
+            <p className="text-sm" style={{ color: 'var(--danger)' }}>{error}</p>
           )}
 
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" onClick={() => { setShowForm(false); setEditing(null) }}
               className="h-9 px-4 rounded-xl text-sm font-medium transition-opacity hover:opacity-70"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               Cancelar
             </button>
             <button type="submit" disabled={saving}
               className="h-9 px-5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-90"
-              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#0A0E1A' }}>
+              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)' }}>
               {saving ? 'Guardando…' : (editing ? 'Guardar cambios' : 'Crear consultorio')}
             </button>
           </div>
@@ -202,24 +202,24 @@ export default function ConsultoriosPage() {
       {loading ? (
         <div className="flex justify-center py-16">
           <svg className="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#3EC9C9" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+            <circle cx="12" cy="12" r="10" stroke="var(--primary)" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
           </svg>
         </div>
       ) : consultorios.length === 0 && !showForm ? (
         <div className="rounded-2xl p-12 text-center"
-          style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
+          style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
             style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="#3EC9C9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M9 22V12h6v10" stroke="#3EC9C9" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 22V12h6v10" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <p className="text-base font-medium mb-1" style={{ color: '#E8EDF5' }}>Sin consultorios</p>
-          <p className="text-sm mb-5" style={{ color: '#5A6A88' }}>Agregá los lugares donde trabajás</p>
+          <p className="text-base font-medium mb-1" style={{ color: 'var(--foreground)' }}>Sin consultorios</p>
+          <p className="text-sm mb-5" style={{ color: 'var(--text-dim)' }}>Agregá los lugares donde trabajás</p>
           <button onClick={startNew}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
-            style={{ background: 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.2)', color: '#3EC9C9' }}>
+            style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}>
             + Agregar consultorio
           </button>
         </div>
@@ -228,7 +228,7 @@ export default function ConsultoriosPage() {
           {consultorios.map(c => (
             <div key={c.id} className="rounded-2xl p-5 flex items-center gap-4 transition-opacity"
               style={{
-                background: '#0F1524',
+                background: 'var(--card)',
                 border: `1px solid ${c.activo ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.04)'}`,
                 opacity: c.activo ? 1 : 0.5,
               }}>
@@ -243,12 +243,12 @@ export default function ConsultoriosPage() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold" style={{ color: '#E8EDF5' }}>{c.nombre}</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{c.nombre}</p>
                   {!c.activo && (
-                    <span className="text-xs px-2 py-0.5 rounded-lg" style={{ background: 'rgba(107,122,153,0.1)', color: '#6B7A99' }}>Inactivo</span>
+                    <span className="text-xs px-2 py-0.5 rounded-lg" style={{ background: 'rgba(107,122,153,0.1)', color: 'var(--muted-foreground)' }}>Inactivo</span>
                   )}
                 </div>
-                <p className="text-xs mt-0.5" style={{ color: '#5A6A88' }}>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                   {[c.direccion, c.ciudad].filter(Boolean).join(', ') || 'Sin dirección'}
                   {c.telefono ? ` · ${c.telefono}` : ''}
                 </p>
@@ -257,15 +257,15 @@ export default function ConsultoriosPage() {
               <div className="flex items-center gap-1">
                 <button onClick={() => toggleActivo(c)}
                   className="h-8 px-3 rounded-lg text-xs font-medium transition-opacity hover:opacity-70"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', color: '#6B7A99' }}>
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
                   {c.activo ? 'Desactivar' : 'Activar'}
                 </button>
                 <button onClick={() => startEdit(c)}
                   className="w-8 h-8 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70"
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#8A9AB8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </button>
                 <button onClick={() => handleDelete(c.id)} disabled={deleting === c.id}
@@ -273,13 +273,13 @@ export default function ConsultoriosPage() {
                   style={{ background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.12)' }}>
                   {deleting === c.id ? (
                     <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="#F87171" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                      <circle cx="12" cy="12" r="10" stroke="var(--danger)" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
                     </svg>
                   ) : (
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                      <polyline points="3,6 5,6 21,6" stroke="#F87171" strokeWidth="2" strokeLinecap="round"/>
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="#F87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="#F87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <polyline points="3,6 5,6 21,6" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   )}
                 </button>

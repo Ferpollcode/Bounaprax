@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 const navItems = [
   {
@@ -80,7 +81,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
       {/* ══ MOBILE: barra superior ══════════════════════════ */}
       <header
         className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4"
-        style={{ background: '#0D1220', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+        style={{ background: 'var(--sidebar)', borderBottom: '1px solid var(--sidebar-border)' }}
       >
         {/* Logo clickeable */}
         <Link href="/inicio" className="flex items-center gap-2.5">
@@ -91,26 +92,27 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
             </svg>
           </div>
           <span className="text-sm font-semibold"
-            style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+            style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
             HealthPro
           </span>
         </Link>
 
-        {/* Usuario + logout */}
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs max-w-[120px] truncate" style={{ color: '#5A6A88' }}>
+        {/* Toggle + usuario + logout */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle compact />
+          <span className="text-xs max-w-[100px] truncate" style={{ color: 'var(--muted-foreground)' }}>
             {displayName}
           </span>
           <button
             onClick={handleLogout}
             className="w-8 h-8 flex items-center justify-center rounded-xl transition-opacity hover:opacity-70"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+            style={{ background: 'var(--sidebar-action-bg)', border: '1px solid var(--sidebar-action-border)' }}
             aria-label="Cerrar sesión"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round"/>
-              <polyline points="16,17 21,12 16,7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <line x1="21" y1="12" x2="9" y2="12" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
+              <polyline points="16,17 21,12 16,7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <line x1="21" y1="12" x2="9" y2="12" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
         </div>
@@ -120,8 +122,8 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
       <nav
         className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex"
         style={{
-          background: '#0D1220',
-          borderTop: '1px solid rgba(255,255,255,0.07)',
+          background: 'var(--sidebar)',
+          borderTop: '1px solid var(--sidebar-border)',
           paddingBottom: 'max(env(safe-area-inset-bottom), 0px)',
           height: 'calc(56px + max(env(safe-area-inset-bottom), 0px))',
         }}
@@ -133,18 +135,18 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
               key={item.href}
               href={item.href}
               className="relative flex-1 flex flex-col items-center justify-center gap-1"
-              style={{ color: active ? '#3EC9C9' : '#4A5A78' }}
+              style={{ color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)' }}
             >
               {active && (
                 <span
                   className="absolute top-0 left-1/2 -translate-x-1/2"
-                  style={{ width: 28, height: 2, background: '#3EC9C9', borderRadius: '0 0 3px 3px' }}
+                  style={{ width: 28, height: 2, background: 'var(--sidebar-primary)', borderRadius: '0 0 3px 3px' }}
                 />
               )}
-              <span style={{ color: active ? '#3EC9C9' : '#4A5A78', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {item.icon}
               </span>
-              <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.03em', color: active ? '#3EC9C9' : 'transparent', lineHeight: 1 }}>
+              <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.03em', color: active ? 'var(--sidebar-primary)' : 'transparent', lineHeight: 1 }}>
                 {item.label.length > 8 ? item.label.slice(0, 7) + '…' : item.label}
               </span>
             </Link>
@@ -155,11 +157,11 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
       {/* ══ DESKTOP: sidebar fijo lateral ═══════════════════ */}
       <aside
         className="hidden lg:flex fixed inset-y-0 left-0 w-[220px] flex-col z-40"
-        style={{ background: '#0D1220', borderRight: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ background: 'var(--sidebar)', borderRight: '1px solid var(--sidebar-border)' }}
       >
         {/* Logo clickeable */}
         <Link href="/inicio" className="px-5 py-5 flex items-center gap-3 transition-opacity hover:opacity-80"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #3EC9C9, #2BA8A8)' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -167,7 +169,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
             </svg>
           </div>
           <span className="text-base font-semibold tracking-tight"
-            style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+            style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
             HealthPro
           </span>
         </Link>
@@ -175,7 +177,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
         {/* Navegación */}
         <nav className="flex-1 px-3 py-4 space-y-0.5">
           <p className="text-[10px] font-semibold tracking-widest uppercase px-3 mb-3"
-            style={{ color: '#3A4560' }}>
+            style={{ color: 'var(--text-subtle)' }}>
             Principal
           </p>
           {navItems.map(item => {
@@ -186,14 +188,14 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
                 href={item.href}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
                 style={{
-                  color: active ? '#3EC9C9' : '#6B7A99',
-                  background: active ? 'rgba(62,201,201,0.1)' : 'transparent',
+                  color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)',
+                  background: active ? 'var(--sidebar-accent)' : 'transparent',
                 }}
               >
-                <span style={{ color: active ? '#3EC9C9' : '#6B7A99' }}>{item.icon}</span>
+                <span style={{ color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)' }}>{item.icon}</span>
                 {item.label}
                 {active && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: '#3EC9C9' }} />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: 'var(--sidebar-primary)' }} />
                 )}
               </Link>
             )
@@ -201,26 +203,29 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
         </nav>
 
         {/* Usuario */}
-        <div className="px-3 pb-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="px-3 py-3 mt-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
-            <p className="text-xs font-medium truncate mb-0.5" style={{ color: '#E8EDF5' }}>
+        <div className="px-3 pb-4" style={{ borderTop: '1px solid var(--sidebar-border)' }}>
+          <div className="px-3 py-3 mt-3 rounded-xl" style={{ background: 'var(--sidebar-user-bg)' }}>
+            <p className="text-xs font-medium truncate mb-0.5" style={{ color: 'var(--foreground)' }}>
               {displayName}
             </p>
-            <p className="text-xs truncate mb-3" style={{ color: '#3A4560' }}>
+            <p className="text-xs truncate mb-3" style={{ color: 'var(--text-subtle)' }}>
               {userEmail ?? ''}
             </p>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-xs font-medium transition-opacity hover:opacity-80"
-              style={{ color: '#6B7A99' }}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Cerrar sesión
-            </button>
+            <div className="flex items-center justify-between">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-xs font-medium transition-opacity hover:opacity-80"
+                style={{ color: 'var(--muted-foreground)' }}
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <polyline points="16,17 21,12 16,7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Cerrar sesión
+              </button>
+              <ThemeToggle compact />
+            </div>
           </div>
         </div>
       </aside>

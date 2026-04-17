@@ -40,13 +40,13 @@ export default function RegisterPage() {
         <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center"
           style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)' }}>
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-            <path d="M20 6L9 17l-5-5" stroke="#34D399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 6L9 17l-5-5" stroke="var(--success)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
-        <h2 className="text-xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
           ¡Cuenta creada!
         </h2>
-        <p className="text-sm" style={{ color: '#6B7A99' }}>
+        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
           Revisá tu email para confirmar tu cuenta. Serás redirigido al login en unos segundos.
         </p>
       </div>
@@ -54,9 +54,9 @@ export default function RegisterPage() {
   }
 
   const inputStyle = {
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    color: '#E8EDF5',
+    background: 'var(--overlay-sm)',
+    border: '1px solid var(--border)',
+    color: 'var(--foreground)',
   }
 
   return (
@@ -68,19 +68,19 @@ export default function RegisterPage() {
             <path d="M12 3v18M3 12h18" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
         </div>
-        <span className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: '#E8EDF5' }}>HealthPro</span>
+        <span className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--foreground)' }}>HealthPro</span>
       </div>
 
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-1" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+        <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
           Crear cuenta
         </h2>
-        <p className="text-sm" style={{ color: '#6B7A99' }}>Empezá a gestionar tus pacientes hoy</p>
+        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>Empezá a gestionar tus pacientes hoy</p>
       </div>
 
       <form onSubmit={handleRegister} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: '#6B7A99' }}>Nombre completo</label>
+          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>Nombre completo</label>
           <input
             type="text"
             value={nombre}
@@ -95,7 +95,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: '#6B7A99' }}>Email profesional</label>
+          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>Email profesional</label>
           <input
             type="email"
             value={email}
@@ -110,7 +110,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: '#6B7A99' }}>Contraseña</label>
+          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>Contraseña</label>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               type="button"
               onClick={() => setShowPassword(v => !v)}
               className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-80"
-              style={{ color: '#6B7A99' }}
+              style={{ color: 'var(--muted-foreground)' }}
               tabIndex={-1}
             >
               {showPassword ? (
@@ -148,7 +148,7 @@ export default function RegisterPage() {
 
         {error && (
           <div className="rounded-xl px-4 py-3 text-sm"
-            style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+            style={{ background: 'var(--danger-dim)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
             {error}
           </div>
         )}
@@ -159,7 +159,7 @@ export default function RegisterPage() {
           className="w-full h-11 rounded-xl text-sm font-semibold transition-all mt-2"
           style={{
             background: loading ? 'rgba(62,201,201,0.5)' : 'linear-gradient(135deg, #3EC9C9, #2BA8A8)',
-            color: '#0A0E1A',
+            color: 'var(--primary-foreground)',
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
@@ -167,9 +167,9 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm" style={{ color: '#6B7A99' }}>
+      <p className="mt-6 text-center text-sm" style={{ color: 'var(--muted-foreground)' }}>
         ¿Ya tenés cuenta?{' '}
-        <Link href="/login" className="font-medium hover:opacity-80" style={{ color: '#3EC9C9' }}>
+        <Link href="/login" className="font-medium hover:opacity-80" style={{ color: 'var(--primary)' }}>
           Ingresar
         </Link>
       </p>

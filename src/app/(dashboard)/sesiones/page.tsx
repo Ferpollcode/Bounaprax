@@ -11,10 +11,10 @@ type Period = 'hoy' | 'semana' | 'mes'
 const TEAL = '#3EC9C9'
 
 const sesionEstado: Record<string, { label: string; color: string }> = {
-  realizada:    { label: 'Realizada',    color: '#34D399' },
-  programada:   { label: 'Programada',   color: '#3EC9C9' },
-  cancelada:    { label: 'Cancelada',    color: '#F87171' },
-  inasistencia: { label: 'Inasistencia', color: '#FBBF24' },
+  realizada:    { label: 'Realizada',    color: 'var(--success)' },
+  programada:   { label: 'Programada',   color: 'var(--primary)' },
+  cancelada:    { label: 'Cancelada',    color: 'var(--danger)' },
+  inasistencia: { label: 'Inasistencia', color: 'var(--warning)' },
 }
 
 function getPeriodBounds(period: Period): { start: Date; end: Date; label: string } {
@@ -124,10 +124,10 @@ export default function SesionesPage() {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6 sm:mb-8 anim-fade-up">
         <div>
           <h1 className="text-2xl font-bold mb-1"
-            style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+            style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
             Sesiones
           </h1>
-          <p className="text-sm" style={{ color: '#6B7A99' }}>
+          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
             Estadísticas de atención · {periodoLabel}
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function SesionesPage() {
             style={{
               background: period === p.value ? 'rgba(62,201,201,0.12)' : 'rgba(255,255,255,0.04)',
               border: `1px solid ${period === p.value ? 'rgba(62,201,201,0.4)' : 'rgba(255,255,255,0.08)'}`,
-              color: period === p.value ? TEAL : '#6B7A99',
+              color: period === p.value ? TEAL : 'var(--muted-foreground)',
             }}
           >
             {p.label}
@@ -164,14 +164,14 @@ export default function SesionesPage() {
           {/* ── Stats generales ── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 stagger">
             {[
-              { label: 'Total',       value: total,       color: '#3EC9C9', bg: 'rgba(62,201,201,0.08)'  },
-              { label: 'Realizadas',  value: realizadas,  color: '#34D399', bg: 'rgba(52,211,153,0.08)'  },
-              { label: 'Programadas', value: programadas, color: '#A78BFA', bg: 'rgba(167,139,250,0.08)' },
-              { label: 'Canceladas',  value: canceladas,  color: '#F87171', bg: 'rgba(248,113,113,0.08)' },
+              { label: 'Total',       value: total,       color: 'var(--primary)', bg: 'rgba(62,201,201,0.08)'  },
+              { label: 'Realizadas',  value: realizadas,  color: 'var(--success)', bg: 'rgba(52,211,153,0.08)'  },
+              { label: 'Programadas', value: programadas, color: 'var(--virtual)', bg: 'rgba(167,139,250,0.08)' },
+              { label: 'Canceladas',  value: canceladas,  color: 'var(--danger)', bg: 'rgba(248,113,113,0.08)' },
             ].map(s => (
               <div key={s.label} className="rounded-2xl p-5 anim-fade-up"
                 style={{ background: s.bg, border: '1px solid rgba(255,255,255,0.05)' }}>
-                <p className="text-xs font-medium mb-2" style={{ color: '#6B7A99' }}>{s.label}</p>
+                <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted-foreground)' }}>{s.label}</p>
                 <p className="text-3xl font-bold"
                   style={{ color: s.color, fontFamily: 'var(--font-display)' }}>
                   {s.value}
@@ -187,14 +187,14 @@ export default function SesionesPage() {
               <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: 'rgba(52,211,153,0.12)' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <line x1="12" y1="1" x2="12" y2="23" stroke="#34D399" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="12" y1="1" x2="12" y2="23" stroke="var(--success)" strokeWidth="2" strokeLinecap="round"/>
                   <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
-                    stroke="#34D399" strokeWidth="2" strokeLinecap="round"/>
+                    stroke="var(--success)" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
               <div>
                 <p className="text-xs font-medium" style={{ color: '#34D39980' }}>Cobrado en el período</p>
-                <p className="text-xl font-bold" style={{ color: '#34D399', fontFamily: 'var(--font-display)' }}>
+                <p className="text-xl font-bold" style={{ color: 'var(--success)', fontFamily: 'var(--font-display)' }}>
                   {fmtMoney(totalCobrado)}
                 </p>
               </div>
@@ -204,13 +204,13 @@ export default function SesionesPage() {
           {/* ── Por consultorio ── */}
           {(consultorios.length > 0 || byConsultorio.has('__sin__')) && (
             <div className="rounded-2xl p-5 mb-6 anim-fade-up"
-              style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
+              style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <p className="text-xs font-semibold tracking-widest uppercase mb-5"
-                style={{ color: '#3A4560' }}>
+                style={{ color: 'var(--text-subtle)' }}>
                 Por consultorio
               </p>
               {total === 0 ? (
-                <p className="text-sm" style={{ color: '#3A4560' }}>Sin sesiones en este período.</p>
+                <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>Sin sesiones en este período.</p>
               ) : (
                 <div className="space-y-4">
                   {consultorios.map(c => {
@@ -222,12 +222,12 @@ export default function SesionesPage() {
                           <div className="flex items-center gap-2.5">
                             <div className="w-3 h-3 rounded-full flex-shrink-0"
                               style={{ background: c.color }} />
-                            <span className="text-sm font-medium" style={{ color: '#C8D4E8' }}>
+                            <span className="text-sm font-medium" style={{ color: 'var(--foreground-muted)' }}>
                               {c.nombre}
                             </span>
                           </div>
                           <div className="flex items-center gap-3">
-                            <span className="text-xs" style={{ color: '#5A6A88' }}>
+                            <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
                               {pct.toFixed(0)}%
                             </span>
                             <span className="text-base font-bold w-6 text-right"
@@ -237,7 +237,7 @@ export default function SesionesPage() {
                           </div>
                         </div>
                         <div className="h-2 rounded-full overflow-hidden"
-                          style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          style={{ background: 'var(--overlay-sm)' }}>
                           <div
                             className="h-full rounded-full transition-all duration-700"
                             style={{ width: `${pct}%`, background: c.color }}
@@ -253,27 +253,27 @@ export default function SesionesPage() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2.5">
                           <div className="w-3 h-3 rounded-full flex-shrink-0"
-                            style={{ background: '#3A4560' }} />
-                          <span className="text-sm font-medium" style={{ color: '#6B7A99' }}>
+                            style={{ background: 'var(--text-subtle)' }} />
+                          <span className="text-sm font-medium" style={{ color: 'var(--muted-foreground)' }}>
                             Sin consultorio
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs" style={{ color: '#5A6A88' }}>
+                          <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
                             {total > 0 ? (((byConsultorio.get('__sin__') ?? 0) / total) * 100).toFixed(0) : 0}%
                           </span>
-                          <span className="text-base font-bold w-6 text-right" style={{ color: '#6B7A99' }}>
+                          <span className="text-base font-bold w-6 text-right" style={{ color: 'var(--muted-foreground)' }}>
                             {byConsultorio.get('__sin__') ?? 0}
                           </span>
                         </div>
                       </div>
                       <div className="h-2 rounded-full overflow-hidden"
-                        style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        style={{ background: 'var(--overlay-sm)' }}>
                         <div
                           className="h-full rounded-full transition-all duration-700"
                           style={{
                             width: `${total > 0 ? (((byConsultorio.get('__sin__') ?? 0) / total) * 100) : 0}%`,
-                            background: '#3A4560',
+                            background: 'var(--text-subtle)',
                           }}
                         />
                       </div>
@@ -286,13 +286,13 @@ export default function SesionesPage() {
 
           {/* ── Lista de sesiones ── */}
           <div className="rounded-2xl overflow-hidden anim-fade-up"
-            style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
+            style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               <p className="text-xs font-semibold tracking-widest uppercase flex items-center gap-2"
-                style={{ color: '#3A4560' }}>
+                style={{ color: 'var(--text-subtle)' }}>
                 Detalle del período
                 <span className="px-1.5 py-0.5 rounded-md text-xs"
-                  style={{ background: 'rgba(255,255,255,0.06)', color: '#6B7A99' }}>
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--muted-foreground)' }}>
                   {filtered.length}
                 </span>
               </p>
@@ -308,10 +308,10 @@ export default function SesionesPage() {
                     <rect x="16" y="12" width="4" height="9" rx="1" stroke={TEAL} strokeWidth="1.8"/>
                   </svg>
                 </div>
-                <p className="text-sm font-medium mb-1" style={{ color: '#E8EDF5' }}>
+                <p className="text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
                   Sin sesiones
                 </p>
-                <p className="text-sm" style={{ color: '#3A4560' }}>
+                <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>
                   No hay sesiones registradas en este período.
                 </p>
               </div>
@@ -349,14 +349,14 @@ export default function SesionesPage() {
                           <span className="text-xs font-semibold" style={{ color: se.color }}>
                             {se.label}
                           </span>
-                          <span className="text-xs" style={{ color: '#3A4560' }}>·</span>
-                          <span className="text-xs capitalize" style={{ color: '#5A6A88' }}>
+                          <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>·</span>
+                          <span className="text-xs capitalize" style={{ color: 'var(--text-dim)' }}>
                             {s.tipo}
                           </span>
                           {s.hora_inicio && (
                             <>
-                              <span className="text-xs" style={{ color: '#3A4560' }}>·</span>
-                              <span className="text-xs" style={{ color: '#5A6A88' }}>
+                              <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>·</span>
+                              <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
                                 {s.hora_inicio.slice(0, 5)}
                               </span>
                             </>
@@ -366,7 +366,7 @@ export default function SesionesPage() {
                           <div className="flex items-center gap-1.5 mt-0.5">
                             <div className="w-2 h-2 rounded-full flex-shrink-0"
                               style={{ background: cons.color }} />
-                            <span className="text-xs" style={{ color: '#5A6A88' }}>
+                            <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
                               {cons.nombre}
                             </span>
                           </div>
@@ -377,10 +377,10 @@ export default function SesionesPage() {
                       {s.monto != null && (
                         <div className="flex-shrink-0 text-right">
                           <p className="text-sm font-semibold"
-                            style={{ color: s.pagado ? '#34D399' : '#FBBF24' }}>
+                            style={{ color: s.pagado ? 'var(--success)' : 'var(--warning)' }}>
                             {fmtMoney(s.monto)}
                           </p>
-                          <p className="text-xs" style={{ color: '#3A4560' }}>
+                          <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
                             {s.pagado ? 'cobrado' : 'pendiente'}
                           </p>
                         </div>

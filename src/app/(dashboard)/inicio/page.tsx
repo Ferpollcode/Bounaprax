@@ -96,7 +96,7 @@ export default async function InicioPage() {
   }
   const sinCons = grouped.get('__sin__')
   if (sinCons && sinCons.length > 0) {
-    consOrder.push({ id: '__sin__', nombre: 'Sin consultorio', color: '#3A4560', sesiones: sinCons })
+    consOrder.push({ id: '__sin__', nombre: 'Sin consultorio', color: 'var(--text-subtle)', sesiones: sinCons })
   }
 
   const totalSemana = sesiones.length
@@ -107,12 +107,12 @@ export default async function InicioPage() {
 
       {/* ── Header bienvenida ── */}
       <div className="mb-8 anim-fade-up">
-        <p className="text-sm mb-1" style={{ color: '#3EC9C9' }}>{getGreeting()}</p>
+        <p className="text-sm mb-1" style={{ color: 'var(--primary)' }}>{getGreeting()}</p>
         <h1 className="text-2xl sm:text-3xl font-bold mb-1 truncate"
-          style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
+          style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
           {userName}
         </h1>
-        <p className="text-sm" style={{ color: '#6B7A99' }}>
+        <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
           Semana del {fmtWeekRange(monday, sunday)}
         </p>
       </div>
@@ -121,21 +121,21 @@ export default async function InicioPage() {
       <div className="grid grid-cols-2 gap-3 mb-8 stagger">
         <div className="rounded-2xl p-5 anim-fade-up"
           style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.1)' }}>
-          <p className="text-xs font-medium mb-2" style={{ color: '#6B7A99' }}>Esta semana</p>
-          <p className="text-3xl font-bold" style={{ color: '#3EC9C9', fontFamily: 'var(--font-display)' }}>
+          <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted-foreground)' }}>Esta semana</p>
+          <p className="text-3xl font-bold" style={{ color: 'var(--primary)', fontFamily: 'var(--font-display)' }}>
             {totalSemana}
           </p>
-          <p className="text-xs mt-1" style={{ color: '#3A4560' }}>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-subtle)' }}>
             {totalSemana === 1 ? 'sesión programada' : 'sesiones programadas'}
           </p>
         </div>
         <div className="rounded-2xl p-5 anim-fade-up"
           style={{ background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.1)' }}>
-          <p className="text-xs font-medium mb-2" style={{ color: '#6B7A99' }}>Hoy</p>
-          <p className="text-3xl font-bold" style={{ color: '#A78BFA', fontFamily: 'var(--font-display)' }}>
+          <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted-foreground)' }}>Hoy</p>
+          <p className="text-3xl font-bold" style={{ color: 'var(--virtual)', fontFamily: 'var(--font-display)' }}>
             {sesionesHoy}
           </p>
-          <p className="text-xs mt-1" style={{ color: '#3A4560' }}>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-subtle)' }}>
             {DIAS[today.getDay()]} {today.getDate()} de {MESES[today.getMonth()]}
           </p>
         </div>
@@ -145,13 +145,13 @@ export default async function InicioPage() {
       <div className="anim-fade-up">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold tracking-widest uppercase"
-            style={{ color: '#3A4560' }}>
+            style={{ color: 'var(--text-subtle)' }}>
             Agenda semanal
           </h2>
           <Link
             href="/agenda"
             className="text-xs font-medium transition-opacity hover:opacity-70"
-            style={{ color: '#3EC9C9' }}
+            style={{ color: 'var(--primary)' }}
           >
             Ver agenda →
           </Link>
@@ -159,18 +159,18 @@ export default async function InicioPage() {
 
         {sesiones.length === 0 ? (
           <div className="rounded-2xl p-10 text-center"
-            style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
+            style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
             <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center"
               style={{ background: 'rgba(62,201,201,0.06)', border: '1px solid rgba(62,201,201,0.12)' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="4" width="18" height="18" rx="2" stroke="#3EC9C9" strokeWidth="1.8"/>
-                <path d="M16 2v4M8 2v4M3 10h18" stroke="#3EC9C9" strokeWidth="1.8" strokeLinecap="round"/>
+                <rect x="3" y="4" width="18" height="18" rx="2" stroke="var(--primary)" strokeWidth="1.8"/>
+                <path d="M16 2v4M8 2v4M3 10h18" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round"/>
               </svg>
             </div>
-            <p className="text-sm font-medium mb-1" style={{ color: '#E8EDF5' }}>
+            <p className="text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
               Sin sesiones esta semana
             </p>
-            <p className="text-xs" style={{ color: '#3A4560' }}>
+            <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
               No hay sesiones programadas para esta semana.
             </p>
           </div>
@@ -178,13 +178,13 @@ export default async function InicioPage() {
           <div className="space-y-4 stagger">
             {consOrder.map(c => (
               <div key={c.id} className="rounded-2xl overflow-hidden anim-fade-up"
-                style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.06)' }}>
+                style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
 
                 {/* Consultorio header */}
                 <div className="flex items-center gap-3 px-5 py-3.5"
                   style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)' }}>
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: c.color }} />
-                  <span className="text-sm font-semibold" style={{ color: '#C8D4E8' }}>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--foreground-muted)' }}>
                     {c.nombre}
                   </span>
                   <span className="ml-auto text-xs px-2 py-0.5 rounded-lg"
@@ -212,16 +212,16 @@ export default async function InicioPage() {
                         <div className="flex-shrink-0 text-center"
                           style={{ minWidth: 48 }}>
                           <p className="text-xs font-bold leading-none"
-                            style={{ color: isToday ? '#3EC9C9' : '#6B7A99' }}>
+                            style={{ color: isToday ? 'var(--primary)' : 'var(--muted-foreground)' }}>
                             {DIAS_SHORT[fechaD.getDay()]}
                           </p>
                           <p className="text-xl font-bold leading-tight"
-                            style={{ color: isToday ? '#3EC9C9' : '#C8D4E8', fontFamily: 'var(--font-display)' }}>
+                            style={{ color: isToday ? 'var(--primary)' : 'var(--foreground-muted)', fontFamily: 'var(--font-display)' }}>
                             {fechaD.getDate()}
                           </p>
                           {isToday && (
                             <p className="text-[9px] font-bold tracking-wide uppercase"
-                              style={{ color: '#3EC9C9' }}>
+                              style={{ color: 'var(--primary)' }}>
                               Hoy
                             </p>
                           )}
@@ -233,17 +233,17 @@ export default async function InicioPage() {
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate" style={{ color: '#E8EDF5' }}>
+                          <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>
                             {pacNombre}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             {s.hora_inicio && (
-                              <span className="text-xs" style={{ color: '#5A6A88' }}>
+                              <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
                                 {s.hora_inicio.slice(0, 5)}
                                 {s.hora_fin && ` – ${s.hora_fin.slice(0, 5)}`}
                               </span>
                             )}
-                            <span className="text-xs capitalize" style={{ color: '#3A4560' }}>
+                            <span className="text-xs capitalize" style={{ color: 'var(--text-subtle)' }}>
                               · {s.tipo}
                             </span>
                           </div>

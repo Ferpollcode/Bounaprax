@@ -8,8 +8,8 @@ import { extractIdFromSlug } from '@/lib/utils'
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  color: '#E8EDF5',
+  border: '1px solid var(--border)',
+  color: 'var(--foreground)',
 }
 const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
 const TEAL = '#3EC9C9'
@@ -26,7 +26,7 @@ function blurReset(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
 
 function Label({ text, required }: { text: string; required?: boolean }) {
   return (
-    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: '#5A6A88' }}>
+    <p className="text-xs font-semibold tracking-widest uppercase mb-1.5" style={{ color: 'var(--text-dim)' }}>
       {text}{required && <span style={{ color: TEAL }}> *</span>}
     </p>
   )
@@ -41,9 +41,9 @@ const tiposPago = [
 ]
 
 const estadosPago = [
-  { value: 'pagado',    label: 'Pagado',    color: '#34D399' },
-  { value: 'pendiente', label: 'Pendiente', color: '#FBBF24' },
-  { value: 'devuelto',  label: 'Devuelto',  color: '#F87171' },
+  { value: 'pagado',    label: 'Pagado',    color: 'var(--success)' },
+  { value: 'pendiente', label: 'Pendiente', color: 'var(--warning)' },
+  { value: 'devuelto',  label: 'Devuelto',  color: 'var(--danger)' },
 ]
 
 export default function NuevoPagoPage() {
@@ -91,32 +91,32 @@ export default function NuevoPagoPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
+    <div className="min-h-screen" style={{ background: 'var(--background)' }}>
       <div className="max-w-xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         <div className="flex items-center gap-4 mb-8 anim-fade-up">
           <Link href={`/pacientes/${slug}`}
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-              <path d="M19 12H5M12 19l-7-7 7-7" stroke="#6B7A99" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 12H5M12 19l-7-7 7-7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>Registrar pago</h1>
-            <p className="text-sm mt-0.5" style={{ color: '#5A6A88' }}>Asentá el cobro de la consulta</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>Registrar pago</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>Asentá el cobro de la consulta</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="rounded-2xl p-6 space-y-5"
-            style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
 
             {/* Monto destacado */}
             <div className="text-center pb-2">
               <Label text="Monto" required />
               <div className="flex items-center justify-center gap-2">
-                <span className="text-3xl font-semibold" style={{ color: '#5A6A88' }}>$</span>
+                <span className="text-3xl font-semibold" style={{ color: 'var(--text-dim)' }}>$</span>
                 <input
                   type="number" min="0" step="0.01" value={form.monto}
                   onChange={e => set('monto')(e.target.value)}
@@ -127,7 +127,7 @@ export default function NuevoPagoPage() {
               </div>
             </div>
 
-            <div className="h-px" style={{ background: 'rgba(255,255,255,0.05)' }} />
+            <div className="h-px" style={{ background: 'var(--overlay-sm)' }} />
 
             {/* Fecha */}
             <div>
@@ -146,7 +146,7 @@ export default function NuevoPagoPage() {
                     style={{
                       background: form.tipo === t.value ? 'rgba(245,166,35,0.1)' : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${form.tipo === t.value ? 'rgba(245,166,35,0.4)' : 'rgba(255,255,255,0.07)'}`,
-                      color: form.tipo === t.value ? AMBER : '#5A6A88',
+                      color: form.tipo === t.value ? AMBER : 'var(--text-dim)',
                     }}>
                     <span className="text-base">{t.icon}</span>
                     <span>{t.label}</span>
@@ -165,7 +165,7 @@ export default function NuevoPagoPage() {
                     style={{
                       background: form.estado === s.value ? `${s.color}18` : 'rgba(255,255,255,0.03)',
                       border: `1px solid ${form.estado === s.value ? s.color + '45' : 'rgba(255,255,255,0.07)'}`,
-                      color: form.estado === s.value ? s.color : '#5A6A88',
+                      color: form.estado === s.value ? s.color : 'var(--text-dim)',
                     }}>{s.label}</button>
                 ))}
               </div>
@@ -183,7 +183,7 @@ export default function NuevoPagoPage() {
 
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm flex items-center gap-2"
-              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
               {error}
             </div>
           )}
@@ -191,12 +191,12 @@ export default function NuevoPagoPage() {
           <div className="flex items-center justify-end gap-3 pt-1 pb-8">
             <Link href={`/pacientes/${slug}`}
               className="h-10 px-5 rounded-xl text-sm font-medium flex items-center transition-opacity hover:opacity-70"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               Cancelar
             </Link>
             <button type="submit" disabled={saving}
               className="h-10 px-6 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-90"
-              style={{ background: saving ? 'rgba(245,166,35,0.35)' : 'linear-gradient(135deg,#F5A623,#D4891A)', color: '#0A0E1A', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              style={{ background: saving ? 'rgba(245,166,35,0.35)' : 'linear-gradient(135deg,#F5A623,#D4891A)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
               {saving ? (<><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
               </svg>Guardando…</>) : <>
