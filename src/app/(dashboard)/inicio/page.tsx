@@ -103,12 +103,12 @@ export default async function InicioPage() {
   const sesionesHoy = sesiones.filter(s => s.fecha === todayStr).length
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl overflow-x-hidden">
 
       {/* ── Header bienvenida ── */}
       <div className="mb-8 anim-fade-up">
         <p className="text-sm mb-1" style={{ color: '#3EC9C9' }}>{getGreeting()}</p>
-        <h1 className="text-3xl font-bold mb-1"
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 truncate"
           style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
           {userName}
         </h1>
@@ -118,7 +118,7 @@ export default async function InicioPage() {
       </div>
 
       {/* ── Stats rápidas ── */}
-      <div className="grid grid-cols-2 gap-4 mb-8 stagger">
+      <div className="grid grid-cols-2 gap-3 mb-8 stagger">
         <div className="rounded-2xl p-5 anim-fade-up"
           style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.1)' }}>
           <p className="text-xs font-medium mb-2" style={{ color: '#6B7A99' }}>Esta semana</p>

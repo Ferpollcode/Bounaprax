@@ -64,6 +64,7 @@ export default function EditarPacientePage() {
     nombre: '', apellido: '', fecha_nacimiento: '', dni: '',
     email: '', telefono: '', obra_social: '', numero_afiliado: '',
     motivo_consulta: '', diagnostico: '', estado: 'activo',
+    cuit: '', razon_social: '', condicion_iva: '', direccion_fiscal: '', cbu: '', alias_cbu: '',
   })
   const [consultorioId, setConsultorioId] = useState('')
   const [consultorios, setConsultorios]   = useState<ConsultorioOpt[]>([])
@@ -87,6 +88,12 @@ export default function EditarPacientePage() {
           motivo_consulta:  data.motivo_consulta  ?? '',
           diagnostico:      data.diagnostico      ?? '',
           estado:           data.estado           ?? 'activo',
+          cuit:             data.cuit             ?? '',
+          razon_social:     data.razon_social     ?? '',
+          condicion_iva:    data.condicion_iva    ?? '',
+          direccion_fiscal: data.direccion_fiscal ?? '',
+          cbu:              data.cbu              ?? '',
+          alias_cbu:        data.alias_cbu        ?? '',
         })
         setConsultorioId(data.consultorio_id ?? '')
       }
@@ -114,6 +121,12 @@ export default function EditarPacientePage() {
       numero_afiliado:  form.numero_afiliado  || null,
       motivo_consulta:  form.motivo_consulta  || null,
       diagnostico:      form.diagnostico      || null,
+      cuit:             form.cuit             || null,
+      razon_social:     form.razon_social     || null,
+      condicion_iva:    form.condicion_iva    || null,
+      direccion_fiscal: form.direccion_fiscal || null,
+      cbu:              form.cbu              || null,
+      alias_cbu:        form.alias_cbu        || null,
     }).eq('id', id)
 
     if (error) { setError('Error al guardar los cambios.'); setSaving(false) }
@@ -264,6 +277,37 @@ export default function EditarPacientePage() {
                     }}>{opt.label}</button>
                 ))}
               </div>
+            </div>
+          </Card>
+
+          <Card title="Facturación" icon={
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M2 10h20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          }>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><Label text="CUIT / CUIL" /><TInput field="cuit" placeholder="20-12345678-9" /></div>
+              <div><Label text="Razón social" /><TInput field="razon_social" placeholder="Juan García" /></div>
+            </div>
+            <div>
+              <Label text="Condición IVA" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {['Monotributista', 'Responsable Inscripto', 'Exento', 'Consumidor Final', 'No Responsable'].map(opt => (
+                  <button key={opt} type="button" onClick={() => set('condicion_iva')(form.condicion_iva === opt ? '' : opt)}
+                    className="h-9 px-3 rounded-xl text-xs font-medium transition-all text-left"
+                    style={{
+                      background: form.condicion_iva === opt ? 'rgba(62,201,201,0.12)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${form.condicion_iva === opt ? 'rgba(62,201,201,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                      color: form.condicion_iva === opt ? '#3EC9C9' : '#5A6A88',
+                    }}>{opt}</button>
+                ))}
+              </div>
+            </div>
+            <div><Label text="Dirección fiscal" /><TInput field="direccion_fiscal" placeholder="Av. Corrientes 1234, CABA" /></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><Label text="CBU" /><TInput field="cbu" placeholder="0000000000000000000000" /></div>
+              <div><Label text="Alias CBU" /><TInput field="alias_cbu" placeholder="alias.banco.mp" /></div>
             </div>
           </Card>
 

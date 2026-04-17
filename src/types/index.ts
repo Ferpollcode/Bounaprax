@@ -13,6 +13,13 @@ export interface Paciente {
   diagnostico?: string
   estado: 'activo' | 'inactivo' | 'alta' | 'derivado'
   consultorio_id?: string
+  // Facturación
+  cuit?: string
+  razon_social?: string
+  condicion_iva?: string
+  direccion_fiscal?: string
+  cbu?: string
+  alias_cbu?: string
   created_at: string
   updated_at: string
 }

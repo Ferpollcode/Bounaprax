@@ -887,8 +887,9 @@ export function PatientDetailClient({
   consultorios?: ConsultorioOpt[]
 }) {
   const router = useRouter()
-  const [sesionOpen, setSesionOpen] = useState(false)
-  const [pagoOpen,   setPagoOpen]   = useState(false)
+  const [sesionOpen,     setSesionOpen]     = useState(false)
+  const [pagoOpen,       setPagoOpen]       = useState(false)
+  const [downloadingAll, setDownloadingAll] = useState(false)
 
   const p   = paciente
   const est = estadoConfig[p.estado] ?? estadoConfig.activo
@@ -897,6 +898,132 @@ export function PatientDetailClient({
 
   const totalPagado    = pagos.filter(pay => pay.estado === 'pagado').reduce((a, b) => a + (b.monto ?? 0), 0)
   const totalPendiente = pagos.filter(pay => pay.estado === 'pendiente').reduce((a, b) => a + (b.monto ?? 0), 0)
+
+  async function handleDownloadAll() {
+    if (docs.length === 0 || downloadingAll) return
+    setDownloadingAll(true)
+    try {
+      const JSZip = (await import('jszip')).default
+      const supabase = createClient()
+      const zip = new JSZip()
+      for (const doc of docs) {
+        if (!doc.storagePath) continue
+        const { data: urlData } = await supabase.storage.from('documentos').createSignedUrl(doc.storagePath, 120)
+        if (!urlData?.signedUrl) continue
+        const res = await fetch(urlData.signedUrl)
+        const blob = await res.blob()
+        zip.file(doc.archivo_nombre || doc.nombre, blob)
+      }
+      const content = await zip.generateAsync({ type: 'blob' })
+      const url = URL.createObjectURL(content)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${p.apellido}-${p.nombre}-documentos.zip`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } finally {
+      setDownloadingAll(false)
+    }
+  }
+
+  function handleHistoriaClinica() {
+    const fechaHoy = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Historia Clínica — ${p.apellido}, ${p.nombre}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111827;background:#fff}
+.top{background:#0A0E1A;padding:16px 32px;display:flex;justify-content:space-between;align-items:center}
+.top-logo{color:#3EC9C9;font-size:18px;font-weight:700}
+.top-date{color:#6B7A99;font-size:12px}
+.page{max-width:760px;margin:0 auto;padding:40px 32px 80px}
+.ph{margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #F3F4F6}
+.ph-name{font-size:26px;font-weight:700;color:#111827;margin-bottom:8px}
+.ph-meta{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font-size:12px;color:#6B7A99;background:#F9FAFB;border:1px solid #E5E7EB;padding:2px 10px;border-radius:20px}
+.sec{margin-bottom:28px}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9CA3AF;padding-bottom:8px;border-bottom:1px solid #F3F4F6;margin-bottom:16px}
+.info-label{font-size:11px;color:#9CA3AF;margin-bottom:2px}
+.info-value{font-size:14px;color:#1F2937;line-height:1.6;white-space:pre-wrap}
+.info-row{margin-bottom:12px}
+.ses{border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;margin-bottom:12px;page-break-inside:avoid}
+.ses-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ses-fecha{font-size:13px;font-weight:600;color:#111827}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-realizada{background:#D1FAE5;color:#065F46}
+.b-programada{background:#CFFAFE;color:#0E7490}
+.b-cancelada{background:#FEE2E2;color:#991B1B}
+.b-inasistencia{background:#FEF3C7;color:#92400E}
+.fl{margin-top:8px}
+.fl-label{font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.fl-value{font-size:13px;color:#374151;line-height:1.6}
+.docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.doc-item{border:1px solid #E5E7EB;border-radius:8px;padding:12px}
+.print-btn{position:fixed;bottom:24px;right:24px;background:#3EC9C9;color:white;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(62,201,201,.4)}
+@media print{.print-btn,.top{display:none}.page{padding-top:16px}}
+</style>
+</head>
+<body>
+<div class="top"><span class="top-logo">HealthPro</span><span class="top-date">Historia Clínica generada el ${fechaHoy}</span></div>
+<div class="page">
+  <div class="ph">
+    <div class="ph-name">${p.apellido}, ${p.nombre}</div>
+    <div class="ph-meta">
+      ${p.dni ? `<span class="chip">DNI: ${p.dni}</span>` : ''}
+      ${p.fecha_nacimiento ? `<span class="chip">${new Date(p.fecha_nacimiento + 'T00:00:00').toLocaleDateString('es-AR')}</span>` : ''}
+      ${p.telefono ? `<span class="chip">${p.telefono}</span>` : ''}
+      ${p.email ? `<span class="chip">${p.email}</span>` : ''}
+      ${p.obra_social ? `<span class="chip">${p.obra_social}${p.numero_afiliado ? ' · ' + p.numero_afiliado : ''}</span>` : ''}
+    </div>
+  </div>
+
+  ${(p.motivo_consulta || p.diagnostico) ? `
+  <div class="sec">
+    <div class="sec-title">Información clínica</div>
+    ${p.motivo_consulta ? `<div class="info-row"><div class="info-label">Motivo de consulta</div><div class="info-value">${p.motivo_consulta}</div></div>` : ''}
+    ${p.diagnostico ? `<div class="info-row"><div class="info-label">Diagnóstico</div><div class="info-value">${p.diagnostico}</div></div>` : ''}
+  </div>` : ''}
+
+  <div class="sec">
+    <div class="sec-title">Historial de sesiones (${sesiones.length})</div>
+    ${sesiones.length === 0 ? '<p style="color:#9CA3AF;font-size:14px">Sin sesiones registradas.</p>' :
+      [...sesiones].reverse().map(s => {
+        const fecha = new Date(s.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        const estadoLabel: Record<string, string> = { realizada: 'Realizada', programada: 'Programada', cancelada: 'Cancelada', inasistencia: 'Inasistencia' }
+        return `<div class="ses">
+          <div class="ses-head">
+            <span class="ses-fecha">${fecha}</span>
+            <span class="badge b-${s.estado}">${estadoLabel[s.estado] ?? s.estado}</span>
+            <span style="font-size:12px;color:#9CA3AF">${s.tipo}${s.hora_inicio ? ' · ' + s.hora_inicio.slice(0,5) : ''}</span>
+          </div>
+          ${s.observaciones ? `<div class="fl"><div class="fl-label">Observaciones</div><div class="fl-value">${s.observaciones}</div></div>` : ''}
+          ${s.tratamiento ? `<div class="fl"><div class="fl-label">Tratamiento</div><div class="fl-value">${s.tratamiento}</div></div>` : ''}
+          ${s.objetivo ? `<div class="fl"><div class="fl-label">Objetivo</div><div class="fl-value">${s.objetivo}</div></div>` : ''}
+          ${s.evolucion ? `<div class="fl"><div class="fl-label">Evolución</div><div class="fl-value">${s.evolucion}</div></div>` : ''}
+          ${s.proximos_pasos ? `<div class="fl"><div class="fl-label">Próximos pasos</div><div class="fl-value">${s.proximos_pasos}</div></div>` : ''}
+        </div>`
+      }).join('')
+    }
+  </div>
+
+  ${docs.length > 0 ? `
+  <div class="sec">
+    <div class="sec-title">Documentos (${docs.length})</div>
+    <div class="docs-grid">
+      ${docs.map(d => `<div class="doc-item"><div style="font-size:14px;font-weight:500;color:#111827">${d.nombre}</div><div style="font-size:12px;color:#9CA3AF;margin-top:2px">${d.tipo.replace('_',' ')} · ${new Date(d.created_at).toLocaleDateString('es-AR')}</div></div>`).join('')}
+    </div>
+  </div>` : ''}
+</div>
+<button class="print-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+</body></html>`
+    const w = window.open('', '_blank')
+    if (w) { w.document.write(html); w.document.close() }
+  }
 
   return (
     <>
@@ -966,6 +1093,34 @@ export function PatientDetailClient({
               </svg>
               Registrar pago
             </button>
+            <button
+              onClick={handleHistoriaClinica}
+              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+              style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)', color: '#A78BFA' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Historia clínica
+            </button>
+            <button
+              onClick={handleDownloadAll}
+              disabled={docs.length === 0 || downloadingAll}
+              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+              style={{ background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.25)', color: '#34D399' }}>
+              {downloadingAll
+                ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                  </svg>
+                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+              }
+              {downloadingAll ? 'Descargando…' : 'Descargar docs'}
+            </button>
           </div>
         </div>
 
@@ -1021,6 +1176,31 @@ export function PatientDetailClient({
                 <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
               </svg>
               Pago
+            </button>
+            <button onClick={handleHistoriaClinica}
+              className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
+              style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', color: '#A78BFA' }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Historia
+            </button>
+            <button onClick={handleDownloadAll} disabled={docs.length === 0 || downloadingAll}
+              className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80 disabled:opacity-40"
+              style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)', color: '#34D399' }}>
+              {downloadingAll
+                ? <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                  </svg>
+                : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+              }
+              {downloadingAll ? 'Descargando…' : 'Descargar'}
             </button>
             <Link href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/editar`}
               className="h-9 px-3 rounded-xl flex items-center gap-1.5 transition-opacity hover:opacity-80"
