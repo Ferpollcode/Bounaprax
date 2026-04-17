@@ -8,9 +8,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login')
 
+  const userName = (user.user_metadata?.nombre as string | undefined) || undefined
+
   return (
     <div className="min-h-screen" style={{ background: '#0A0E1A' }}>
-      <Sidebar userEmail={user.email} />
+      <Sidebar userEmail={user.email} userName={userName} />
       <main className="lg:ml-[220px] min-h-screen pt-14 lg:pt-0 mobile-safe-bottom overflow-x-hidden">
         {children}
       </main>

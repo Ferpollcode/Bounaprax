@@ -6,6 +6,18 @@ import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
   {
+    href: '/inicio',
+    label: 'Inicio',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
+        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
+        <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
+      </svg>
+    ),
+  },
+  {
     href: '/pacientes',
     label: 'Pacientes',
     icon: (
@@ -50,9 +62,11 @@ const navItems = [
   },
 ]
 
-export function Sidebar({ userEmail }: { userEmail?: string }) {
+export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?: string }) {
   const pathname = usePathname()
   const router = useRouter()
+
+  const displayName = userName || userEmail?.split('@')[0] || 'Profesional'
 
   async function handleLogout() {
     const supabase = createClient()
@@ -68,8 +82,8 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
         className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4"
         style={{ background: '#0D1220', borderBottom: '1px solid rgba(255,255,255,0.07)' }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5">
+        {/* Logo clickeable */}
+        <Link href="/inicio" className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #3EC9C9, #2BA8A8)' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
@@ -80,12 +94,12 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
             style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
             HealthPro
           </span>
-        </div>
+        </Link>
 
         {/* Usuario + logout */}
         <div className="flex items-center gap-2.5">
           <span className="text-xs max-w-[120px] truncate" style={{ color: '#5A6A88' }}>
-            {userEmail?.split('@')[0] ?? ''}
+            {displayName}
           </span>
           <button
             onClick={handleLogout}
@@ -113,7 +127,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
         }}
       >
         {navItems.map(item => {
-          const active = pathname.startsWith(item.href)
+          const active = pathname === item.href || (item.href !== '/inicio' && pathname.startsWith(item.href))
           return (
             <Link
               key={item.href}
@@ -121,39 +135,16 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
               className="relative flex-1 flex flex-col items-center justify-center gap-1"
               style={{ color: active ? '#3EC9C9' : '#4A5A78' }}
             >
-              {/* Indicator bar at top */}
               {active && (
                 <span
                   className="absolute top-0 left-1/2 -translate-x-1/2"
-                  style={{
-                    width: 28,
-                    height: 2,
-                    background: '#3EC9C9',
-                    borderRadius: '0 0 3px 3px',
-                  }}
+                  style={{ width: 28, height: 2, background: '#3EC9C9', borderRadius: '0 0 3px 3px' }}
                 />
               )}
-              {/* Icon */}
-              <span
-                style={{
-                  color: active ? '#3EC9C9' : '#4A5A78',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+              <span style={{ color: active ? '#3EC9C9' : '#4A5A78', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {item.icon}
               </span>
-              {/* Label — only on active item, very small */}
-              <span
-                style={{
-                  fontSize: '9px',
-                  fontWeight: 600,
-                  letterSpacing: '0.03em',
-                  color: active ? '#3EC9C9' : 'transparent',
-                  lineHeight: 1,
-                }}
-              >
+              <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.03em', color: active ? '#3EC9C9' : 'transparent', lineHeight: 1 }}>
                 {item.label.length > 8 ? item.label.slice(0, 7) + '…' : item.label}
               </span>
             </Link>
@@ -164,13 +155,10 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
       {/* ══ DESKTOP: sidebar fijo lateral ═══════════════════ */}
       <aside
         className="hidden lg:flex fixed inset-y-0 left-0 w-[220px] flex-col z-40"
-        style={{
-          background: '#0D1220',
-          borderRight: '1px solid rgba(255,255,255,0.06)',
-        }}
+        style={{ background: '#0D1220', borderRight: '1px solid rgba(255,255,255,0.06)' }}
       >
-        {/* Logo */}
-        <div className="px-5 py-5 flex items-center gap-3"
+        {/* Logo clickeable */}
+        <Link href="/inicio" className="px-5 py-5 flex items-center gap-3 transition-opacity hover:opacity-80"
           style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, #3EC9C9, #2BA8A8)' }}>
@@ -182,7 +170,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
             style={{ color: '#E8EDF5', fontFamily: 'var(--font-display)' }}>
             HealthPro
           </span>
-        </div>
+        </Link>
 
         {/* Navegación */}
         <nav className="flex-1 px-3 py-4 space-y-0.5">
@@ -191,7 +179,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
             Principal
           </p>
           {navItems.map(item => {
-            const active = pathname.startsWith(item.href)
+            const active = pathname === item.href || (item.href !== '/inicio' && pathname.startsWith(item.href))
             return (
               <Link
                 key={item.href}
@@ -205,8 +193,7 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
                 <span style={{ color: active ? '#3EC9C9' : '#6B7A99' }}>{item.icon}</span>
                 {item.label}
                 {active && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full"
-                    style={{ background: '#3EC9C9' }} />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: '#3EC9C9' }} />
                 )}
               </Link>
             )
@@ -215,10 +202,9 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
 
         {/* Usuario */}
         <div className="px-3 pb-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="px-3 py-3 mt-3 rounded-xl"
-            style={{ background: 'rgba(255,255,255,0.03)' }}>
+          <div className="px-3 py-3 mt-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)' }}>
             <p className="text-xs font-medium truncate mb-0.5" style={{ color: '#E8EDF5' }}>
-              {userEmail?.split('@')[0] ?? 'Profesional'}
+              {displayName}
             </p>
             <p className="text-xs truncate mb-3" style={{ color: '#3A4560' }}>
               {userEmail ?? ''}

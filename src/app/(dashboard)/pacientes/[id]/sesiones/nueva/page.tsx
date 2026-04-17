@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { extractIdFromSlug } from '@/lib/utils'
 
 const inputStyle: React.CSSProperties = {
   background: 'rgba(255,255,255,0.04)',
@@ -78,7 +79,8 @@ function Textarea({ value, onChange, placeholder, rows = 3 }: {
 
 export default function NuevaSesionPage() {
   const router = useRouter()
-  const { id } = useParams<{ id: string }>()
+  const { id: slug } = useParams<{ id: string }>()
+  const id = extractIdFromSlug(slug)
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
 
@@ -127,7 +129,7 @@ export default function NuevaSesionPage() {
     })
 
     if (error) { setError('Error al guardar la sesión.'); setSaving(false) }
-    else router.push(`/pacientes/${id}`)
+    else router.push(`/pacientes/${slug}`)
   }
 
   return (
@@ -135,7 +137,7 @@ export default function NuevaSesionPage() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         <div className="flex items-center gap-4 mb-8 anim-fade-up">
-          <Link href={`/pacientes/${id}`}
+          <Link href={`/pacientes/${slug}`}
             className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-70"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -281,7 +283,7 @@ export default function NuevaSesionPage() {
           )}
 
           <div className="flex items-center justify-end gap-3 pt-1 pb-8">
-            <Link href={`/pacientes/${id}`}
+            <Link href={`/pacientes/${slug}`}
               className="h-10 px-5 rounded-xl text-sm font-medium flex items-center transition-opacity hover:opacity-70"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#6B7A99' }}>
               Cancelar

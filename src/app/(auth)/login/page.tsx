@@ -25,7 +25,7 @@ export default function LoginPage() {
         : error.message)
       setLoading(false)
     } else {
-      router.push('/pacientes')
+      router.push('/inicio')
       router.refresh()
     }
   }

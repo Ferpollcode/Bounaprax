@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { pacienteSlug } from '@/lib/utils'
 
 type ConsultorioOpt = { id: string; nombre: string; color: string }
 
@@ -224,7 +225,7 @@ export default function NuevoPacientePage() {
       updateFile(item.id, { uploading: false })
     }
 
-    router.push(`/pacientes/${paciente.id}`)
+    router.push(`/pacientes/${pacienteSlug(form.apellido, form.nombre, paciente.id)}`)
   }
 
   const estadoOpts = [

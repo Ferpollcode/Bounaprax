@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { pacienteSlug } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import type { Paciente, Sesion, Pago, Documento } from '@/types'
 
@@ -935,7 +936,7 @@ export function PatientDetailClient({
                 )}
               </div>
             </div>
-            <Link href={`/pacientes/${p.id}/editar`}
+            <Link href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/editar`}
               className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -1021,7 +1022,7 @@ export function PatientDetailClient({
               </svg>
               Pago
             </button>
-            <Link href={`/pacientes/${p.id}/editar`}
+            <Link href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/editar`}
               className="h-9 px-3 rounded-xl flex items-center gap-1.5 transition-opacity hover:opacity-80"
               style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: '#8A9AB8' }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
@@ -1062,7 +1063,7 @@ export function PatientDetailClient({
             <div className="rounded-2xl p-5 space-y-3.5" style={{ background: '#0F1524', border: '1px solid rgba(255,255,255,0.07)' }}>
               <div className="flex items-center justify-between mb-4">
                 <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: '#3A4560' }}>Datos personales</p>
-                <Link href={`/pacientes/${p.id}/editar`}
+                <Link href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/editar`}
                   className="text-xs font-medium transition-opacity hover:opacity-80 px-2 py-1.5 -mr-2 -my-1 rounded-lg"
                   style={{ color: TEAL }}>Editar</Link>
               </div>

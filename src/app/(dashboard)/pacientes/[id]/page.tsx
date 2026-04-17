@@ -2,9 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import type { Paciente, Sesion, Pago, Documento, Consultorio } from '@/types'
 import { PatientDetailClient, type DocWithPath } from './PatientDetailClient'
+import { extractIdFromSlug } from '@/lib/utils'
 
 export default async function PacienteDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+  const { id: slug } = await params
+  const id = extractIdFromSlug(slug)
   const supabase = await createClient()
 
   const [
