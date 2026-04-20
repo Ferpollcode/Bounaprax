@@ -45,104 +45,104 @@
 /* HealthPro — dark theme (default) */
 :root,
 .dark {
-  --background: #0A0E1A;
-  --foreground: #E8EDF5;
-  --card: #0F1524;
-  --card-foreground: #E8EDF5;
-  --popover: #161D30;
-  --popover-foreground: #E8EDF5;
-  --primary: #3EC9C9;
-  --primary-foreground: #0A0E1A;
-  --secondary: #161D30;
-  --secondary-foreground: #E8EDF5;
-  --muted: #161D30;
-  --muted-foreground: #6B7A99;
-  --accent: #F5A623;
-  --accent-foreground: #0A0E1A;
-  --destructive: #F87171;
-  --border: rgba(255, 255, 255, 0.07);
-  --input: rgba(255, 255, 255, 0.08);
-  --ring: #3EC9C9;
+  --background: #080C14;
+  --foreground: #F0F4FF;
+  --card: #0E1420;
+  --card-foreground: #F0F4FF;
+  --popover: #131A2A;
+  --popover-foreground: #F0F4FF;
+  --primary: #00E5E5;
+  --primary-foreground: #080C14;
+  --secondary: #131A2A;
+  --secondary-foreground: #F0F4FF;
+  --muted: #131A2A;
+  --muted-foreground: #7A8DB0;
+  --accent: #FFB020;
+  --accent-foreground: #080C14;
+  --destructive: #FF5555;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.09);
+  --ring: #00E5E5;
   --radius: 0.75rem;
-  --sidebar: #0D1220;
-  --sidebar-foreground: #E8EDF5;
-  --sidebar-primary: #3EC9C9;
-  --sidebar-primary-foreground: #0A0E1A;
-  --sidebar-accent: rgba(62, 201, 201, 0.1);
-  --sidebar-accent-foreground: #3EC9C9;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
-  --sidebar-ring: #3EC9C9;
+  --sidebar: #0A0F1C;
+  --sidebar-foreground: #F0F4FF;
+  --sidebar-primary: #00E5E5;
+  --sidebar-primary-foreground: #080C14;
+  --sidebar-accent: rgba(0, 229, 229, 0.12);
+  --sidebar-accent-foreground: #00E5E5;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: #00E5E5;
   /* custom tokens */
-  --surface-2: #161D30;
-  --text-subtle: #3A4560;
-  --teal-dim: rgba(62, 201, 201, 0.12);
-  --amber-dim: rgba(245, 166, 35, 0.12);
-  --success: #34D399;
-  --warning: #FBBF24;
-  --danger: #F87171;
-  --sidebar-action-bg: rgba(255, 255, 255, 0.05);
-  --sidebar-action-border: rgba(255, 255, 255, 0.08);
-  --sidebar-user-bg: rgba(255, 255, 255, 0.03);
-  --foreground-muted: #C8D4E8;
-  --text-dim: #5A6A88;
-  --success-dim: rgba(52, 211, 153, 0.12);
-  --danger-dim: rgba(248, 113, 113, 0.12);
-  --warning-dim: rgba(251, 191, 36, 0.12);
-  --virtual-dim: rgba(167, 139, 250, 0.12);
-  --virtual: #A78BFA;
-  --overlay-sm: rgba(255, 255, 255, 0.05);
-  --overlay-md: rgba(255, 255, 255, 0.08);
+  --surface-2: #131A2A;
+  --text-subtle: #2E3D58;
+  --teal-dim: rgba(0, 229, 229, 0.13);
+  --amber-dim: rgba(255, 176, 32, 0.13);
+  --success: #00E096;
+  --warning: #FFB020;
+  --danger: #FF5555;
+  --sidebar-action-bg: rgba(255, 255, 255, 0.06);
+  --sidebar-action-border: rgba(255, 255, 255, 0.09);
+  --sidebar-user-bg: rgba(255, 255, 255, 0.04);
+  --foreground-muted: #D0DCFF;
+  --text-dim: #4A5E80;
+  --success-dim: rgba(0, 224, 150, 0.13);
+  --danger-dim: rgba(255, 85, 85, 0.13);
+  --warning-dim: rgba(255, 176, 32, 0.13);
+  --virtual-dim: rgba(180, 130, 255, 0.13);
+  --virtual: #B482FF;
+  --overlay-sm: rgba(255, 255, 255, 0.06);
+  --overlay-md: rgba(255, 255, 255, 0.09);
 }
 
-/* HealthPro — light theme */
+/* HealthPro — light theme (soft gray + vivid) */
 .light {
-  --background: #F2F5FA;
-  --foreground: #0D1220;
+  --background: #F0F0F0;
+  --foreground: #0A0A0A;
   --card: #FFFFFF;
-  --card-foreground: #0D1220;
+  --card-foreground: #0A0A0A;
   --popover: #FFFFFF;
-  --popover-foreground: #0D1220;
-  --primary: #2BA8A8;
+  --popover-foreground: #0A0A0A;
+  --primary: #00979A;
   --primary-foreground: #FFFFFF;
-  --secondary: #E8EDF5;
-  --secondary-foreground: #0D1220;
-  --muted: #E8EDF5;
-  --muted-foreground: #6B7A99;
-  --accent: #D4900F;
+  --secondary: #E4E4E4;
+  --secondary-foreground: #0A0A0A;
+  --muted: #E4E4E4;
+  --muted-foreground: #404040;
+  --accent: #E07B00;
   --accent-foreground: #FFFFFF;
-  --destructive: #DC2626;
-  --border: rgba(0, 0, 0, 0.08);
-  --input: rgba(0, 0, 0, 0.07);
-  --ring: #2BA8A8;
+  --destructive: #D0021B;
+  --border: rgba(0, 0, 0, 0.12);
+  --input: rgba(0, 0, 0, 0.09);
+  --ring: #00979A;
   --radius: 0.75rem;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #0D1220;
-  --sidebar-primary: #2BA8A8;
+  --sidebar: #E8E8E8;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #00979A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(43, 168, 168, 0.1);
-  --sidebar-accent-foreground: #2BA8A8;
-  --sidebar-border: rgba(0, 0, 0, 0.07);
-  --sidebar-ring: #2BA8A8;
+  --sidebar-accent: rgba(0, 151, 154, 0.12);
+  --sidebar-accent-foreground: #00979A;
+  --sidebar-border: rgba(0, 0, 0, 0.10);
+  --sidebar-ring: #00979A;
   /* custom tokens */
-  --surface-2: #E8EDF5;
-  --text-subtle: #B0BCCC;
-  --teal-dim: rgba(43, 168, 168, 0.1);
-  --amber-dim: rgba(212, 144, 15, 0.1);
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #DC2626;
-  --sidebar-action-bg: rgba(0, 0, 0, 0.04);
-  --sidebar-action-border: rgba(0, 0, 0, 0.08);
-  --sidebar-user-bg: rgba(0, 0, 0, 0.03);
-  --foreground-muted: #475569;
-  --text-dim: #94A3B8;
-  --success-dim: rgba(16, 185, 129, 0.12);
-  --danger-dim: rgba(220, 38, 38, 0.12);
-  --warning-dim: rgba(245, 158, 11, 0.12);
-  --virtual-dim: rgba(139, 92, 246, 0.12);
-  --virtual: #7C3AED;
-  --overlay-sm: rgba(0, 0, 0, 0.04);
-  --overlay-md: rgba(0, 0, 0, 0.07);
+  --surface-2: #E4E4E4;
+  --text-subtle: #909090;
+  --teal-dim: rgba(0, 151, 154, 0.12);
+  --amber-dim: rgba(224, 123, 0, 0.12);
+  --success: #008A50;
+  --warning: #C96B00;
+  --danger: #D0021B;
+  --sidebar-action-bg: rgba(0, 0, 0, 0.05);
+  --sidebar-action-border: rgba(0, 0, 0, 0.10);
+  --sidebar-user-bg: rgba(0, 0, 0, 0.04);
+  --foreground-muted: #1A1A1A;
+  --text-dim: #555555;
+  --success-dim: rgba(0, 138, 80, 0.13);
+  --danger-dim: rgba(208, 2, 27, 0.13);
+  --warning-dim: rgba(201, 107, 0, 0.13);
+  --virtual-dim: rgba(109, 40, 217, 0.13);
+  --virtual: #6D28D9;
+  --overlay-sm: rgba(0, 0, 0, 0.05);
+  --overlay-md: rgba(0, 0, 0, 0.09);
 }
 
 @layer base {
@@ -171,6 +171,32 @@
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #3A4560; border-radius: 99px; }
 ::-webkit-scrollbar-thumb:hover { background: #6B7A99; }
+
+/* Modal animations */
+@keyframes modalBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalSheetUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.modal-backdrop {
+  animation: modalBackdropIn 0.22s ease both;
+}
+.modal-content {
+  animation: modalSheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (min-width: 640px) {
+  .modal-content {
+    animation: modalScaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
 
 /* Animations */
 @keyframes fadeUp {

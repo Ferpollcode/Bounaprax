@@ -227,12 +227,12 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
       {/* Modal confirmación de eliminación */}
       {deleteConfirm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(0,0,0,0.7)' }}
           onClick={() => !deleting && setDeleteConfirm(null)}
         >
           <div
-            className="rounded-2xl p-6 max-w-sm w-full anim-fade-up"
+            className="modal-content rounded-2xl p-6 max-w-sm w-full"
             style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
             onClick={e => e.stopPropagation()}
           >

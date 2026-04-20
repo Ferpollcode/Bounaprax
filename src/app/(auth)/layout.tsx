@@ -1,3 +1,5 @@
+import { BuonapraxLogo } from '@/components/BuonapraxLogo'
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex">
@@ -18,17 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Logo */}
         <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, #3EC9C9, #2BA8A8)' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3v18M3 12h18" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <span className="text-xl font-semibold tracking-tight" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
-              HealthPro
-            </span>
-          </div>
+          <img src="/logo.png" alt="Buonaprax" style={{ height: 44, width: 'auto', objectFit: 'contain' }} />
         </div>
 
         {/* Center content */}

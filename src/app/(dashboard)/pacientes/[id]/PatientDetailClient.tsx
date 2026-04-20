@@ -167,12 +167,12 @@ function Modal({ open, onClose, title, subtitle, wide, children }: {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
-        className="absolute inset-0 bg-black/70"
+        className="modal-backdrop absolute inset-0 bg-black/70"
         style={{ backdropFilter: 'blur(6px)' }}
         onClick={onClose}
       />
       <div
-        className={`relative z-10 w-full ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'} max-h-[90dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl`}
+        className={`modal-content relative z-10 w-full ${wide ? 'sm:max-w-2xl' : 'sm:max-w-lg'} max-h-[90dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl`}
         style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
       >
         {/* Drag pill indicator (mobile only) */}
@@ -969,7 +969,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
 </style>
 </head>
 <body>
-<div class="top"><span class="top-logo">HealthPro</span><span class="top-date">Historia Clínica generada el ${fechaHoy}</span></div>
+<div class="top"><span class="top-logo">Buonaprax</span><span class="top-date">Historia Clínica generada el ${fechaHoy}</span></div>
 <div class="page">
   <div class="ph">
     <div class="ph-name">${p.apellido}, ${p.nombre}</div>

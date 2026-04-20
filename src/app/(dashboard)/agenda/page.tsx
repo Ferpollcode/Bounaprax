@@ -1,9 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { pacienteSlug } from '@/lib/utils'
 
 const TEAL  = '#3EC9C9'
 const AMBER = '#F5A623'
@@ -37,6 +35,7 @@ interface SesionWithPaciente {
   monto: number | null
   pagado: boolean
   paciente_id: string
+  consultorio_id: string | null
   pacientes: { nombre: string; apellido: string } | null
 }
 
@@ -198,8 +197,8 @@ function NuevaSesionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-black/70" style={{ backdropFilter: 'blur(6px)' }} onClick={onClose} />
-      <div className="relative z-10 w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl"
+      <div className="modal-backdrop absolute inset-0 bg-black/70" style={{ backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div className="modal-content relative z-10 w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl"
         style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
 
         {/* Drag pill */}
@@ -402,6 +401,299 @@ function NuevaSesionModal({
   )
 }
 
+/* ── Editar Sesión Modal ─────────────────────────────────── */
+function EditarSesionModal({
+  open, onClose, sesion, pacientes, consultorios, onSaved, onDeleted,
+}: {
+  open: boolean
+  onClose: () => void
+  sesion: SesionWithPaciente | null
+  pacientes: PacienteOpt[]
+  consultorios: ConsultorioOpt[]
+  onSaved: () => void
+  onDeleted: () => void
+}) {
+  const [form, setForm] = useState({
+    fecha: '', hora_inicio: '', hora_fin: '',
+    tipo: 'presencial', estado: 'programada',
+    consultorio_id: '', observaciones: '', monto: '', pagado: false,
+  })
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [error, setError] = useState('')
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (sesion && open) {
+      setForm({
+        fecha:          sesion.fecha,
+        hora_inicio:    sesion.hora_inicio ?? '',
+        hora_fin:       sesion.hora_fin ?? '',
+        tipo:           sesion.tipo,
+        estado:         sesion.estado,
+        consultorio_id: sesion.consultorio_id ?? '',
+        observaciones:  sesion.observaciones ?? '',
+        monto:          sesion.monto != null ? String(sesion.monto) : '',
+        pagado:         sesion.pagado,
+      })
+      setError('')
+      setConfirmDelete(false)
+      setSaving(false)
+      setDeleting(false)
+    }
+  }, [sesion, open])
+
+  function setStr(field: string) { return (v: string) => setForm(f => ({ ...f, [field]: v })) }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!sesion) return
+    setSaving(true); setError('')
+
+    saveTimeoutRef.current = setTimeout(() => {
+      setSaving(false)
+      setError('La operación tardó demasiado. Revisá tu conexión e intentá de nuevo.')
+    }, 12000)
+
+    try {
+      const supabase = createClient()
+      const { error: err } = await supabase.from('sesiones').update({
+        fecha:          form.fecha,
+        hora_inicio:    form.hora_inicio  || null,
+        hora_fin:       form.hora_fin     || null,
+        tipo:           form.tipo,
+        estado:         form.estado,
+        consultorio_id: form.consultorio_id || null,
+        observaciones:  form.observaciones || null,
+        monto:          form.monto ? parseFloat(form.monto) : null,
+        pagado:         form.pagado,
+      }).eq('id', sesion.id)
+
+      clearTimeout(saveTimeoutRef.current)
+      console.log('[EditarSesion] update result — error:', err, '| sesion id:', sesion.id)
+      if (err) { setError('Error al guardar los cambios.'); setSaving(false) }
+      else { setSaving(false); onSaved(); onClose() }
+    } catch (ex) {
+      console.log('[EditarSesion] update threw exception:', ex)
+      clearTimeout(saveTimeoutRef.current!)
+      setError('Error inesperado. Intentá de nuevo.')
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!sesion) return
+    if (!confirmDelete) { setConfirmDelete(true); return }
+    setDeleting(true)
+    try {
+      const supabase = createClient()
+      await supabase.from('sesiones').delete().eq('id', sesion.id)
+      onDeleted()
+      onClose()
+    } catch {
+      setDeleting(false)
+    }
+  }
+
+  if (!open || !sesion) return null
+
+  const pac = sesion.pacientes
+  const color = avatarColors(sesion.paciente_id)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="modal-backdrop absolute inset-0 bg-black/70" style={{ backdropFilter: 'blur(6px)' }} onClick={onClose} />
+      <div className="modal-content relative z-10 w-full sm:max-w-lg max-h-[92dvh] sm:max-h-[88vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl"
+        style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
+        </div>
+
+        <div className="flex items-start justify-between px-5 py-4 sticky top-0 z-10"
+          style={{ borderBottom: '1px solid var(--border)', background: 'var(--card)' }}>
+          <div>
+            <h2 className="text-base font-bold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
+              Editar sesión
+            </h2>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
+              {DAYS_OF_WEEK[new Date(form.fecha + 'T12:00:00').getDay()]}{' '}
+              {new Date(form.fecha + 'T12:00:00').getDate()} de{' '}
+              {MONTHS[new Date(form.fecha + 'T12:00:00').getMonth()]}
+            </p>
+          </div>
+          <button onClick={onClose}
+            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ml-3 transition-opacity hover:opacity-70"
+            style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-5">
+
+          {/* Paciente (read-only) */}
+          <div>
+            <Label text="Paciente" />
+            <div className="flex items-center gap-3 h-10 px-3.5 rounded-xl"
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              {pac && (
+                <div className="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  style={{ background: `${color}1A`, color }}>
+                  {initials(pac.nombre, pac.apellido)}
+                </div>
+              )}
+              <span className="text-sm" style={{ color: 'var(--foreground-muted)' }}>
+                {pac ? `${pac.apellido}, ${pac.nombre}` : '—'}
+              </span>
+            </div>
+          </div>
+
+          {/* Fecha + horarios */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-3 sm:col-span-1">
+              <Label text="Fecha" required />
+              <input type="date" value={form.fecha} onChange={e => setStr('fecha')(e.target.value)} required
+                className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
+            </div>
+            <div>
+              <Label text="Hora inicio" />
+              <input type="time" value={form.hora_inicio} onChange={e => setStr('hora_inicio')(e.target.value)}
+                className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
+            </div>
+            <div>
+              <Label text="Hora fin" />
+              <input type="time" value={form.hora_fin} onChange={e => setStr('hora_fin')(e.target.value)}
+                className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
+            </div>
+          </div>
+
+          {/* Modalidad + Estado */}
+          <div>
+            <Label text="Modalidad" />
+            <ToggleGroup value={form.tipo} onChange={setStr('tipo')} options={[
+              { value: 'presencial', label: 'Presencial', color: TEAL },
+              { value: 'virtual',    label: 'Virtual',    color: 'var(--virtual)' },
+            ]} />
+          </div>
+
+          <div>
+            <Label text="Estado" />
+            <ToggleGroup value={form.estado} onChange={setStr('estado')} options={[
+              { value: 'programada',   label: 'Programada',   color: TEAL },
+              { value: 'realizada',    label: 'Realizada',    color: 'var(--success)' },
+              { value: 'cancelada',    label: 'Cancelada',    color: 'var(--danger)' },
+              { value: 'inasistencia', label: 'Inasistencia', color: 'var(--warning)' },
+            ]} />
+          </div>
+
+          {/* Consultorio */}
+          {consultorios.length > 0 && (
+            <div>
+              <Label text="Consultorio" />
+              <div className="flex flex-wrap gap-2">
+                {consultorios.map(c => (
+                  <button key={c.id} type="button"
+                    onClick={() => setForm(f => ({ ...f, consultorio_id: f.consultorio_id === c.id ? '' : c.id }))}
+                    className="flex items-center gap-2 h-9 px-3 rounded-xl text-xs font-medium transition-all"
+                    style={{
+                      background: form.consultorio_id === c.id ? `${c.color}15` : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${form.consultorio_id === c.id ? c.color + '55' : 'rgba(255,255,255,0.07)'}`,
+                      color: form.consultorio_id === c.id ? c.color : 'var(--text-dim)',
+                    }}>
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: c.color }} />
+                    {c.nombre}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Monto */}
+          <div className="grid grid-cols-2 gap-3 items-end">
+            <div>
+              <Label text="Monto ($)" />
+              <input type="number" min="0" step="0.01" value={form.monto}
+                onChange={e => setStr('monto')(e.target.value)}
+                placeholder="0.00" className={inputCls} style={inputStyle}
+                onFocus={focusTeal} onBlur={blurReset} />
+            </div>
+            <button type="button" onClick={() => setForm(f => ({ ...f, pagado: !f.pagado }))}
+              className="h-10 rounded-xl text-sm font-medium flex items-center gap-2.5 px-4 transition-all"
+              style={{
+                background: form.pagado ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${form.pagado ? 'rgba(52,211,153,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                color: form.pagado ? 'var(--success)' : 'var(--text-dim)',
+              }}>
+              <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all"
+                style={{ borderColor: form.pagado ? 'var(--success)' : 'var(--text-subtle)', background: form.pagado ? 'var(--success)' : 'transparent' }}>
+                {form.pagado && <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>}
+              </div>
+              {form.pagado ? 'Pagada' : 'Sin pagar'}
+            </button>
+          </div>
+
+          {/* Observaciones */}
+          <div>
+            <Label text="Observaciones" />
+            <textarea value={form.observaciones} onChange={e => setStr('observaciones')(e.target.value)}
+              placeholder="Notas breves de la sesión…" rows={2}
+              className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
+              style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
+          </div>
+
+          {error && (
+            <div className="rounded-xl px-4 py-3 text-sm"
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
+              {error}
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 pt-1">
+            <button type="button" onClick={handleDelete} disabled={deleting}
+              className="h-11 px-4 rounded-xl text-sm font-medium flex items-center justify-center transition-all"
+              style={{
+                background: confirmDelete ? 'rgba(248,113,113,0.12)' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${confirmDelete ? 'rgba(248,113,113,0.35)' : 'rgba(255,255,255,0.08)'}`,
+                color: confirmDelete ? 'var(--danger)' : 'var(--text-dim)',
+                minWidth: confirmDelete ? '110px' : '44px',
+              }}>
+              {deleting
+                ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                  </svg>
+                : confirmDelete
+                  ? '¿Confirmar?'
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+              }
+            </button>
+            <button type="button" onClick={onClose}
+              className="h-11 px-5 rounded-xl text-sm font-medium flex items-center justify-center transition-opacity hover:opacity-70"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
+              Cancelar
+            </button>
+            <button type="submit" disabled={saving}
+              className="flex-1 h-11 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+              style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
+              {saving
+                ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                  </svg>Guardando…</>
+                : 'Guardar cambios'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 /* ── Main page ───────────────────────────────────────────── */
 export default function AgendaPage() {
   const today = new Date()
@@ -413,8 +705,9 @@ export default function AgendaPage() {
   const [sesiones,     setSesiones]     = useState<SesionWithPaciente[]>([])
   const [pacientes,    setPacientes]    = useState<PacienteOpt[]>([])
   const [consultorios, setConsultorios] = useState<ConsultorioOpt[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [modalOpen,    setModalOpen]    = useState(false)
+  const [loading,        setLoading]        = useState(true)
+  const [modalOpen,      setModalOpen]      = useState(false)
+  const [sesionEditando, setSesionEditando] = useState<SesionWithPaciente | null>(null)
 
   const fetchSesiones = useCallback(async () => {
     setLoading(true)
@@ -425,12 +718,12 @@ export default function AgendaPage() {
 
     const { data } = await supabase
       .from('sesiones')
-      .select('*, pacientes(nombre, apellido)')
+      .select('id, fecha, hora_inicio, hora_fin, tipo, estado, observaciones, monto, pagado, paciente_id, consultorio_id, pacientes(nombre, apellido)')
       .gte('fecha', firstDay)
       .lte('fecha', lastDayStr)
       .order('hora_inicio', { ascending: true })
 
-    setSesiones((data ?? []) as SesionWithPaciente[])
+    setSesiones((data ?? []) as unknown as SesionWithPaciente[])
     setLoading(false)
   }, [year, month])
 
@@ -476,7 +769,7 @@ export default function AgendaPage() {
   const todayStr = today.toISOString().split('T')[0]
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl" style={{ minHeight: '100vh' }}>
+    <div className="p-4 sm:p-6 w-full" style={{ minHeight: '100vh' }}>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 anim-fade-up">
@@ -703,10 +996,11 @@ export default function AgendaPage() {
                 const color  = avatarColors(s.paciente_id)
 
                 return (
-                  <Link
+                  <button
                     key={s.id}
-                    href={`/pacientes/${pac ? pacienteSlug(pac.apellido, pac.nombre, s.paciente_id) : s.paciente_id}`}
-                    className="block rounded-xl p-3 transition-colors hover:bg-white/[0.02]"
+                    type="button"
+                    onClick={() => setSesionEditando(s)}
+                    className="block w-full text-left rounded-xl p-3 transition-colors hover:bg-white/[0.04]"
                     style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
 
                     <div className="flex items-start gap-2.5 mb-2">
@@ -717,9 +1011,15 @@ export default function AgendaPage() {
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground-muted)' }}>
-                          {pac ? `${pac.apellido}, ${pac.nombre}` : '—'}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground-muted)' }}>
+                            {pac ? `${pac.apellido}, ${pac.nombre}` : '—'}
+                          </p>
+                          <span className="flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-md transition-colors"
+                            style={{ background: `${TEAL}18`, color: TEAL, border: `1px solid ${TEAL}30` }}>
+                            Editar
+                          </span>
+                        </div>
                         {s.hora_inicio && (
                           <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
                             {fmtTime(s.hora_inicio)}{s.hora_fin ? ` – ${fmtTime(s.hora_fin)}` : ''}
@@ -755,7 +1055,7 @@ export default function AgendaPage() {
                         {s.observaciones}
                       </p>
                     )}
-                  </Link>
+                  </button>
                 )
               })}
               <button
@@ -797,7 +1097,7 @@ export default function AgendaPage() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Nueva sesión modal */}
       <NuevaSesionModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -805,6 +1105,17 @@ export default function AgendaPage() {
         pacientes={pacientes}
         consultorios={consultorios}
         onCreated={fetchSesiones}
+      />
+
+      {/* Editar sesión modal */}
+      <EditarSesionModal
+        open={sesionEditando !== null}
+        onClose={() => setSesionEditando(null)}
+        sesion={sesionEditando}
+        pacientes={pacientes}
+        consultorios={consultorios}
+        onSaved={fetchSesiones}
+        onDeleted={fetchSesiones}
       />
     </div>
   )

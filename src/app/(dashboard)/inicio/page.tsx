@@ -103,7 +103,7 @@ export default async function InicioPage() {
   const sesionesHoy = sesiones.filter(s => s.fecha === todayStr).length
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl overflow-x-hidden">
+    <div className="p-4 sm:p-6 lg:p-8 w-full overflow-x-hidden">
 
       {/* ── Header bienvenida ── */}
       <div className="mb-8 anim-fade-up">

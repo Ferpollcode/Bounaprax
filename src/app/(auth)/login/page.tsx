@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { BuonapraxLogo } from '@/components/BuonapraxLogo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,13 +35,7 @@ export default function LoginPage() {
     <div className="w-full max-w-sm anim-fade-up">
       {/* Mobile logo */}
       <div className="lg:hidden flex items-center gap-2 mb-10">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #3EC9C9, #2BA8A8)' }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 3v18M3 12h18" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <span className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--foreground)' }}>HealthPro</span>
+        <img src="/logo.png" alt="Buonaprax" style={{ height: 36, width: 'auto', objectFit: 'contain' }} />
       </div>
 
       <div className="mb-8">

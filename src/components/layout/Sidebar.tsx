@@ -4,11 +4,14 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { BuonapraxLogo } from '@/components/BuonapraxLogo'
 
 const navItems = [
   {
     href: '/inicio',
     label: 'Inicio',
+    color: '#00E5E5',
+    colorLight: '#0099A8',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8"/>
@@ -21,6 +24,8 @@ const navItems = [
   {
     href: '/pacientes',
     label: 'Pacientes',
+    color: '#B482FF',
+    colorLight: '#7C3AED',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -32,6 +37,8 @@ const navItems = [
   {
     href: '/agenda',
     label: 'Agenda',
+    color: '#5BA4FF',
+    colorLight: '#1D60D4',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.8"/>
@@ -43,6 +50,8 @@ const navItems = [
   {
     href: '/sesiones',
     label: 'Sesiones',
+    color: '#00E096',
+    colorLight: '#027A48',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <rect x="2" y="3" width="4" height="18" rx="1" stroke="currentColor" strokeWidth="1.8"/>
@@ -54,6 +63,8 @@ const navItems = [
   {
     href: '/consultorios',
     label: 'Consultorios',
+    color: '#FFB020',
+    colorLight: '#B45309',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -84,17 +95,8 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
         style={{ background: 'var(--sidebar)', borderBottom: '1px solid var(--sidebar-border)' }}
       >
         {/* Logo clickeable */}
-        <Link href="/inicio" className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #3EC9C9, #2BA8A8)' }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v18M3 12h18" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <span className="text-sm font-semibold"
-            style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
-            HealthPro
-          </span>
+        <Link href="/inicio" className="flex items-center">
+          <img src="/logo.png" alt="Buonaprax" style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
         </Link>
 
         {/* Toggle + usuario + logout */}
@@ -130,23 +132,25 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
       >
         {navItems.map(item => {
           const active = pathname === item.href || (item.href !== '/inicio' && pathname.startsWith(item.href))
+          const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+          const activeColor = isDark ? item.color : item.colorLight
           return (
             <Link
               key={item.href}
               href={item.href}
               className="relative flex-1 flex flex-col items-center justify-center gap-1"
-              style={{ color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)' }}
+              style={{ color: active ? activeColor : 'var(--muted-foreground)' }}
             >
               {active && (
                 <span
                   className="absolute top-0 left-1/2 -translate-x-1/2"
-                  style={{ width: 28, height: 2, background: 'var(--sidebar-primary)', borderRadius: '0 0 3px 3px' }}
+                  style={{ width: 28, height: 2, background: activeColor, borderRadius: '0 0 3px 3px' }}
                 />
               )}
-              <span style={{ color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: active ? activeColor : 'var(--muted-foreground)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {item.icon}
               </span>
-              <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.03em', color: active ? 'var(--sidebar-primary)' : 'transparent', lineHeight: 1 }}>
+              <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.03em', color: active ? activeColor : 'transparent', lineHeight: 1 }}>
                 {item.label.length > 8 ? item.label.slice(0, 7) + '…' : item.label}
               </span>
             </Link>
@@ -160,18 +164,9 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
         style={{ background: 'var(--sidebar)', borderRight: '1px solid var(--sidebar-border)' }}
       >
         {/* Logo clickeable */}
-        <Link href="/inicio" className="px-5 py-5 flex items-center gap-3 transition-opacity hover:opacity-80"
-          style={{ borderBottom: '1px solid var(--sidebar-border)' }}>
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, #3EC9C9, #2BA8A8)' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v18M3 12h18" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <span className="text-base font-semibold tracking-tight"
-            style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
-            HealthPro
-          </span>
+        <Link href="/inicio" className="px-3 py-3 flex items-center transition-opacity hover:opacity-80"
+          style={{ borderBottom: '1px solid var(--sidebar-border)', background: 'rgba(255,255,255,0.92)', borderRadius: '0' }}>
+          <img src="/logo.png" alt="Buonaprax" style={{ width: '100%', height: 'auto', maxHeight: 48, objectFit: 'contain', objectPosition: 'left center' }} />
         </Link>
 
         {/* Navegación */}
@@ -182,20 +177,22 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
           </p>
           {navItems.map(item => {
             const active = pathname === item.href || (item.href !== '/inicio' && pathname.startsWith(item.href))
+            const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark')
+            const activeColor = isDark ? item.color : item.colorLight
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
                 style={{
-                  color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)',
-                  background: active ? 'var(--sidebar-accent)' : 'transparent',
+                  color: active ? activeColor : 'var(--muted-foreground)',
+                  background: active ? `${activeColor}20` : 'transparent',
                 }}
               >
-                <span style={{ color: active ? 'var(--sidebar-primary)' : 'var(--muted-foreground)' }}>{item.icon}</span>
+                <span style={{ color: active ? activeColor : 'var(--muted-foreground)' }}>{item.icon}</span>
                 {item.label}
                 {active && (
-                  <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: 'var(--sidebar-primary)' }} />
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: activeColor }} />
                 )}
               </Link>
             )
