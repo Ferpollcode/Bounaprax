@@ -89,6 +89,161 @@ function blurReset(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) 
   e.target.style.background  = 'rgba(255,255,255,0.04)'
 }
 
+/* ── TodoSection ────────────────────────────────────────── */
+interface Tarea {
+  id: string
+  texto: string
+  completada: boolean
+  created_at: string
+}
+
+function TodoSection({ pacienteId }: { pacienteId: string }) {
+  const [tareas, setTareas]   = useState<Tarea[]>([])
+  const [texto, setTexto]     = useState('')
+  const [loading, setLoading] = useState(true)
+  const [adding, setAdding]   = useState(false)
+
+  const fetchTareas = useCallback(async () => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('paciente_tareas')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .order('created_at', { ascending: true })
+    setTareas((data ?? []) as Tarea[])
+    setLoading(false)
+  }, [pacienteId])
+
+  useState(() => { fetchTareas() })
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    if (!texto.trim()) return
+    setAdding(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setAdding(false); return }
+    await supabase.from('paciente_tareas').insert({
+      paciente_id: pacienteId, professional_id: user.id,
+      texto: texto.trim(), completada: false,
+    })
+    setTexto('')
+    setAdding(false)
+    fetchTareas()
+  }
+
+  async function toggleCompletada(tarea: Tarea) {
+    const supabase = createClient()
+    await supabase.from('paciente_tareas').update({ completada: !tarea.completada }).eq('id', tarea.id)
+    setTareas(ts => ts.map(t => t.id === tarea.id ? { ...t, completada: !t.completada } : t))
+  }
+
+  async function handleDelete(id: string) {
+    const supabase = createClient()
+    await supabase.from('paciente_tareas').delete().eq('id', id)
+    setTareas(ts => ts.filter(t => t.id !== id))
+  }
+
+  const pendientes  = tareas.filter(t => !t.completada)
+  const completadas = tareas.filter(t => t.completada)
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-bold tracking-widest uppercase" style={{ color: 'var(--text-subtle)' }}>
+            Tareas
+          </h3>
+          {pendientes.length > 0 && (
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded-md"
+              style={{ background: 'rgba(62,201,201,0.12)', color: TEAL }}>
+              {pendientes.length}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Input nueva tarea */}
+      <form onSubmit={handleAdd} className="flex gap-2 mb-4">
+        <input
+          type="text"
+          value={texto}
+          onChange={e => setTexto(e.target.value)}
+          placeholder="Nueva tarea…"
+          className={inputCls + ' flex-1'}
+          style={inputStyle}
+          onFocus={focusTeal} onBlur={blurReset}
+        />
+        <button type="submit" disabled={adding || !texto.trim()}
+          className="h-10 px-4 rounded-xl text-sm font-semibold flex-shrink-0 transition-opacity hover:opacity-80"
+          style={{
+            background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.25)',
+            color: TEAL, opacity: (!texto.trim() || adding) ? 0.5 : 1,
+          }}>
+          + Agregar
+        </button>
+      </form>
+
+      {loading ? (
+        <div className="flex justify-center py-4">
+          <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke={TEAL} strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+          </svg>
+        </div>
+      ) : tareas.length === 0 ? (
+        <p className="text-sm text-center py-4" style={{ color: 'var(--text-subtle)' }}>
+          Sin tareas pendientes
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {pendientes.map(t => (
+            <div key={t.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl group"
+              style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
+              <button type="button" onClick={() => toggleCompletada(t)}
+                className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all"
+                style={{ borderColor: TEAL, background: 'transparent' }} />
+              <span className="flex-1 text-sm" style={{ color: 'var(--foreground-muted)' }}>{t.texto}</span>
+              <button type="button" onClick={() => handleDelete(t.id)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ color: 'var(--danger)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+          ))}
+          {completadas.length > 0 && (
+            <>
+              <p className="text-xs font-semibold tracking-widest uppercase pt-2 pb-1 px-1"
+                style={{ color: 'var(--text-subtle)' }}>Completadas</p>
+              {completadas.map(t => (
+                <div key={t.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl group"
+                  style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)', opacity: 0.55 }}>
+                  <button type="button" onClick={() => toggleCompletada(t)}
+                    className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all"
+                    style={{ background: TEAL, border: `2px solid ${TEAL}` }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <span className="flex-1 text-sm line-through" style={{ color: 'var(--text-dim)' }}>{t.texto}</span>
+                  <button type="button" onClick={() => handleDelete(t.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    style={{ color: 'var(--danger)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── small shared components ────────────────────────────── */
 function InfoItem({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null
@@ -1390,6 +1545,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Tareas / TODO */}
+            <div className="rounded-2xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+              <TodoSection pacienteId={p.id} />
             </div>
 
             {/* Documentos */}
