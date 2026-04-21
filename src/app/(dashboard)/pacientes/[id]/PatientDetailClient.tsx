@@ -18,10 +18,22 @@ const estadoConfig: Record<string, { label: string; color: string; bg: string }>
   derivado: { label: 'Derivado', color: 'var(--danger)', bg: 'rgba(248,113,113,0.1)' },
 }
 const sesionEstado: Record<string, { label: string; color: string }> = {
-  realizada:    { label: 'Realizada',    color: 'var(--success)' },
+  realizada:    { label: 'Asistió',      color: 'var(--success)' },
   programada:   { label: 'Programada',   color: 'var(--primary)' },
   cancelada:    { label: 'Cancelada',    color: 'var(--danger)' },
   inasistencia: { label: 'Inasistencia', color: 'var(--warning)' },
+}
+const sesionCategoriaLabel: Record<string, { label: string; color: string }> = {
+  sesion:      { label: 'Sesión',      color: '#3EC9C9' },
+  evaluacion:  { label: 'Evaluación',  color: '#60A5FA' },
+  devolucion:  { label: 'Devolución',  color: '#A78BFA' },
+  tratamiento: { label: 'Tratamiento', color: '#F5A623' },
+}
+const asistenciaLabel: Record<string, { label: string; icon: string; color: string }> = {
+  realizada:    { label: 'Asistió',  icon: '✓', color: 'var(--success)' },
+  programada:   { label: 'Pendiente',icon: '○', color: 'var(--primary)' },
+  cancelada:    { label: 'Canceló',  icon: '✕', color: 'var(--danger)'  },
+  inasistencia: { label: 'Faltó',    icon: '!', color: 'var(--warning)'  },
 }
 const tipoIcono: Record<string, string> = {
   foto: '🖼️', informe: '📄', analisis: '🔬', test: '📋', historia_clinica: '📚', otro: '📎',
@@ -442,7 +454,7 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
         <div>
           <Label text="Estado" />
           <ToggleGroup value={form.estado} onChange={setStr('estado')} options={[
-            { value: 'realizada',    label: 'Realizada',    color: 'var(--success)' },
+            { value: 'realizada',    label: 'Asistió',      color: 'var(--success)' },
             { value: 'programada',   label: 'Programada',   color: TEAL },
             { value: 'cancelada',    label: 'Cancelada',    color: 'var(--danger)' },
             { value: 'inasistencia', label: 'Inasistencia', color: 'var(--warning)' },
@@ -1149,7 +1161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
     ${sesiones.length === 0 ? '<p style="color:#9CA3AF;font-size:14px">Sin sesiones registradas.</p>' :
       [...sesiones].reverse().map(s => {
         const fecha = new Date(s.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-        const estadoLabel: Record<string, string> = { realizada: 'Realizada', programada: 'Programada', cancelada: 'Cancelada', inasistencia: 'Inasistencia' }
+        const estadoLabel: Record<string, string> = { realizada: 'Asistió', programada: 'Programada', cancelada: 'Cancelada', inasistencia: 'Inasistencia' }
         return `<div class="ses">
           <div class="ses-head">
             <span class="ses-fecha">${fecha}</span>
@@ -1458,44 +1470,86 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
               {sesiones.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>Sin sesiones registradas.</p>
               ) : (
-                <div className="space-y-2">
-                  {sesiones.map(s => {
-                    const se = sesionEstado[s.estado] ?? sesionEstado.realizada
-                    return (
-                      <div key={s.id} className="rounded-xl p-3.5 flex items-start gap-3"
-                        style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div className="flex-shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
-                          style={{ background: `${se.color}15` }}>
-                          <span className="text-xs font-bold leading-none" style={{ color: se.color }}>
-                            {new Date(s.fecha + 'T00:00:00').getDate()}
-                          </span>
-                          <span className="text-[10px] leading-none mt-0.5" style={{ color: se.color }}>
-                            {new Date(s.fecha + 'T00:00:00').toLocaleString('es-AR', { month: 'short' })}
-                          </span>
+                <>
+                  {/* Resumen de asistencia */}
+                  <div className="flex gap-2 flex-wrap mb-3">
+                    {[
+                      { key: 'realizada',    label: 'Asistió',   color: 'var(--success)' },
+                      { key: 'programada',   label: 'Pendiente', color: 'var(--primary)' },
+                      { key: 'cancelada',    label: 'Canceló',   color: 'var(--danger)'  },
+                      { key: 'inasistencia', label: 'Faltó',     color: 'var(--warning)' },
+                    ].map(({ key, label, color }) => {
+                      const count = sesiones.filter(s => s.estado === key).length
+                      if (count === 0) return null
+                      return (
+                        <div key={key} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg"
+                          style={{ background: `${color.replace('var(--', '').replace(')', '')}`.includes('success') ? 'rgba(52,211,153,0.08)' : color.includes('danger') ? 'rgba(248,113,113,0.08)' : color.includes('warning') ? 'rgba(251,191,36,0.08)' : 'rgba(62,201,201,0.08)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+                          <span className="text-xs font-semibold" style={{ color }}>{count}</span>
+                          <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>{label}</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-xs font-semibold" style={{ color: se.color }}>{se.label}</span>
-                            <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>·</span>
-                            <span className="text-xs capitalize" style={{ color: 'var(--text-dim)' }}>{s.tipo}</span>
-                            {s.hora_inicio && <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>· {s.hora_inicio.slice(0, 5)}</span>}
+                      )
+                    })}
+                  </div>
+                  <div className="space-y-2">
+                    {sesiones.map(s => {
+                      const se     = sesionEstado[s.estado] ?? sesionEstado.realizada
+                      const asist  = asistenciaLabel[s.estado] ?? asistenciaLabel.programada
+                      const catCfg = s.categoria ? (sesionCategoriaLabel[s.categoria] ?? null) : null
+                      const d = new Date(s.fecha + 'T00:00:00')
+                      return (
+                        <div key={s.id} className="rounded-xl p-3.5 flex items-start gap-3"
+                          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          {/* Date badge */}
+                          <div className="flex-shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
+                            style={{ background: `${se.color}15` }}>
+                            <span className="text-xs font-bold leading-none" style={{ color: se.color }}>
+                              {d.getDate()}
+                            </span>
+                            <span className="text-[10px] leading-none mt-0.5" style={{ color: se.color }}>
+                              {d.toLocaleString('es-AR', { month: 'short' })}
+                            </span>
                           </div>
-                          {s.observaciones && (
-                            <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>{s.observaciones}</p>
+                          <div className="flex-1 min-w-0">
+                            {/* Attendance + category row */}
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="inline-flex items-center gap-1 text-xs font-bold"
+                                style={{ color: asist.color }}>
+                                <span className="text-[11px]">{asist.icon}</span>
+                                {asist.label}
+                              </span>
+                              {catCfg && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium"
+                                  style={{ background: `${catCfg.color}15`, color: catCfg.color }}>
+                                  {catCfg.label}
+                                </span>
+                              )}
+                              <span className="text-xs capitalize" style={{ color: 'var(--text-dim)' }}>{s.tipo}</span>
+                              {s.hora_inicio && (
+                                <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>
+                                  · {s.hora_inicio.slice(0, 5)}
+                                </span>
+                              )}
+                            </div>
+                            {s.observaciones && (
+                              <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>
+                                {s.observaciones}
+                              </p>
+                            )}
+                          </div>
+                          {s.monto != null && (
+                            <div className="flex-shrink-0 text-right">
+                              <p className="text-sm font-semibold" style={{ color: s.pagado ? 'var(--success)' : 'var(--warning)' }}>
+                                {fmtMoney(s.monto)}
+                              </p>
+                              <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
+                            </div>
                           )}
                         </div>
-                        {s.monto != null && (
-                          <div className="flex-shrink-0 text-right">
-                            <p className="text-sm font-semibold" style={{ color: s.pagado ? 'var(--success)' : 'var(--warning)' }}>
-                              {fmtMoney(s.monto)}
-                            </p>
-                            <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
+                      )
+                    })}
+                  </div>
+                </>
               )}
             </div>
 

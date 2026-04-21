@@ -34,6 +34,7 @@ export interface Sesion {
   hora_fin?: string
   tipo: 'presencial' | 'virtual'
   estado: 'programada' | 'realizada' | 'cancelada' | 'inasistencia'
+  categoria?: string | null
   observaciones?: string
   tratamiento?: string
   objetivo?: string
