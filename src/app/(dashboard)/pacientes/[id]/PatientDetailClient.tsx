@@ -110,10 +110,12 @@ interface Tarea {
 }
 
 function TodoSection({ pacienteId }: { pacienteId: string }) {
-  const [tareas, setTareas]   = useState<Tarea[]>([])
-  const [texto, setTexto]     = useState('')
-  const [loading, setLoading] = useState(true)
-  const [adding, setAdding]   = useState(false)
+  const [tareas, setTareas]     = useState<Tarea[]>([])
+  const [texto, setTexto]       = useState('')
+  const [loading, setLoading]   = useState(true)
+  const [adding, setAdding]     = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTexto, setEditTexto] = useState('')
 
   const fetchTareas = useCallback(async () => {
     const supabase = createClient()
@@ -154,6 +156,24 @@ function TodoSection({ pacienteId }: { pacienteId: string }) {
     const supabase = createClient()
     await supabase.from('paciente_tareas').delete().eq('id', id)
     setTareas(ts => ts.filter(t => t.id !== id))
+  }
+
+  function startEdit(t: Tarea) {
+    setEditingId(t.id)
+    setEditTexto(t.texto)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditTexto('')
+  }
+
+  async function handleEditSave(id: string) {
+    if (!editTexto.trim()) return
+    const supabase = createClient()
+    await supabase.from('paciente_tareas').update({ texto: editTexto.trim() }).eq('id', id)
+    setTareas(ts => ts.map(t => t.id === id ? { ...t, texto: editTexto.trim() } : t))
+    cancelEdit()
   }
 
   const pendientes  = tareas.filter(t => !t.completada)
@@ -209,19 +229,55 @@ function TodoSection({ pacienteId }: { pacienteId: string }) {
       ) : (
         <div className="space-y-1.5">
           {pendientes.map(t => (
-            <div key={t.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl group"
+            <div key={t.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
               style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
               <button type="button" onClick={() => toggleCompletada(t)}
                 className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all"
                 style={{ borderColor: TEAL, background: 'transparent' }} />
-              <span className="flex-1 text-sm" style={{ color: 'var(--foreground-muted)' }}>{t.texto}</span>
-              <button type="button" onClick={() => handleDelete(t.id)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ color: 'var(--danger)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
+              {editingId === t.id ? (
+                <div className="flex-1 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editTexto}
+                    onChange={e => setEditTexto(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') handleEditSave(t.id); if (e.key === 'Escape') cancelEdit() }}
+                    autoFocus
+                    className={inputCls + ' flex-1 h-8 text-sm'}
+                    style={{ ...inputStyle, height: 32, fontSize: 13 }}
+                  />
+                  <button type="button" onClick={() => handleEditSave(t.id)}
+                    className="text-xs font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 flex-shrink-0"
+                    style={{ background: 'rgba(62,201,201,0.15)', color: TEAL, border: '1px solid rgba(62,201,201,0.3)' }}>
+                    Guardar
+                  </button>
+                  <button type="button" onClick={cancelEdit}
+                    className="text-xs font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 flex-shrink-0"
+                    style={{ background: 'var(--overlay-sm)', color: 'var(--muted-foreground)', border: '1px solid var(--border)' }}>
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <span className="flex-1 text-sm" style={{ color: 'var(--foreground-muted)' }}>{t.texto}</span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button type="button" onClick={() => startEdit(t)}
+                      className="p-1 rounded-lg transition-colors hover:bg-white/10"
+                      style={{ color: 'var(--muted-foreground)' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                    <button type="button" onClick={() => handleDelete(t.id)}
+                      className="p-1 rounded-lg transition-colors hover:bg-white/10"
+                      style={{ color: 'var(--danger)' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ))}
           {completadas.length > 0 && (
@@ -229,7 +285,7 @@ function TodoSection({ pacienteId }: { pacienteId: string }) {
               <p className="text-xs font-semibold tracking-widest uppercase pt-2 pb-1 px-1"
                 style={{ color: 'var(--text-subtle)' }}>Completadas</p>
               {completadas.map(t => (
-                <div key={t.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl group"
+                <div key={t.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
                   style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)', opacity: 0.55 }}>
                   <button type="button" onClick={() => toggleCompletada(t)}
                     className="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-all"
@@ -238,14 +294,50 @@ function TodoSection({ pacienteId }: { pacienteId: string }) {
                       <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </button>
-                  <span className="flex-1 text-sm line-through" style={{ color: 'var(--text-dim)' }}>{t.texto}</span>
-                  <button type="button" onClick={() => handleDelete(t.id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    style={{ color: 'var(--danger)' }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
-                  </button>
+                  {editingId === t.id ? (
+                    <div className="flex-1 flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={editTexto}
+                        onChange={e => setEditTexto(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleEditSave(t.id); if (e.key === 'Escape') cancelEdit() }}
+                        autoFocus
+                        className={inputCls + ' flex-1 h-8 text-sm'}
+                        style={{ ...inputStyle, height: 32, fontSize: 13 }}
+                      />
+                      <button type="button" onClick={() => handleEditSave(t.id)}
+                        className="text-xs font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 flex-shrink-0"
+                        style={{ background: 'rgba(62,201,201,0.15)', color: TEAL, border: '1px solid rgba(62,201,201,0.3)' }}>
+                        Guardar
+                      </button>
+                      <button type="button" onClick={cancelEdit}
+                        className="text-xs font-semibold px-2 py-1 rounded-lg transition-opacity hover:opacity-80 flex-shrink-0"
+                        style={{ background: 'var(--overlay-sm)', color: 'var(--muted-foreground)', border: '1px solid var(--border)' }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span className="flex-1 text-sm line-through" style={{ color: 'var(--text-dim)' }}>{t.texto}</span>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button type="button" onClick={() => startEdit(t)}
+                          className="p-1 rounded-lg transition-colors hover:bg-white/10"
+                          style={{ color: 'var(--muted-foreground)' }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </button>
+                        <button type="button" onClick={() => handleDelete(t.id)}
+                          className="p-1 rounded-lg transition-colors hover:bg-white/10"
+                          style={{ color: 'var(--danger)' }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </>
@@ -1065,6 +1157,13 @@ export function PatientDetailClient({
 
   const totalPagado    = pagos.filter(pay => pay.estado === 'pagado').reduce((a, b) => a + (b.monto ?? 0), 0)
   const totalPendiente = pagos.filter(pay => pay.estado === 'pendiente').reduce((a, b) => a + (b.monto ?? 0), 0)
+  const attendanceSummary = [
+    { key: 'realizada',    label: 'Asistió',   color: 'var(--success)' },
+    { key: 'programada',   label: 'Pendiente', color: 'var(--primary)' },
+    { key: 'cancelada',    label: 'Canceló',   color: 'var(--danger)' },
+    { key: 'inasistencia', label: 'Faltó',     color: 'var(--warning)' },
+  ].map(item => ({ ...item, count: sesiones.filter(s => s.estado === item.key).length }))
+    .filter(item => item.count > 0)
 
   async function handleDownloadAll() {
     if (docs.length === 0 || downloadingAll) return
@@ -1136,7 +1235,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
 </style>
 </head>
 <body>
-<div class="top"><span class="top-logo">Buonaprax</span><span class="top-date">Historia Clínica generada el ${fechaHoy}</span></div>
+<div class="top"><span class="top-logo">Bounaprax</span><span class="top-date">Historia Clínica generada el ${fechaHoy}</span></div>
 <div class="page">
   <div class="ph">
     <div class="ph-name">${p.apellido}, ${p.nombre}</div>
@@ -1185,6 +1284,100 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
       ${docs.map(d => `<div class="doc-item"><div style="font-size:14px;font-weight:500;color:#111827">${d.nombre}</div><div style="font-size:12px;color:#9CA3AF;margin-top:2px">${d.tipo.replace('_',' ')} · ${new Date(d.created_at).toLocaleDateString('es-AR')}</div></div>`).join('')}
     </div>
   </div>` : ''}
+</div>
+<button class="print-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+</body></html>`
+    const w = window.open('', '_blank')
+    if (w) { w.document.write(html); w.document.close() }
+  }
+
+  function handleAsistenciasPDF() {
+    const fechaHoy = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asistencias — ${p.apellido}, ${p.nombre}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111827;background:#fff}
+.top{background:#0A0E1A;padding:16px 32px;display:flex;justify-content:space-between;align-items:center}
+.top-logo{color:#3EC9C9;font-size:18px;font-weight:700}
+.top-date{color:#6B7A99;font-size:12px}
+.page{max-width:760px;margin:0 auto;padding:40px 32px 80px}
+.ph{margin-bottom:28px;padding-bottom:22px;border-bottom:2px solid #F3F4F6}
+.ph-name{font-size:26px;font-weight:700;color:#111827;margin-bottom:8px}
+.ph-meta{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font-size:12px;color:#6B7A99;background:#F9FAFB;border:1px solid #E5E7EB;padding:2px 10px;border-radius:20px}
+.sec{margin-bottom:28px}
+.sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9CA3AF;padding-bottom:8px;border-bottom:1px solid #F3F4F6;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.stat{border:1px solid #E5E7EB;border-radius:12px;padding:14px;background:#FAFAFB}
+.stat-count{font-size:22px;font-weight:700;margin-bottom:4px}
+.stat-label{font-size:12px;color:#6B7280}
+.ses{border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;margin-bottom:12px;page-break-inside:avoid}
+.ses-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.ses-fecha{font-size:13px;font-weight:600;color:#111827}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.b-realizada{background:#D1FAE5;color:#065F46}
+.b-programada{background:#CFFAFE;color:#0E7490}
+.b-cancelada{background:#FEE2E2;color:#991B1B}
+.b-inasistencia{background:#FEF3C7;color:#92400E}
+.muted{font-size:12px;color:#9CA3AF}
+.obs{margin-top:8px;font-size:13px;color:#374151;line-height:1.6}
+.print-btn{position:fixed;bottom:24px;right:24px;background:#3EC9C9;color:white;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(62,201,201,.4)}
+@media print{.print-btn,.top{display:none}.page{padding-top:16px}.stats{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="top"><span class="top-logo">Bounaprax</span><span class="top-date">Asistencias generadas el ${fechaHoy}</span></div>
+<div class="page">
+  <div class="ph">
+    <div class="ph-name">${p.apellido}, ${p.nombre}</div>
+    <div class="ph-meta">
+      <span class="chip">Total de sesiones: ${sesiones.length}</span>
+      ${p.dni ? `<span class="chip">DNI: ${p.dni}</span>` : ''}
+      ${p.obra_social ? `<span class="chip">${p.obra_social}</span>` : ''}
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Resumen de asistencia</div>
+    <div class="stats">
+      ${attendanceSummary.map(item => {
+        const colors = item.key === 'realizada'
+          ? { bg: '#D1FAE5', fg: '#065F46' }
+          : item.key === 'cancelada'
+            ? { bg: '#FEE2E2', fg: '#991B1B' }
+            : item.key === 'inasistencia'
+              ? { bg: '#FEF3C7', fg: '#92400E' }
+              : { bg: '#CFFAFE', fg: '#0E7490' }
+        return `<div class="stat" style="background:${colors.bg};border-color:${colors.bg}">
+          <div class="stat-count" style="color:${colors.fg}">${item.count}</div>
+          <div class="stat-label">${item.label}</div>
+        </div>`
+      }).join('')}
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Detalle de asistencias</div>
+    ${sesiones.length === 0 ? '<p style="color:#9CA3AF;font-size:14px">Sin sesiones registradas.</p>' :
+      [...sesiones].reverse().map(s => {
+        const fecha = new Date(s.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+        const estadoLabel: Record<string, string> = { realizada: 'Asistió', programada: 'Pendiente', cancelada: 'Canceló', inasistencia: 'Faltó' }
+        const categoria = s.categoria ? ` · ${s.categoria}` : ''
+        return `<div class="ses">
+          <div class="ses-head">
+            <span class="ses-fecha">${fecha}</span>
+            <span class="badge b-${s.estado}">${estadoLabel[s.estado] ?? s.estado}</span>
+            <span class="muted">${s.tipo}${categoria}${s.hora_inicio ? ' · ' + s.hora_inicio.slice(0,5) : ''}</span>
+          </div>
+          ${s.observaciones ? `<div class="obs">${s.observaciones}</div>` : ''}
+        </div>`
+      }).join('')
+    }
+  </div>
 </div>
 <button class="print-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
 </body></html>`
@@ -1272,6 +1465,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
               Historia clínica
             </button>
             <button
+              onClick={handleAsistenciasPDF}
+              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.25)', color: 'var(--primary)' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M8 13h8M8 17h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              PDF asistencias
+            </button>
+            <button
               onClick={handleDownloadAll}
               disabled={docs.length === 0 || downloadingAll}
               className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
@@ -1353,6 +1557,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                 <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               Historia
+            </button>
+            <button onClick={handleAsistenciasPDF}
+              className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
+              style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M8 13h8M8 17h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+              Asistencias
             </button>
             <button onClick={handleDownloadAll} disabled={docs.length === 0 || downloadingAll}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80 disabled:opacity-40"

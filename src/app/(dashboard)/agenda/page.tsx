@@ -21,14 +21,16 @@ const categoriaConfig: Record<string, { label: string; color: string; bg: string
   tratamiento: { label: 'Tratamiento', color: '#F5A623', bg: 'rgba(245,166,35,0.12)'  },
 }
 
-const QUICK_OPCIONES: { label: string; estado: string; categoria: string | null; color: string }[] = [
-  { label: 'Asistió',     estado: 'realizada',    categoria: null,          color: '#34D399' },
-  { label: 'Sesión',      estado: 'realizada',    categoria: 'sesion',      color: '#3EC9C9' },
-  { label: 'Evaluación',  estado: 'realizada',    categoria: 'evaluacion',  color: '#60A5FA' },
-  { label: 'Devolución',  estado: 'realizada',    categoria: 'devolucion',  color: '#A78BFA' },
-  { label: 'Tratamiento', estado: 'realizada',    categoria: 'tratamiento', color: '#F5A623' },
-  { label: 'Faltó',       estado: 'inasistencia', categoria: null,          color: '#FBBF24' },
-  { label: 'Canceló',     estado: 'cancelada',    categoria: null,          color: '#F87171' },
+const ESTADO_OPCIONES: { label: string; value: string; color: string }[] = [
+  { label: 'Asistió', value: 'realizada',    color: '#34D399' },
+  { label: 'Faltó',   value: 'inasistencia', color: '#FBBF24' },
+  { label: 'Canceló', value: 'cancelada',    color: '#F87171' },
+]
+const CATEGORIA_OPCIONES: { label: string; value: string; color: string }[] = [
+  { label: 'Sesión',      value: 'sesion',      color: '#3EC9C9' },
+  { label: 'Evaluación',  value: 'evaluacion',  color: '#60A5FA' },
+  { label: 'Devolución',  value: 'devolucion',  color: '#A78BFA' },
+  { label: 'Tratamiento', value: 'tratamiento', color: '#F5A623' },
 ]
 
 const tipoConfig: Record<string, { label: string; color: string }> = {
@@ -60,7 +62,7 @@ interface SesionWithPaciente {
   pacientes: { nombre: string; apellido: string } | null
 }
 
-interface PacienteOpt   { id: string; nombre: string; apellido: string }
+interface PacienteOpt   { id: string; nombre: string; apellido: string; telefono?: string | null }
 interface ConsultorioOpt { id: string; nombre: string; color: string }
 
 /* ── time-grid constants ─────────────────────────────────── */
@@ -78,6 +80,13 @@ function avatarColors(id: string) {
 function initials(nombre: string, apellido: string) {
   return `${nombre[0] ?? ''}${apellido[0] ?? ''}`.toUpperCase()
 }
+function parseCategories(cat: string | null): string[] {
+  if (!cat) return []
+  return cat.split(',').filter(Boolean)
+}
+function stringifyCategories(cats: string[]): string | null {
+  return cats.length ? cats.join(',') : null
+}
 function fmtTime(t: string | null) {
   if (!t) return ''
   return t.slice(0, 5)
@@ -88,6 +97,43 @@ function toDateStr(d: Date) {
 function timeToMinutes(t: string): number {
   const [h, m] = t.split(':').map(Number)
   return (h || 0) * 60 + (m || 0)
+}
+function cleanPhone(tel: string): string {
+  const digits = tel.replace(/\D/g, '')
+  if (digits.startsWith('0')) return '54' + digits.slice(1)
+  if (digits.startsWith('54')) return digits
+  return '54' + digits
+}
+function buildWaUrl(tel: string, mensaje: string): string {
+  return `https://wa.me/${cleanPhone(tel)}?text=${encodeURIComponent(mensaje)}`
+}
+function buildMensaje(
+  pacNombre: string, pacApellido: string,
+  proName: string,
+  fecha: string, horaInicio: string,
+  consNombre?: string,
+): string {
+  const d  = new Date(fecha + 'T12:00:00')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const aa = String(d.getFullYear()).slice(-2)
+  const hora = horaInicio ? horaInicio.slice(0, 5) : ''
+
+  return [
+    `Hola, ¿cómo estás?`,
+    `Turno asignado para ${pacNombre} ${pacApellido}${proName ? ` con ${proName}` : ''}${consNombre ? ` en ${consNombre}` : ''}.`,
+    ``,
+    `Te escribo para confirmar nuestro turno del día ${dd}/${mm}/${aa}${hora ? ` a las ${hora}hs` : ''}.`,
+    ``,
+    `Te recuerdo las pautas de atención:`,
+    ``,
+    `✏️*Confirmación:* Debe realizarse con al menos 24 horas de antelación.`,
+    `✏️*Inasistencias*: En caso de no asistir habiendo confirmado o de no cancelar con la anticipación requerida, el valor de la consulta deberá abonarse de todas formas.`,
+    `✏️*Honorarios:* El valor de la sesión se abona en el momento de la consulta.`,
+    ``,
+    `¡Quedo a la espera de tu confirmación! 🙌`,
+    `Saludos.`,
+  ].join('\n')
 }
 
 interface LayedSession { sesion: SesionWithPaciente; col: number; numCols: number }
@@ -193,6 +239,40 @@ function ToggleGroup({ value, onChange, options }: {
   )
 }
 
+function MultiToggleGroup({ value, onChange, options }: {
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string; color?: string }[]
+}) {
+  const actives = value.split(',').filter(Boolean)
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {options.map(opt => {
+        const isActive = actives.includes(opt.value)
+        const color = opt.color ?? TEAL
+        return (
+          <button key={opt.value} type="button" onClick={() => {
+            const next = isActive ? actives.filter(v => v !== opt.value) : [...actives, opt.value]
+            onChange(next.join(','))
+          }}
+            className="h-9 px-4 rounded-xl text-xs font-semibold transition-all"
+            style={{
+              background: isActive ? `${color}18` : 'rgba(255,255,255,0.03)',
+              border: `1px solid ${isActive ? color + '45' : 'rgba(255,255,255,0.07)'}`,
+              color: isActive ? color : 'var(--text-dim)',
+            }}>{opt.label}</button>
+        )
+      })}
+    </div>
+  )
+}
+
+function getCategoriaSummary(categoria: string | null) {
+  const activeCats = parseCategories(categoria)
+  const firstCat = activeCats.length > 0 ? (categoriaConfig[activeCats[0]] ?? null) : null
+  return { activeCats, firstCat }
+}
+
 /* ── SesionQuickMenu ─────────────────────────────────────── */
 function SesionQuickMenu({
   sesion, open, onToggle, onClose, onAction, compact = false,
@@ -201,12 +281,12 @@ function SesionQuickMenu({
   open: boolean
   onToggle: () => void
   onClose: () => void
-  onAction: (estado: string, categoria: string | null) => void
+  onAction: (changes: { estado?: string; categoria?: string | null }) => void
   compact?: boolean
 }) {
   const menuRef = useRef<HTMLDivElement>(null)
   const btnRef  = useRef<HTMLButtonElement>(null)
-  const MENU_HEIGHT = QUICK_OPCIONES.length * 40 + 8
+  const MENU_HEIGHT = (ESTADO_OPCIONES.length + CATEGORIA_OPCIONES.length) * 40 + 20
   const [menuPos, setMenuPos] = useState<{ top?: number; bottom?: number; right: number }>({ right: 0 })
 
   useEffect(() => {
@@ -221,9 +301,11 @@ function SesionQuickMenu({
     return () => document.removeEventListener('mousedown', handler)
   }, [open, onClose])
 
-  const active = QUICK_OPCIONES.find(o =>
-    o.estado === sesion.estado && o.categoria === sesion.categoria
-  )
+  const { activeCats, firstCat } = getCategoriaSummary(sesion.categoria)
+  const activeEstado = sesion.estado !== 'programada' ? ESTADO_OPCIONES.find(o => o.value === sesion.estado) ?? null : null
+  const displayOp    = firstCat ?? activeEstado
+  const extraCount   = Math.max(activeCats.length - (firstCat ? 1 : 0), 0)
+  const displayLabel = displayOp ? `${displayOp.label}${extraCount > 0 ? ` +${extraCount}` : ''}` : 'Marcar'
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -258,14 +340,40 @@ function SesionQuickMenu({
         paddingBottom: 4,
       }}
     >
-      {QUICK_OPCIONES.map(op => {
-        const isActive = op.estado === sesion.estado && op.categoria === sesion.categoria
+      {ESTADO_OPCIONES.map(op => {
+        const isActive = sesion.estado === op.value
         return (
           <button
-            key={op.label}
+            key={op.value}
             type="button"
             onMouseDown={e => e.preventDefault()}
-            onClick={() => { onAction(op.estado, op.categoria); onClose() }}
+            onClick={() => { onAction({ estado: op.value }); onClose() }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
+            style={{ color: isActive ? op.color : 'var(--foreground-muted)' }}>
+            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: op.color }} />
+            <span className="flex-1 text-left text-sm">{op.label}</span>
+            {isActive && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </button>
+        )
+      })}
+      <div style={{ height: 1, margin: '4px 12px', background: 'rgba(255,255,255,0.07)' }} />
+      {CATEGORIA_OPCIONES.map(op => {
+        const isActive = activeCats.includes(op.value)
+        return (
+          <button
+            key={op.value}
+            type="button"
+            onMouseDown={e => e.preventDefault()}
+            onClick={() => {
+              const nextCats = isActive
+                ? activeCats.filter(v => v !== op.value)
+                : [...activeCats, op.value]
+              onAction({ categoria: stringifyCategories(nextCats) })
+            }}
             className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
             style={{ color: isActive ? op.color : 'var(--foreground-muted)' }}>
             <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: op.color }} />
@@ -293,15 +401,15 @@ function SesionQuickMenu({
           height: compact ? 26 : 28,
           padding: compact ? '0 6px' : '0 10px',
           fontSize: compact ? 10 : 11,
-          background: active ? `${active.color}18` : 'rgba(255,255,255,0.06)',
-          border: `1px solid ${active ? active.color + '40' : 'rgba(255,255,255,0.1)'}`,
-          color: active ? active.color : 'var(--text-dim)',
+          background: displayOp ? `${displayOp.color}18` : 'rgba(255,255,255,0.06)',
+          border: `1px solid ${displayOp ? displayOp.color + '40' : 'rgba(255,255,255,0.1)'}`,
+          color: displayOp ? displayOp.color : 'var(--text-dim)',
         }}
       >
-        {active
-          ? <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: active.color }} />
+        {displayOp
+          ? <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: displayOp.color }} />
           : null}
-        {!compact && (active ? active.label : 'Marcar')}
+        {!compact && displayLabel}
         <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
           <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -319,14 +427,15 @@ function SesionCard({
   openMenuId: string | null
   setOpenMenuId: (id: string | null) => void
   onEdit: (s: SesionWithPaciente) => void
-  onQuickAction: (sesionId: string, estado: string, categoria: string | null) => void
+  onQuickAction: (sesionId: string, changes: { estado?: string; categoria?: string | null }) => void
   compact?: boolean
 }) {
   const cfg     = estadoConfig[sesion.estado] ?? estadoConfig.programada
-  const catCfg  = sesion.categoria ? (categoriaConfig[sesion.categoria] ?? null) : null
+  const { activeCats, firstCat: catCfg } = getCategoriaSummary(sesion.categoria)
   const pac     = sesion.pacientes
   const color   = avatarColors(sesion.paciente_id)
   const display = catCfg ?? cfg
+  const metaLabel = activeCats.length > 1 && catCfg ? `${catCfg.label} +${activeCats.length - 1}` : catCfg?.label
 
   const menuEl = (
     <div onClick={e => e.stopPropagation()}>
@@ -335,7 +444,7 @@ function SesionCard({
         open={openMenuId === sesion.id}
         onToggle={() => setOpenMenuId(openMenuId === sesion.id ? null : sesion.id)}
         onClose={() => setOpenMenuId(null)}
-        onAction={(estado, cat) => onQuickAction(sesion.id, estado, cat)}
+        onAction={changes => onQuickAction(sesion.id, changes)}
         compact={compact}
       />
     </div>
@@ -349,13 +458,30 @@ function SesionCard({
         onClick={() => onEdit(sesion)}
         style={{ background: `${display.color}10`, border: `1px solid ${display.color}28` }}>
         <div className="flex items-center justify-between gap-1 mb-0.5">
-          <span className="text-xs font-semibold truncate" style={{ color: display.color, maxWidth: 70 }}>
+          <span className="text-xs font-semibold truncate" style={{ color: display.color, maxWidth: 60 }}>
             {pac ? pac.apellido : '—'}
           </span>
-          {menuEl}
+          <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={e => { e.stopPropagation(); onEdit(sesion) }}
+              title="Editar sesión"
+              style={{
+                width: 18, height: 18, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: `${display.color}20`, border: `1px solid ${display.color}35`, cursor: 'pointer',
+              }}>
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke={display.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke={display.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            {menuEl}
+          </div>
         </div>
         {sesion.hora_inicio && (
           <p style={{ color: 'var(--text-subtle)', fontSize: 10 }}>{fmtTime(sesion.hora_inicio)}</p>
+        )}
+        {metaLabel && (
+          <p style={{ color: display.color, fontSize: 10, opacity: 0.8, marginTop: 2 }}>{metaLabel}</p>
         )}
       </div>
     )
@@ -390,7 +516,7 @@ function SesionCard({
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium"
           style={{ background: display.bg, color: display.color }}>
           <div className="w-1 h-1 rounded-full" style={{ background: display.color }} />
-          {catCfg ? catCfg.label : cfg.label}
+          {metaLabel ?? cfg.label}
         </span>
         <span className="px-2 py-0.5 rounded-md text-xs font-medium"
           style={{ background: 'rgba(255,255,255,0.04)', color: tipoConfig[sesion.tipo]?.color ?? 'var(--text-dim)' }}>
@@ -430,7 +556,7 @@ function DayView({ date, sesiones, openMenuId, setOpenMenuId, onEdit, onNewSesio
   setOpenMenuId: (id: string | null) => void
   onEdit: (s: SesionWithPaciente) => void
   onNewSesion: () => void
-  onQuickAction: (sesionId: string, estado: string, categoria: string | null) => void
+  onQuickAction: (sesionId: string, changes: { estado?: string; categoria?: string | null }) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
@@ -584,13 +710,15 @@ function DayView({ date, sesiones, openMenuId, setOpenMenuId, onEdit, onNewSesio
             const top    = ((clampedStart - START_HOUR * 60) / 60) * HOUR_HEIGHT
             const height = Math.max(((clampedEnd - clampedStart) / 60) * HOUR_HEIGHT, 28)
 
-            const catCfg  = s.categoria ? (categoriaConfig[s.categoria] ?? null) : null
+            const { activeCats, firstCat: catCfg } = getCategoriaSummary(s.categoria)
             const cfg     = estadoConfig[s.estado] ?? estadoConfig.programada
             const color   = catCfg?.color ?? cfg.color
             const bg      = catCfg?.bg    ?? cfg.bg
             const pac     = s.pacientes
             const tall    = height >= 50
-            const label   = catCfg ? catCfg.label : cfg.label
+            const label   = catCfg
+              ? `${catCfg.label}${activeCats.length > 1 ? ` +${activeCats.length - 1}` : ''}`
+              : cfg.label
 
             // CSS calc for column layout within content area
             const leftExpr  = `calc(${TIME_LABEL_W}px + (100% - ${TIME_LABEL_W}px) * ${col / numCols} + 3px)`
@@ -629,13 +757,26 @@ function DayView({ date, sesiones, openMenuId, setOpenMenuId, onEdit, onNewSesio
                   }}>
                     {fmtTime(s.hora_inicio)}{pac ? ` · ${pac.apellido}, ${pac.nombre}` : ''}
                   </span>
-                  <div onClick={e => e.stopPropagation()} style={{ flexShrink: 0 }}>
+                  <div onClick={e => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                    <button
+                      onClick={e => { e.stopPropagation(); onEdit(s) }}
+                      title="Editar sesión"
+                      style={{
+                        width: 20, height: 20, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: `${color}20`, border: `1px solid ${color}35`, cursor: 'pointer', flexShrink: 0,
+                      }}
+                    >
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
                     <SesionQuickMenu
                       sesion={s}
                       open={openMenuId === s.id}
                       onToggle={() => setOpenMenuId(openMenuId === s.id ? null : s.id)}
                       onClose={() => setOpenMenuId(null)}
-                      onAction={(estado, cat) => onQuickAction(s.id, estado, cat)}
+                      onAction={changes => onQuickAction(s.id, changes)}
                       compact
                     />
                   </div>
@@ -674,7 +815,7 @@ function WeekView({ selectedDay, sesiones, openMenuId, setOpenMenuId, onSelectDa
   onSelectDay: (day: string) => void
   onEdit: (s: SesionWithPaciente) => void
   onNewSesion: () => void
-  onQuickAction: (sesionId: string, estado: string, categoria: string | null) => void
+  onQuickAction: (sesionId: string, changes: { estado?: string; categoria?: string | null }) => void
   todayStr: string
 }) {
   const weekDays = getWeekDays(selectedDay)
@@ -744,7 +885,7 @@ function WeekView({ selectedDay, sesiones, openMenuId, setOpenMenuId, onSelectDa
 
 /* ── Nueva Sesión Modal ───────────────────────────────────── */
 function NuevaSesionModal({
-  open, onClose, defaultDate, pacientes, consultorios, onCreated,
+  open, onClose, defaultDate, pacientes, consultorios, onCreated, proName,
 }: {
   open: boolean
   onClose: () => void
@@ -752,9 +893,11 @@ function NuevaSesionModal({
   pacientes: PacienteOpt[]
   consultorios: ConsultorioOpt[]
   onCreated: () => void
+  proName: string
 }) {
   const [search, setSearch] = useState('')
   const [pacienteId, setPacienteId] = useState('')
+  const [selectedPac, setSelectedPac] = useState<PacienteOpt | null>(null)
   const [showDropdown, setShowDropdown] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -766,8 +909,11 @@ function NuevaSesionModal({
     consultorio_id: '',
     observaciones: '', monto: '', pagado: false,
   })
-  const [saving, setSaving] = useState(false)
-  const [error,  setError]  = useState('')
+  const [saving,   setSaving]   = useState(false)
+  const [error,    setError]    = useState('')
+  const [waData,   setWaData]   = useState<{ telefono: string | null; mensaje: string; cantidad: number } | null>(null)
+  const [repetir,  setRepetir]  = useState(false)
+  const [semanas,  setSemanas]  = useState(4)
 
   useEffect(() => {
     if (open) setForm(f => ({ ...f, fecha: defaultDate }))
@@ -775,7 +921,8 @@ function NuevaSesionModal({
 
   useEffect(() => {
     if (!open) {
-      setSearch(''); setPacienteId(''); setShowDropdown(false); setError('')
+      setSearch(''); setPacienteId(''); setSelectedPac(null); setShowDropdown(false); setError(''); setWaData(null)
+      setRepetir(false); setSemanas(4)
       setForm({ fecha: defaultDate, hora_inicio: '', hora_fin: '', tipo: 'presencial', estado: 'programada', categoria: '', consultorio_id: '', observaciones: '', monto: '', pagado: false })
     }
   }, [open, defaultDate])
@@ -786,6 +933,7 @@ function NuevaSesionModal({
 
   function selectPac(p: PacienteOpt) {
     setPacienteId(p.id)
+    setSelectedPac(p)
     setSearch(`${p.apellido}, ${p.nombre}`)
     setShowDropdown(false)
   }
@@ -800,11 +948,10 @@ function NuevaSesionModal({
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setSaving(false); return }
 
-    const { error: err } = await supabase.from('sesiones').insert({
+    const base = {
       paciente_id:     pacienteId,
       professional_id: user.id,
       consultorio_id:  form.consultorio_id || null,
-      fecha:           form.fecha,
       hora_inicio:     form.hora_inicio  || null,
       hora_fin:        form.hora_fin     || null,
       tipo:            form.tipo,
@@ -813,10 +960,33 @@ function NuevaSesionModal({
       observaciones:   form.observaciones || null,
       monto:           form.monto ? parseFloat(form.monto) : null,
       pagado:          form.pagado,
-    })
+    }
 
-    if (err) { setError('Error al guardar la sesión.'); setSaving(false) }
-    else { onCreated(); onClose() }
+    // Armar array de fechas
+    const fechas: string[] = [form.fecha]
+    if (repetir && semanas > 1) {
+      const baseDate = new Date(form.fecha + 'T12:00:00')
+      for (let i = 1; i < semanas; i++) {
+        const d = new Date(baseDate)
+        d.setDate(d.getDate() + 7 * i)
+        fechas.push(toDateStr(d))
+      }
+    }
+
+    const rows = fechas.map(f => ({ ...base, fecha: f }))
+    const { error: err } = await supabase.from('sesiones').insert(rows)
+
+    if (err) { setError('Error al guardar la sesión.'); setSaving(false); return }
+
+    onCreated()
+
+    const cons = consultorios.find(c => c.id === form.consultorio_id)
+    const msg  = buildMensaje(
+      selectedPac?.nombre ?? '', selectedPac?.apellido ?? '',
+      proName, form.fecha, form.hora_inicio, cons?.nombre,
+    )
+    setWaData({ telefono: selectedPac?.telefono ?? null, mensaje: msg, cantidad: fechas.length })
+    setSaving(false)
   }
 
   if (!open) return null
@@ -831,6 +1001,84 @@ function NuevaSesionModal({
           <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
         </div>
 
+        {waData ? (
+          /* ── Paso WhatsApp ─────────────────────────────── */
+          <div className="p-5 space-y-5">
+            {/* Éxito */}
+            <div className="flex flex-col items-center text-center pt-2 pb-1">
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
+                style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)' }}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17l-5-5" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <h2 className="text-base font-bold mb-1" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
+                {waData.cantidad > 1 ? `${waData.cantidad} turnos creados` : 'Sesión guardada'}
+              </h2>
+              <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
+                {waData.cantidad > 1
+                  ? `Turnos semanales agendados. ¿Enviás la confirmación del primero?`
+                  : '¿Querés enviarle la confirmación al paciente por WhatsApp?'}
+              </p>
+            </div>
+
+            {/* Mensaje editable */}
+            <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(37,211,102,0.25)' }}>
+              <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: 'rgba(37,211,102,0.08)', borderBottom: '1px solid rgba(37,211,102,0.15)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="#25D366" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="text-xs font-semibold" style={{ color: '#25D366' }}>Mensaje — podés editarlo antes de enviar</span>
+              </div>
+              <textarea
+                value={waData.mensaje}
+                onChange={e => setWaData(d => d ? { ...d, mensaje: e.target.value } : null)}
+                rows={10}
+                className="w-full px-4 py-3 text-sm outline-none resize-none"
+                style={{ background: 'rgba(37,211,102,0.03)', color: 'var(--foreground-muted)', lineHeight: 1.6 }}
+              />
+            </div>
+
+            {/* Teléfono */}
+            {waData.telefono ? (
+              <p className="text-xs text-center" style={{ color: 'var(--text-subtle)' }}>
+                Enviando a: <span style={{ color: 'var(--foreground-muted)' }}>{waData.telefono}</span>
+              </p>
+            ) : (
+              <div className="rounded-xl px-4 py-3 text-xs text-center"
+                style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', color: 'var(--warning)' }}>
+                El paciente no tiene teléfono registrado.
+              </div>
+            )}
+
+            {/* Botones */}
+            <div className="flex gap-3 pt-1">
+              <button type="button" onClick={onClose}
+                className="flex-1 h-11 rounded-xl text-sm font-medium transition-opacity hover:opacity-70"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
+                No enviar
+              </button>
+              {waData.telefono ? (
+                <a href={buildWaUrl(waData.telefono, waData.mensaje)} target="_blank" rel="noopener noreferrer"
+                  onClick={onClose}
+                  className="flex-1 h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg,#25D366,#1DA851)', color: '#fff', textDecoration: 'none' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Enviar por WhatsApp
+                </a>
+              ) : (
+                <button type="button" onClick={onClose}
+                  className="flex-1 h-11 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)' }}>
+                  Cerrar
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+        <>
         <div className="flex items-start justify-between px-5 py-4 sticky top-0 z-10"
           style={{ borderBottom: '1px solid var(--border)', background: 'var(--card)' }}>
           <div>
@@ -933,8 +1181,7 @@ function NuevaSesionModal({
           {/* Categoría */}
           <div>
             <Label text="Categoría" />
-            <ToggleGroup value={form.categoria} onChange={setStr('categoria')} options={[
-              { value: '',            label: 'Ninguna',     color: 'var(--text-dim)' },
+            <MultiToggleGroup value={form.categoria} onChange={setStr('categoria')} options={[
               { value: 'sesion',      label: 'Sesión',      color: '#3EC9C9' },
               { value: 'evaluacion',  label: 'Evaluación',  color: '#60A5FA' },
               { value: 'devolucion',  label: 'Devolución',  color: '#A78BFA' },
@@ -999,6 +1246,96 @@ function NuevaSesionModal({
               style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
           </div>
 
+          {/* Repetir semanalmente */}
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+            {/* Toggle row */}
+            <button type="button" onClick={() => setRepetir(r => !r)}
+              className="w-full flex items-center justify-between px-4 py-3 transition-colors"
+              style={{ background: repetir ? 'rgba(62,201,201,0.06)' : 'rgba(255,255,255,0.02)' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: repetir ? 'rgba(62,201,201,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${repetir ? 'rgba(62,201,201,0.3)' : 'rgba(255,255,255,0.07)'}` }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M17 2l4 4-4 4" stroke={repetir ? TEAL : 'var(--text-dim)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 11V9a4 4 0 014-4h14" stroke={repetir ? TEAL : 'var(--text-dim)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 22l-4-4 4-4" stroke={repetir ? TEAL : 'var(--text-dim)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M21 13v2a4 4 0 01-4 4H3" stroke={repetir ? TEAL : 'var(--text-dim)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold" style={{ color: repetir ? TEAL : 'var(--foreground-muted)' }}>
+                    Repetir semanalmente
+                  </p>
+                  <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
+                    {repetir ? `Se crearán ${semanas} turnos cada 7 días` : 'Crear el turno una sola vez'}
+                  </p>
+                </div>
+              </div>
+              {/* Switch */}
+              <div className="w-10 h-5.5 rounded-full flex items-center px-0.5 transition-all flex-shrink-0"
+                style={{ background: repetir ? TEAL : 'rgba(255,255,255,0.12)', minWidth: 40, height: 22 }}>
+                <div className="w-4 h-4 rounded-full bg-white shadow transition-all"
+                  style={{ transform: repetir ? 'translateX(18px)' : 'translateX(0px)' }} />
+              </div>
+            </button>
+
+            {/* Selector de semanas */}
+            {repetir && (
+              <div className="px-4 py-3" style={{ borderTop: '1px solid rgba(62,201,201,0.12)', background: 'rgba(62,201,201,0.03)' }}>
+                <p className="text-xs font-medium mb-2.5" style={{ color: 'var(--text-subtle)' }}>
+                  ¿Cuántas semanas?
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {[2, 4, 6, 8, 12].map(n => (
+                    <button key={n} type="button" onClick={() => setSemanas(n)}
+                      className="h-8 px-3.5 rounded-lg text-xs font-semibold transition-all"
+                      style={{
+                        background: semanas === n ? 'rgba(62,201,201,0.18)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${semanas === n ? 'rgba(62,201,201,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                        color: semanas === n ? TEAL : 'var(--text-dim)',
+                      }}>
+                      {n} sem.
+                    </button>
+                  ))}
+                  {/* Input libre */}
+                  <div className="flex items-center gap-1.5 h-8 px-2 rounded-lg"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <input
+                      type="number" min={2} max={52}
+                      value={![2,4,6,8,12].includes(semanas) ? semanas : ''}
+                      onChange={e => { const v = parseInt(e.target.value); if (v >= 2 && v <= 52) setSemanas(v) }}
+                      placeholder="otro"
+                      className="w-12 bg-transparent text-xs outline-none text-center"
+                      style={{ color: 'var(--foreground-muted)' }}
+                    />
+                  </div>
+                </div>
+                {/* Preview de fechas */}
+                <div className="mt-3 space-y-1">
+                  {Array.from({ length: Math.min(semanas, 5) }).map((_, i) => {
+                    const d = new Date(form.fecha + 'T12:00:00')
+                    d.setDate(d.getDate() + 7 * i)
+                    const label = `${DAYS_OF_WEEK[d.getDay()]} ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: TEAL, opacity: 0.6 }} />
+                        <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>
+                          {label}
+                          {i === 0 && <span className="ml-1.5 text-[10px] font-semibold" style={{ color: TEAL }}>hoy</span>}
+                        </span>
+                      </div>
+                    )
+                  })}
+                  {semanas > 5 && (
+                    <p className="text-xs pl-3.5" style={{ color: 'var(--text-subtle)' }}>
+                      + {semanas - 5} más…
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm"
               style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
@@ -1019,10 +1356,12 @@ function NuevaSesionModal({
                 ? <><svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
                   </svg>Guardando…</>
-                : 'Guardar sesión'}
+                : repetir ? `Crear ${semanas} turnos` : 'Guardar sesión'}
             </button>
           </div>
         </form>
+        </>
+        )}
       </div>
     </div>
   )
@@ -1030,7 +1369,7 @@ function NuevaSesionModal({
 
 /* ── Editar Sesión Modal ─────────────────────────────────── */
 function EditarSesionModal({
-  open, onClose, sesion, pacientes, consultorios, onSaved, onDeleted,
+  open, onClose, sesion, pacientes, consultorios, onSaved, onDeleted, proName,
 }: {
   open: boolean
   onClose: () => void
@@ -1039,6 +1378,7 @@ function EditarSesionModal({
   consultorios: ConsultorioOpt[]
   onSaved: () => void
   onDeleted: () => void
+  proName: string
 }) {
   const [form, setForm] = useState({
     fecha: '', hora_inicio: '', hora_fin: '',
@@ -1050,6 +1390,8 @@ function EditarSesionModal({
   const [deleting,       setDeleting]       = useState(false)
   const [confirmDelete,  setConfirmDelete]  = useState(false)
   const [error,          setError]          = useState('')
+  const [showWa,         setShowWa]         = useState(false)
+  const [waMensaje,      setWaMensaje]      = useState('')
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -1066,7 +1408,7 @@ function EditarSesionModal({
         monto:          sesion.monto != null ? String(sesion.monto) : '',
         pagado:         sesion.pagado,
       })
-      setError(''); setConfirmDelete(false); setSaving(false); setDeleting(false)
+      setError(''); setConfirmDelete(false); setSaving(false); setDeleting(false); setShowWa(false)
     }
   }, [sesion, open])
 
@@ -1213,8 +1555,7 @@ function EditarSesionModal({
           {/* Categoría */}
           <div>
             <Label text="Categoría" />
-            <ToggleGroup value={form.categoria} onChange={setStr('categoria')} options={[
-              { value: '',            label: 'Ninguna',     color: 'var(--text-dim)' },
+            <MultiToggleGroup value={form.categoria} onChange={setStr('categoria')} options={[
               { value: 'sesion',      label: 'Sesión',      color: '#3EC9C9' },
               { value: 'evaluacion',  label: 'Evaluación',  color: '#60A5FA' },
               { value: 'devolucion',  label: 'Devolución',  color: '#A78BFA' },
@@ -1311,6 +1652,22 @@ function EditarSesionModal({
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
               Cancelar
             </button>
+            {/* WhatsApp */}
+            <button type="button"
+              onClick={() => {
+                const cons = consultorios.find(c => c.id === form.consultorio_id)
+                setWaMensaje(buildMensaje(
+                  sesion.pacientes?.nombre ?? '', sesion.pacientes?.apellido ?? '',
+                  proName, form.fecha, form.hora_inicio, cons?.nombre,
+                ))
+                setShowWa(true)
+              }}
+              className="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-80"
+              style={{ background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.3)' }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="#25D366" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
             <button type="submit" disabled={saving}
               className="flex-1 h-11 px-6 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
               style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}>
@@ -1322,6 +1679,85 @@ function EditarSesionModal({
             </button>
           </div>
         </form>
+
+        {/* ── Panel WhatsApp ── */}
+        {showWa && (() => {
+          const pac = pacientes.find(p => p.id === sesion.paciente_id)
+          const tel = pac?.telefono ?? null
+          return (
+            <div className="absolute inset-0 z-20 rounded-t-3xl sm:rounded-2xl flex flex-col"
+              style={{ background: 'var(--card)' }}>
+              <div className="flex justify-center pt-3 pb-1 sm:hidden">
+                <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
+              </div>
+              <div className="flex items-center justify-between px-5 py-4"
+                style={{ borderBottom: '1px solid var(--border)' }}>
+                <div className="flex items-center gap-2">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="#25D366" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <h3 className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Enviar por WhatsApp</h3>
+                </div>
+                <button onClick={() => setShowWa(false)}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-70"
+                  style={{ background: 'var(--overlay-sm)', border: '1px solid var(--border)' }}>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                {!tel && (
+                  <div className="rounded-xl px-4 py-3 text-xs"
+                    style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.2)', color: 'var(--warning)' }}>
+                    El paciente no tiene teléfono registrado.
+                  </div>
+                )}
+                {tel && (
+                  <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
+                    Enviando a: <span style={{ color: 'var(--foreground-muted)' }}>{tel}</span>
+                  </p>
+                )}
+                <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(37,211,102,0.25)' }}>
+                  <div className="px-4 py-2.5 text-xs font-semibold" style={{ background: 'rgba(37,211,102,0.08)', borderBottom: '1px solid rgba(37,211,102,0.15)', color: '#25D366' }}>
+                    Mensaje — podés editarlo antes de enviar
+                  </div>
+                  <textarea
+                    value={waMensaje}
+                    onChange={e => setWaMensaje(e.target.value)}
+                    rows={12}
+                    className="w-full px-4 py-3 text-sm outline-none resize-none"
+                    style={{ background: 'rgba(37,211,102,0.03)', color: 'var(--foreground-muted)', lineHeight: 1.6 }}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setShowWa(false)}
+                    className="flex-1 h-11 rounded-xl text-sm font-medium transition-opacity hover:opacity-70"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
+                    Cancelar
+                  </button>
+                  {tel ? (
+                    <a href={buildWaUrl(tel, waMensaje)} target="_blank" rel="noopener noreferrer"
+                      onClick={() => setShowWa(false)}
+                      className="flex-1 h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
+                      style={{ background: 'linear-gradient(135deg,#25D366,#1DA851)', color: '#fff', textDecoration: 'none' }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Abrir WhatsApp
+                    </a>
+                  ) : (
+                    <button type="button" onClick={() => setShowWa(false)}
+                      className="flex-1 h-11 rounded-xl text-sm font-semibold"
+                      style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)' }}>
+                      Cerrar
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
       </div>
     </div>
   )
@@ -1343,6 +1779,7 @@ export default function AgendaPage() {
   const [modalOpen,      setModalOpen]      = useState(false)
   const [sesionEditando, setSesionEditando] = useState<SesionWithPaciente | null>(null)
   const [openMenuId,     setOpenMenuId]     = useState<string | null>(null)
+  const [proName,        setProName]        = useState('')
 
   // Sync year/month when navigating days/weeks past month boundary
   useEffect(() => {
@@ -1377,17 +1814,20 @@ export default function AgendaPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.from('pacientes').select('id, nombre, apellido').eq('estado', 'activo').order('apellido')
+    supabase.from('pacientes').select('id, nombre, apellido, telefono').eq('estado', 'activo').order('apellido')
       .then(({ data }) => setPacientes((data ?? []) as PacienteOpt[]))
     supabase.from('consultorios').select('id, nombre, color').eq('activo', true).order('nombre')
       .then(({ data }) => setConsultorios((data ?? []) as ConsultorioOpt[]))
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setProName((user?.user_metadata?.nombre as string | undefined) ?? '')
+    })
   }, [])
 
   useEffect(() => { fetchSesiones() }, [fetchSesiones])
 
-  async function handleQuickAction(sesionId: string, estado: string, categoria: string | null) {
+  async function handleQuickAction(sesionId: string, changes: { estado?: string; categoria?: string | null }) {
     const supabase = createClient()
-    await supabase.from('sesiones').update({ estado, categoria }).eq('id', sesionId)
+    await supabase.from('sesiones').update(changes).eq('id', sesionId)
     setOpenMenuId(null)
     fetchSesiones()
   }
@@ -1733,6 +2173,7 @@ export default function AgendaPage() {
         pacientes={pacientes}
         consultorios={consultorios}
         onCreated={fetchSesiones}
+        proName={proName}
       />
 
       <EditarSesionModal
@@ -1743,6 +2184,7 @@ export default function AgendaPage() {
         consultorios={consultorios}
         onSaved={fetchSesiones}
         onDeleted={fetchSesiones}
+        proName={proName}
       />
     </div>
   )

@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import React from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
-import { BuonapraxLogo } from '@/components/BuonapraxLogo'
+import { BounapraxLogo } from '@/components/BounapraxLogo'
 
 const navItems = [
   {
@@ -72,6 +73,19 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    href: '/contabilidad',
+    label: 'Contabilidad',
+    color: '#22C55E',
+    colorLight: '#15803D',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/>
+        <path d="M2 10h20" stroke="currentColor" strokeWidth="1.8"/>
+        <path d="M6 15h4M14 15h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
 ]
 
 export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?: string }) {
@@ -96,7 +110,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
       >
         {/* Logo clickeable */}
         <Link href="/inicio" className="flex items-center">
-          <img src="/logo.png" alt="Buonaprax" style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+          <BounapraxLogo variant="sidebarMobile" />
         </Link>
 
         {/* Toggle + usuario + logout */}
@@ -127,7 +141,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
           background: 'var(--sidebar)',
           borderTop: '1px solid var(--sidebar-border)',
           paddingBottom: 'max(env(safe-area-inset-bottom), 0px)',
-          height: 'calc(56px + max(env(safe-area-inset-bottom), 0px))',
+          height: 'calc(60px + max(env(safe-area-inset-bottom), 0px))',
         }}
       >
         {navItems.map(item => {
@@ -138,20 +152,25 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
             <Link
               key={item.href}
               href={item.href}
-              className="relative flex-1 flex flex-col items-center justify-center gap-1"
-              style={{ color: active ? activeColor : 'var(--muted-foreground)' }}
+              className="relative flex flex-col items-center justify-center gap-0.5"
+              style={{
+                color: active ? activeColor : 'var(--muted-foreground)',
+                flex: '1 1 0',
+                minWidth: 0,
+              }}
             >
               {active && (
                 <span
                   className="absolute top-0 left-1/2 -translate-x-1/2"
-                  style={{ width: 28, height: 2, background: activeColor, borderRadius: '0 0 3px 3px' }}
+                  style={{ width: 24, height: 2, background: activeColor, borderRadius: '0 0 3px 3px' }}
                 />
               )}
               <span style={{ color: active ? activeColor : 'var(--muted-foreground)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {item.icon}
+                {React.cloneElement(item.icon, { width: 18, height: 18 })}
               </span>
-              <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.03em', color: active ? activeColor : 'transparent', lineHeight: 1 }}>
-                {item.label.length > 8 ? item.label.slice(0, 7) + '…' : item.label}
+              <span style={{ fontSize: '8px', fontWeight: 600, letterSpacing: '0.02em', color: active ? activeColor : 'var(--text-subtle)', lineHeight: 1, textAlign: 'center', width: '100%', paddingInline: 2 }}
+                className="truncate">
+                {item.label}
               </span>
             </Link>
           )
@@ -164,9 +183,9 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
         style={{ background: 'var(--sidebar)', borderRight: '1px solid var(--sidebar-border)' }}
       >
         {/* Logo clickeable */}
-        <Link href="/inicio" className="px-3 py-3 flex items-center transition-opacity hover:opacity-80"
-          style={{ borderBottom: '1px solid var(--sidebar-border)', background: 'rgba(255,255,255,0.92)', borderRadius: '0' }}>
-          <img src="/logo.png" alt="Buonaprax" style={{ width: '100%', height: 'auto', maxHeight: 48, objectFit: 'contain', objectPosition: 'left center' }} />
+        <Link href="/inicio" className="px-3 py-3 flex items-center justify-center transition-opacity hover:opacity-80"
+          style={{ borderBottom: '1px solid var(--sidebar-border)', borderRadius: '0' }}>
+          <BounapraxLogo variant="sidebarDesktop" />
         </Link>
 
         {/* Navegación */}
