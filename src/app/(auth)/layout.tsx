@@ -1,4 +1,4 @@
-import { BuonapraxLogo } from '@/components/BuonapraxLogo'
+import { BounapraxLogo } from '@/components/BounapraxLogo'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,8 +19,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           style={{ background: 'radial-gradient(circle, rgba(245,166,35,0.08) 0%, transparent 70%)' }} />
 
         {/* Logo */}
-        <div className="relative z-10">
-          <img src="/logo.png" alt="Buonaprax" style={{ height: 44, width: 'auto', objectFit: 'contain' }} />
+        <div className="relative z-10 flex justify-center lg:justify-start">
+          <BounapraxLogo variant="authHero" />
         </div>
 
         {/* Center content */}

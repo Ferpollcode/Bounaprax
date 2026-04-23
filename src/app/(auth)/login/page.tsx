@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { BuonapraxLogo } from '@/components/BuonapraxLogo'
+import { BounapraxLogo } from '@/components/BounapraxLogo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -34,8 +34,8 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-sm anim-fade-up">
       {/* Mobile logo */}
-      <div className="lg:hidden flex items-center gap-2 mb-10">
-        <img src="/logo.png" alt="Buonaprax" style={{ height: 36, width: 'auto', objectFit: 'contain' }} />
+      <div className="lg:hidden mb-8 flex justify-center">
+        <BounapraxLogo variant="authMobile" />
       </div>
 
       <div className="mb-8">

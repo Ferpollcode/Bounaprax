@@ -16,7 +16,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Buonaprax — Gestión de Pacientes",
+  title: "Bounaprax — Gestión de Pacientes",
   description: "Plataforma para profesionales de la salud",
 };
 

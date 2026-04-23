@@ -1,4 +1,4 @@
--- HealthPro - Schema Supabase
+-- Bounaprax - Schema Supabase
 -- Ejecutar en el SQL Editor de tu proyecto Supabase
 
 -- Habilitar extensión UUID
