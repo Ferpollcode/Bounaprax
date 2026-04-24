@@ -123,6 +123,45 @@ create policy "Profesional sube documentos" on storage.objects for insert with c
 create policy "Profesional ve documentos" on storage.objects for select using (bucket_id = 'documentos' and auth.uid()::text = (storage.foldername(name))[1]);
 create policy "Profesional borra documentos" on storage.objects for delete using (bucket_id = 'documentos' and auth.uid()::text = (storage.foldername(name))[1]);
 
+-- NOTAS POR PACIENTE
+create table paciente_notas (
+  id uuid default uuid_generate_v4() primary key,
+  paciente_id uuid references pacientes(id) on delete cascade not null,
+  professional_id uuid references auth.users(id) on delete cascade not null,
+  contenido text not null,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+alter table paciente_notas enable row level security;
+create policy "Profesional ve sus notas" on paciente_notas for all using (auth.uid() = professional_id);
+
+-- TAREAS POR PACIENTE
+create table paciente_tareas (
+  id uuid default uuid_generate_v4() primary key,
+  paciente_id uuid references pacientes(id) on delete cascade not null,
+  professional_id uuid references auth.users(id) on delete cascade not null,
+  texto text not null,
+  completada boolean default false,
+  created_at timestamptz default now()
+);
+alter table paciente_tareas enable row level security;
+create policy "Profesional ve sus tareas" on paciente_tareas for all using (auth.uid() = professional_id);
+
+-- RECORDATORIOS
+create table recordatorios (
+  id uuid default uuid_generate_v4() primary key,
+  professional_id uuid references auth.users(id) on delete cascade not null,
+  paciente_id uuid references pacientes(id) on delete cascade,
+  titulo text not null,
+  descripcion text,
+  fecha_recordatorio timestamptz,
+  completado boolean default false,
+  prioridad text default 'normal' check (prioridad in ('baja','normal','alta')),
+  created_at timestamptz default now()
+);
+alter table recordatorios enable row level security;
+create policy "Profesional ve sus recordatorios" on recordatorios for all using (auth.uid() = professional_id);
+
 -- Trigger updated_at en pacientes
 create or replace function update_updated_at()
 returns trigger as $$

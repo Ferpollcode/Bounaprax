@@ -7,6 +7,36 @@ import { createClient } from '@/lib/supabase/client'
 import type { Paciente } from '@/types'
 import { pacienteSlug } from '@/lib/utils'
 
+function NoteIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+      <polyline points="10,9 9,9 8,9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function TaskIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M9 11l3 3L22 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function BellIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
 const estadoConfig = {
   activo:   { label: 'Activo',   color: 'var(--success)', bg: 'rgba(52,211,153,0.1)'  },
   inactivo: { label: 'Inactivo', color: 'var(--muted-foreground)', bg: 'rgba(107,122,153,0.1)' },
@@ -41,13 +71,6 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
   const [deleting, setDeleting] = useState(false)
   const router = useRouter()
 
-  const stats = {
-    total: lista.length,
-    activos: lista.filter(p => p.estado === 'activo').length,
-    inactivos: lista.filter(p => p.estado === 'inactivo').length,
-    alta: lista.filter(p => p.estado === 'alta').length,
-  }
-
   const pacienteAEliminar = lista.find(p => p.id === deleteConfirm)
 
   async function handleDelete() {
@@ -65,21 +88,35 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
 
   return (
     <>
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 stagger">
+      {/* Feature cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 stagger">
         {[
-          { label: 'Total',      value: stats.total,    color: 'var(--primary)', bg: 'rgba(62,201,201,0.08)'  },
-          { label: 'Activos',    value: stats.activos,  color: 'var(--success)', bg: 'rgba(52,211,153,0.08)'  },
-          { label: 'Inactivos',  value: stats.inactivos,color: 'var(--muted-foreground)', bg: 'rgba(107,122,153,0.08)' },
-          { label: 'Alta médica',value: stats.alta,     color: 'var(--warning)', bg: 'rgba(251,191,36,0.08)'  },
-        ].map((s) => (
-          <div key={s.label} className="rounded-2xl p-5 anim-fade-up"
-            style={{ background: s.bg, border: '1px solid rgba(255,255,255,0.05)' }}>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--muted-foreground)' }}>{s.label}</p>
-            <p className="text-3xl font-bold" style={{ color: s.color, fontFamily: 'var(--font-display)' }}>
-              {s.value}
-            </p>
-          </div>
+          { label: 'Notas',         href: '/pacientes/notas',         desc: 'Notas clínicas por paciente', color: 'var(--primary)', bg: 'rgba(62,201,201,0.08)',   border: 'rgba(62,201,201,0.15)',   icon: <NoteIcon /> },
+          { label: 'Tareas',        href: '/pacientes/tareas',        desc: 'Tareas y pendientes',          color: 'var(--success)', bg: 'rgba(52,211,153,0.08)',   border: 'rgba(52,211,153,0.15)',   icon: <TaskIcon /> },
+          { label: 'Recordatorios', href: '/pacientes/recordatorios', desc: 'Alertas y recordatorios',     color: 'var(--warning)', bg: 'rgba(251,191,36,0.08)',   border: 'rgba(251,191,36,0.15)',   icon: <BellIcon /> },
+        ].map((card) => (
+          <Link
+            key={card.label}
+            href={card.href}
+            className="rounded-2xl p-5 anim-fade-up flex items-center gap-4 transition-all hover:scale-[1.02] cursor-pointer"
+            style={{ background: card.bg, border: `1px solid ${card.border}` }}
+          >
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: card.bg, border: `1px solid ${card.border}`, color: card.color }}>
+              {card.icon}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-base font-semibold" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
+                {card.label}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                {card.desc}
+              </p>
+            </div>
+            <svg className="flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18l6-6-6-6" stroke={card.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </Link>
         ))}
       </div>
 

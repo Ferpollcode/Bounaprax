@@ -96,3 +96,24 @@ export interface Test {
   archivo_url?: string
   created_at: string
 }
+
+export interface PacienteNota {
+  id: string
+  paciente_id: string
+  professional_id: string
+  contenido: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Recordatorio {
+  id: string
+  professional_id: string
+  paciente_id: string | null
+  titulo: string
+  descripcion: string | null
+  fecha_recordatorio: string | null
+  completado: boolean
+  prioridad: 'baja' | 'normal' | 'alta'
+  created_at: string
+}

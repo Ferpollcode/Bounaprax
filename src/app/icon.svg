@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3EC9C9"/>
+      <stop offset="1" stop-color="#1AA8A8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="32" height="32" rx="7" fill="url(#g)"/>
+
+  <!-- Left stem of B -->
+  <rect x="9" y="8" width="3.5" height="16" rx="1" fill="white"/>
+
+  <!-- Top bump outer -->
+  <path d="M12 8 L17.5 8 Q22.5 8 22.5 11.5 Q22.5 15 17.5 15 L12 15Z" fill="white"/>
+  <!-- Top bump hole -->
+  <path d="M12 10.5 L16 10.5 Q19.5 10.5 19.5 11.5 Q19.5 12.5 16 12.5 L12 12.5Z" fill="#28B8B8"/>
+
+  <!-- Bottom bump outer (slightly wider) -->
+  <path d="M12 15.5 L18 15.5 Q23.5 15.5 23.5 19.5 Q23.5 23.5 18 23.5 L12 23.5Z" fill="white"/>
+  <!-- Bottom bump hole -->
+  <path d="M12 18 L17 18 Q21 18 21 19.5 Q21 21 17 21 L12 21Z" fill="#22AEAE"/>
+</svg>
