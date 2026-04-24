@@ -221,7 +221,12 @@ export function PacientesClient({ initialPacientes }: { initialPacientes: Pacien
                           </p>
                           {p.fecha_nacimiento && (
                             <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>
-                              {new Date().getFullYear() - new Date(p.fecha_nacimiento).getFullYear()} años
+                              {(() => {
+  const hoy = new Date(), nac = new Date(p.fecha_nacimiento + 'T12:00:00')
+  let e = hoy.getFullYear() - nac.getFullYear()
+  if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) e--
+  return e
+})()} años
                             </p>
                           )}
                         </div>

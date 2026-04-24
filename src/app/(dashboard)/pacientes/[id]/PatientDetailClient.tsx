@@ -67,7 +67,8 @@ const estadosPago = [
 /* ── helpers ────────────────────────────────────────────── */
 function calcEdad(f?: string) {
   if (!f) return null
-  const hoy = new Date(), nac = new Date(f)
+  const hoy = new Date()
+  const nac = new Date(f + 'T12:00:00') // evita desfase UTC
   let e = hoy.getFullYear() - nac.getFullYear()
   if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) e--
   return e
