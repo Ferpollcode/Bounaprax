@@ -108,24 +108,38 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
         className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4"
         style={{ background: 'var(--sidebar)', borderBottom: '1px solid var(--sidebar-border)' }}
       >
-        {/* Logo clickeable */}
-        <Link href="/inicio" className="flex items-center">
-          <BounapraxLogo variant="sidebarMobile" />
+        {/* Logo compacto */}
+        <Link href="/inicio" className="flex items-center gap-2.5 min-w-0">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, #3EC9C9, #1AA8A8)' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+              <rect x="9" y="8" width="3.5" height="16" rx="1" fill="white"/>
+              <path d="M12 8 L17.5 8 Q22.5 8 22.5 11.5 Q22.5 15 17.5 15 L12 15Z" fill="white"/>
+              <path d="M12 10.5 L16 10.5 Q19.5 10.5 19.5 11.5 Q19.5 12.5 16 12.5 L12 12.5Z" fill="#1FBFBF"/>
+              <path d="M12 15.5 L18 15.5 Q23.5 15.5 23.5 19.5 Q23.5 23.5 18 23.5 L12 23.5Z" fill="white"/>
+              <path d="M12 18 L17 18 Q21 18 21 19.5 Q21 21 17 21 L12 21Z" fill="#1AAEAE"/>
+            </svg>
+          </div>
+          <span
+            className="text-sm font-bold truncate"
+            style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}
+          >
+            Bounaprax
+          </span>
         </Link>
 
-        {/* Toggle + usuario + logout */}
-        <div className="flex items-center gap-2">
+        {/* Toggle + logout */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <ThemeToggle compact />
-          <span className="text-xs max-w-[100px] truncate" style={{ color: 'var(--muted-foreground)' }}>
-            {displayName}
-          </span>
           <button
             onClick={handleLogout}
-            className="w-8 h-8 flex items-center justify-center rounded-xl transition-opacity hover:opacity-70"
+            className="w-9 h-9 flex items-center justify-center rounded-xl transition-opacity active:opacity-60"
             style={{ background: 'var(--sidebar-action-bg)', border: '1px solid var(--sidebar-action-border)' }}
             aria-label="Cerrar sesión"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>
               <polyline points="16,17 21,12 16,7" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <line x1="21" y1="12" x2="9" y2="12" stroke="var(--muted-foreground)" strokeWidth="2" strokeLinecap="round"/>

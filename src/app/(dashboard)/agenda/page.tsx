@@ -823,62 +823,72 @@ function WeekView({ selectedDay, sesiones, openMenuId, setOpenMenuId, onSelectDa
   return (
     <div className="flex-1 rounded-2xl overflow-hidden"
       style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-      <div className="overflow-x-auto">
-        <div className="grid min-w-[640px]" style={{ gridTemplateColumns: 'repeat(7, 1fr)' }}>
-          {weekDays.map((day, idx) => {
-            const daySes = sesiones
-              .filter(s => s.fecha === day)
-              .sort((a, b) => (a.hora_inicio ?? '').localeCompare(b.hora_inicio ?? ''))
-            const d = new Date(day + 'T12:00:00')
-            const isToday    = day === todayStr
-            const isSelected = day === selectedDay
+      {weekDays.map((day, idx) => {
+        const daySes = sesiones
+          .filter(s => s.fecha === day)
+          .sort((a, b) => (a.hora_inicio ?? '').localeCompare(b.hora_inicio ?? ''))
+        const d         = new Date(day + 'T12:00:00')
+        const isToday   = day === todayStr
+        const isSelected = day === selectedDay
+        const isLast    = idx === weekDays.length - 1
 
-            return (
-              <div key={day}
-                style={{ borderRight: idx < 6 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                {/* Day header */}
-                <button className="w-full p-3 flex flex-col items-center transition-colors hover:bg-white/[0.03]"
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
-                  onClick={() => onSelectDay(day)}>
-                  <span className="font-semibold tracking-widest uppercase"
-                    style={{ fontSize: 10, color: isSelected ? TEAL : 'var(--text-subtle)' }}>
-                    {DAYS_OF_WEEK[d.getDay()]}
-                  </span>
-                  <span className="w-8 h-8 rounded-lg mt-1 flex items-center justify-center text-sm font-bold"
-                    style={{
-                      background: isToday ? TEAL : isSelected ? 'rgba(62,201,201,0.15)' : 'transparent',
-                      color: isToday ? 'white' : isSelected ? TEAL : 'var(--muted-foreground)',
-                    }}>
-                    {d.getDate()}
-                  </span>
-                  {daySes.length > 0 && (
-                    <span className="text-xs font-semibold mt-0.5"
-                      style={{ color: isSelected ? TEAL : 'var(--text-subtle)', fontSize: 10 }}>
-                      {daySes.length}
-                    </span>
-                  )}
+        return (
+          <div key={day}
+            className="flex gap-3 sm:gap-4 px-3 sm:px-4 py-3"
+            style={{ borderBottom: isLast ? 'none' : '1px solid rgba(255,255,255,0.04)' }}>
+
+            {/* Day label — clickable, fixed width */}
+            <button
+              onClick={() => onSelectDay(day)}
+              className="flex flex-col items-center gap-0.5 flex-shrink-0 w-10 pt-0.5 transition-opacity hover:opacity-80 active:opacity-60"
+            >
+              <span className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: isSelected ? TEAL : 'var(--text-subtle)' }}>
+                {DAYS_OF_WEEK[d.getDay()]}
+              </span>
+              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold"
+                style={{
+                  background: isToday ? TEAL : isSelected ? 'rgba(62,201,201,0.15)' : 'transparent',
+                  color: isToday ? 'white' : isSelected ? TEAL : 'var(--muted-foreground)',
+                }}>
+                {d.getDate()}
+              </span>
+            </button>
+
+            {/* Sessions column */}
+            <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+              {daySes.length === 0 ? (
+                <button
+                  onClick={() => { onSelectDay(day); onNewSesion() }}
+                  className="h-9 w-full rounded-lg flex items-center justify-center gap-1.5 transition-opacity opacity-30 hover:opacity-70 active:opacity-50"
+                  style={{ border: '1px dashed rgba(255,255,255,0.15)' }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="var(--text-subtle)" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>Agregar</span>
                 </button>
-
-                {/* Sessions */}
-                <div className="p-2 space-y-1.5" style={{ minHeight: 140 }}>
+              ) : (
+                <>
                   {daySes.map(s => (
                     <SesionCard key={s.id} sesion={s} openMenuId={openMenuId} setOpenMenuId={setOpenMenuId}
                       onEdit={onEdit} onQuickAction={onQuickAction} compact />
                   ))}
                   <button
                     onClick={() => { onSelectDay(day); onNewSesion() }}
-                    className="w-full h-6 rounded-md flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                    style={{ border: '1px dashed rgba(255,255,255,0.08)' }}>
+                    className="h-6 w-full rounded-md flex items-center justify-center gap-1 opacity-0 hover:opacity-70 active:opacity-50 transition-opacity"
+                    style={{ border: '1px dashed rgba(255,255,255,0.08)' }}
+                  >
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
                       <path d="M12 5v14M5 12h14" stroke="var(--text-subtle)" strokeWidth="2.5" strokeLinecap="round"/>
                     </svg>
                   </button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+                </>
+              )}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
