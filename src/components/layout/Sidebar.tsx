@@ -86,6 +86,17 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    href: '/reportes',
+    label: 'Reportes',
+    color: '#FF9F43',
+    colorLight: '#D97706',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
 ]
 
 export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?: string }) {

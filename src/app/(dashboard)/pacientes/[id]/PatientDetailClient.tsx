@@ -1166,6 +1166,32 @@ export function PatientDetailClient({
   ].map(item => ({ ...item, count: sesiones.filter(s => s.estado === item.key).length }))
     .filter(item => item.count > 0)
 
+  function handleWhatsApp() {
+    const hoy = new Date().toISOString().split('T')[0]
+    const proxima = sesiones
+      .filter(s => s.estado === 'programada' && s.fecha >= hoy)
+      .sort((a, b) => a.fecha.localeCompare(b.fecha))[0]
+
+    const DIAS = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado']
+    const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre']
+
+    let mensaje: string
+    if (proxima) {
+      const d = new Date(proxima.fecha + 'T12:00:00')
+      const fechaStr = `el ${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`
+      const horaStr = proxima.hora_inicio ? ` a las ${proxima.hora_inicio}` : ''
+      mensaje = `Hola ${p.nombre}! 👋 Te recordamos que tenés sesión ${fechaStr}${horaStr}. Por favor confirmá tu asistencia. ¡Hasta pronto!`
+    } else {
+      mensaje = `Hola ${p.nombre}! 👋 Te escribimos desde el consultorio. Por favor contactanos para coordinar tu próxima sesión.`
+    }
+
+    const telefono = p.telefono?.replace(/\D/g, '') ?? ''
+    const url = telefono
+      ? `https://wa.me/549${telefono}?text=${encodeURIComponent(mensaje)}`
+      : `https://wa.me/?text=${encodeURIComponent(mensaje)}`
+    window.open(url, '_blank')
+  }
+
   async function handleDownloadAll() {
     if (docs.length === 0 || downloadingAll) return
     setDownloadingAll(true)
@@ -1493,6 +1519,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
               }
               {downloadingAll ? 'Descargando…' : 'Descargar docs'}
             </button>
+
+            {/* WhatsApp recordatorio */}
+            <button
+              onClick={handleWhatsApp}
+              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+              style={{ background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)', color: '#25D366' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Recordatorio
+            </button>
+
+            {/* Imprimir historia clínica */}
+            <Link
+              href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/imprimir`}
+              target="_blank"
+              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+              style={{ background: 'rgba(255,159,67,0.12)', border: '1px solid rgba(255,159,67,0.3)', color: '#FF9F43' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+              </svg>
+              Imprimir historia
+            </Link>
           </div>
         </div>
 

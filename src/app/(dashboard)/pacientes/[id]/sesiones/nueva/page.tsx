@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -84,6 +84,54 @@ export default function NuevaSesionPage() {
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
 
+  // Nota de voz
+  const [recording,   setRecording]   = useState(false)
+  const [audioBlob,   setAudioBlob]   = useState<Blob | null>(null)
+  const [audioUrl,    setAudioUrl]    = useState<string | null>(null)
+  const [recSeconds,  setRecSeconds]  = useState(0)
+  const mediaRef   = useRef<MediaRecorder | null>(null)
+  const chunksRef  = useRef<Blob[]>([])
+  const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const mr = new MediaRecorder(stream)
+      chunksRef.current = []
+      mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mr.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+        setAudioBlob(blob)
+        setAudioUrl(URL.createObjectURL(blob))
+        stream.getTracks().forEach(t => t.stop())
+      }
+      mr.start()
+      mediaRef.current = mr
+      setRecording(true)
+      setRecSeconds(0)
+      timerRef.current = setInterval(() => setRecSeconds(s => s + 1), 1000)
+    } catch {
+      setError('No se pudo acceder al micrófono.')
+    }
+  }
+
+  function stopRecording() {
+    mediaRef.current?.stop()
+    setRecording(false)
+    if (timerRef.current) clearInterval(timerRef.current)
+  }
+
+  function discardAudio() {
+    setAudioBlob(null)
+    if (audioUrl) URL.revokeObjectURL(audioUrl)
+    setAudioUrl(null)
+    setRecSeconds(0)
+  }
+
+  function fmtSec(s: number) {
+    return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
+  }
+
   const hoy = new Date().toISOString().split('T')[0]
   const [form, setForm] = useState({
     fecha:        hoy,
@@ -111,7 +159,7 @@ export default function NuevaSesionPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const { error } = await supabase.from('sesiones').insert({
+    const { data, error } = await supabase.from('sesiones').insert({
       paciente_id:    id,
       professional_id: user.id,
       fecha:          form.fecha,
@@ -126,10 +174,34 @@ export default function NuevaSesionPage() {
       proximos_pasos: form.proximos_pasos || null,
       monto:          form.monto ? parseFloat(form.monto) : null,
       pagado:         form.pagado,
-    })
+    }).select('id').single()
 
-    if (error) { setError('Error al guardar la sesión.'); setSaving(false) }
-    else router.push(`/pacientes/${slug}`)
+    if (error) { setError('Error al guardar la sesión.'); setSaving(false); return }
+
+    // Subir nota de voz como documento si existe
+    if (audioBlob && data?.id) {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const filename = `${user.id}/nota-voz-${data.id}.webm`
+        const { data: upload } = await supabase.storage.from('documentos').upload(filename, audioBlob, { contentType: 'audio/webm', upsert: true })
+        if (upload) {
+          const { data: urlData } = await supabase.storage.from('documentos').createSignedUrl(filename, 60 * 60 * 24 * 365)
+          await supabase.from('documentos').insert({
+            paciente_id:    id,
+            professional_id: user.id,
+            nombre:         `Nota de voz — ${form.fecha}`,
+            descripcion:    'Nota de voz registrada al finalizar la sesión',
+            tipo:           'otro',
+            archivo_url:    urlData?.signedUrl ?? '',
+            archivo_nombre: `nota-voz-${form.fecha}.webm`,
+            archivo_tipo:   'audio/webm',
+            archivo_tamanio: audioBlob.size,
+          })
+        }
+      }
+    }
+
+    router.push(`/pacientes/${slug}`)
   }
 
   return (
@@ -273,6 +345,50 @@ export default function NuevaSesionPage() {
                 </button>
               </div>
             </div>
+          </Card>
+
+          {/* Nota de voz */}
+          <Card title="Nota de voz" icon={
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          }>
+            <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>
+              Grabá una nota rápida al finalizar la sesión. Se guardará como documento adjunto al paciente.
+            </p>
+
+            {!audioUrl ? (
+              <button type="button"
+                onClick={recording ? stopRecording : startRecording}
+                className="flex items-center gap-3 h-12 px-5 rounded-xl text-sm font-semibold transition-all"
+                style={{
+                  background: recording ? 'rgba(248,113,113,0.15)' : 'rgba(62,201,201,0.1)',
+                  border: `1px solid ${recording ? 'rgba(248,113,113,0.4)' : 'rgba(62,201,201,0.3)'}`,
+                  color: recording ? 'var(--danger)' : TEAL,
+                }}>
+                {recording ? (
+                  <>
+                    <span className="w-3 h-3 rounded-sm" style={{ background: 'var(--danger)', animation: 'pulse 1s infinite' }} />
+                    Detener — {fmtSec(recSeconds)}
+                  </>
+                ) : (
+                  <>
+                    <span className="w-3 h-3 rounded-full" style={{ background: TEAL }} />
+                    Iniciar grabación
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <audio src={audioUrl} controls className="w-full h-10" style={{ borderRadius: 12 }} />
+                <button type="button" onClick={discardAudio}
+                  className="text-xs font-medium transition-opacity hover:opacity-70"
+                  style={{ color: 'var(--danger)' }}>
+                  × Descartar nota
+                </button>
+              </div>
+            )}
           </Card>
 
           {error && (
