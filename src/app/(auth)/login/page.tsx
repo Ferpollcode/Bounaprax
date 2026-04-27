@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { BounapraxLogo } from '@/components/BounapraxLogo'
 
+const INTERNAL_DOMAIN = '@bounaprax.com'
+
 export default function LoginPage() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -19,16 +20,25 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const email = username.trim().toLowerCase() + INTERNAL_DOMAIN
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
-      setError(error.message === 'Invalid login credentials'
-        ? 'Email o contraseña incorrectos.'
-        : error.message)
+      setError('Usuario o contraseña incorrectos.')
       setLoading(false)
     } else {
-      router.push('/inicio')
+      const mustChange = data.user?.user_metadata?.must_change_password === true
+      router.push(mustChange ? '/cambiar-contrasena' : '/inicio')
       router.refresh()
     }
+  }
+
+  const focusStyle = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.style.border = '1px solid rgba(62,201,201,0.5)'
+    e.target.style.background = 'rgba(62,201,201,0.05)'
+  }
+  const blurStyle = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.style.border = '1px solid rgba(255,255,255,0.08)'
+    e.target.style.background = 'rgba(255,255,255,0.05)'
   }
 
   return (
@@ -48,41 +58,31 @@ export default function LoginPage() {
       <form onSubmit={handleLogin} className="space-y-4">
         <div className="space-y-1.5">
           <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>
-            Email
+            Usuario
           </label>
           <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
             required
-            autoComplete="email"
-            placeholder="tu@email.com"
+            autoComplete="username"
+            autoCapitalize="none"
+            placeholder="tu_usuario"
             className="w-full h-11 px-4 rounded-xl text-sm transition-all outline-none"
             style={{
               background: 'var(--overlay-sm)',
               border: '1px solid var(--border)',
               color: 'var(--foreground)',
             }}
-            onFocus={e => {
-              e.target.style.border = '1px solid rgba(62,201,201,0.5)'
-              e.target.style.background = 'rgba(62,201,201,0.05)'
-            }}
-            onBlur={e => {
-              e.target.style.border = '1px solid rgba(255,255,255,0.08)'
-              e.target.style.background = 'rgba(255,255,255,0.05)'
-            }}
+            onFocus={focusStyle}
+            onBlur={blurStyle}
           />
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>
-              Contraseña
-            </label>
-            <Link href="#" className="text-xs transition-colors hover:opacity-80" style={{ color: 'var(--primary)' }}>
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
+          <label className="text-xs font-medium tracking-wide uppercase" style={{ color: 'var(--muted-foreground)' }}>
+            Contraseña
+          </label>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
@@ -97,14 +97,8 @@ export default function LoginPage() {
                 border: '1px solid var(--border)',
                 color: 'var(--foreground)',
               }}
-              onFocus={e => {
-                e.target.style.border = '1px solid rgba(62,201,201,0.5)'
-                e.target.style.background = 'rgba(62,201,201,0.05)'
-              }}
-              onBlur={e => {
-                e.target.style.border = '1px solid rgba(255,255,255,0.08)'
-                e.target.style.background = 'rgba(255,255,255,0.05)'
-              }}
+              onFocus={focusStyle}
+              onBlur={blurStyle}
             />
             <button
               type="button"
@@ -148,13 +142,6 @@ export default function LoginPage() {
           {loading ? 'Ingresando...' : 'Ingresar'}
         </button>
       </form>
-
-      <p className="mt-6 text-center text-sm" style={{ color: 'var(--muted-foreground)' }}>
-        ¿No tenés cuenta?{' '}
-        <Link href="/register" className="font-medium transition-colors hover:opacity-80" style={{ color: 'var(--primary)' }}>
-          Registrate gratis
-        </Link>
-      </p>
     </div>
   )
 }

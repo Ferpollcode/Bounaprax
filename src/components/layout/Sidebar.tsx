@@ -92,7 +92,8 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
   const pathname = usePathname()
   const router = useRouter()
 
-  const displayName = userName || userEmail?.split('@')[0] || 'Profesional'
+  const rawName = userName || userEmail?.split('@')[0] || 'Profesional'
+  const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1)
 
   async function handleLogout() {
     const supabase = createClient()

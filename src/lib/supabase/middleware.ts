@@ -24,17 +24,28 @@ export async function updateSession(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  const mustChangePassword = user?.user_metadata?.must_change_password === true
 
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/register')
+  const pathname = request.nextUrl.pathname
+  const isLoginRoute = pathname.startsWith('/login')
+  const isChangePasswordRoute = pathname.startsWith('/cambiar-contrasena')
 
-  if (!user && !isAuthRoute) {
+  // Sin sesión: redirigir a /login (excepto si ya está ahí)
+  if (!user && !isLoginRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  if (user && isAuthRoute) {
+  // Con sesión y debe cambiar contraseña: forzar /cambiar-contrasena
+  if (user && mustChangePassword && !isChangePasswordRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/cambiar-contrasena'
+    return NextResponse.redirect(url)
+  }
+
+  // Con sesión y ya no necesita cambiar contraseña: sacar de /login y /cambiar-contrasena
+  if (user && !mustChangePassword && (isLoginRoute || isChangePasswordRoute)) {
     const url = request.nextUrl.clone()
     url.pathname = '/inicio'
     return NextResponse.redirect(url)

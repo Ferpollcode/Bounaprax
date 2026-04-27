@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { pacienteSlug } from '@/lib/utils'
+import { Greeting } from '@/components/Greeting'
 
 type SesionRow = {
   id: string
@@ -42,18 +43,13 @@ function fmtWeekRange(monday: Date, sunday: Date) {
   return `${monday.getDate()} de ${MESES[monday.getMonth()]} – ${sunday.getDate()} de ${MESES[sunday.getMonth()]} de ${sunday.getFullYear()}`
 }
 
-function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Buenos días'
-  if (h < 19) return 'Buenas tardes'
-  return 'Buenas noches'
-}
 
 export default async function InicioPage() {
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
-  const userName = (user?.user_metadata?.nombre as string | undefined) || 'Profesional'
+  const rawName = (user?.user_metadata?.nombre as string | undefined) || user?.email?.split('@')[0] || 'Profesional'
+  const userName = rawName.charAt(0).toUpperCase() + rawName.slice(1)
 
   const { monday, sunday, today } = getWeekBounds()
   const mondayStr = toDateStr(monday)
@@ -107,7 +103,7 @@ export default async function InicioPage() {
 
       {/* ── Header bienvenida ── */}
       <div className="mb-8 anim-fade-up">
-        <p className="text-sm mb-1" style={{ color: 'var(--primary)' }}>{getGreeting()}</p>
+        <Greeting />
         <h1 className="text-2xl sm:text-3xl font-bold mb-1 truncate"
           style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
           {userName}
