@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { pacienteSlug } from '@/lib/utils'
 
 const TEAL  = '#3EC9C9'
 const AMBER = '#F5A623'
@@ -1518,9 +1520,17 @@ function EditarSesionModal({
                   {initials(pac.nombre, pac.apellido)}
                 </div>
               )}
-              <span className="text-sm" style={{ color: 'var(--foreground-muted)' }}>
+              <span className="text-sm flex-1" style={{ color: 'var(--foreground-muted)' }}>
                 {pac ? `${pac.apellido}, ${pac.nombre}` : '—'}
               </span>
+              {pac && (
+                <Link
+                  href={`/pacientes/${pacienteSlug(pac.apellido, pac.nombre, sesion.paciente_id)}`}
+                  className="text-xs font-medium flex-shrink-0 transition-opacity hover:opacity-70"
+                  style={{ color: TEAL }}>
+                  Ver paciente →
+                </Link>
+              )}
             </div>
           </div>
 
@@ -2059,8 +2069,10 @@ export default function AgendaPage() {
                               const dispColor = catCfg?.color ?? cfg.color
                               const dispBg    = catCfg?.bg    ?? cfg.bg
                               return (
-                                <div key={s.id} className="flex items-center gap-1 rounded-md px-1.5 py-0.5"
-                                  style={{ background: dispBg }}>
+                                <div key={s.id}
+                                  className="flex items-center gap-1 rounded-md px-1.5 py-0.5"
+                                  style={{ background: dispBg, cursor: 'pointer' }}
+                                  onClick={e => { e.stopPropagation(); setSesionEditando(s) }}>
                                   <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: dispColor }} />
                                   <span className="truncate leading-tight"
                                     style={{ color: dispColor, fontSize: '10px' }}>

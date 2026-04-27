@@ -131,6 +131,14 @@ export default function SesionesPage() {
             Estadísticas de atención · {periodoLabel}
           </p>
         </div>
+        <Link href="/agenda"
+          className="h-10 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-80 self-start"
+          style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#fff', textDecoration: 'none' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+          </svg>
+          Agregar sesión
+        </Link>
       </div>
 
       {/* ── Selector de período ── */}

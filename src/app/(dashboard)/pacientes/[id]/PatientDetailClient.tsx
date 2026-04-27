@@ -1674,13 +1674,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                   Sesiones
                   <span className="px-1.5 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'var(--muted-foreground)' }}>{sesiones.length}</span>
                 </p>
-                <button onClick={() => setSesionOpen(true)}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
-                  style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)' }}>
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 5v14M5 12h14" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round"/>
-                  </svg>
-                </button>
+                <div className="flex items-center gap-2">
+                  <Link href="/agenda"
+                    className="h-8 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                    style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)', color: TEAL, textDecoration: 'none' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                    Agendar sesión
+                  </Link>
+                  <button onClick={() => setSesionOpen(true)}
+                    className="w-8 h-8 rounded-xl flex items-center justify-center transition-opacity hover:opacity-80"
+                    style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 5v14M5 12h14" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
               {sesiones.length === 0 ? (
                 <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>Sin sesiones registradas.</p>
