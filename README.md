@@ -46,12 +46,44 @@ Buonaprax es una aplicación web pensada para profesionales de la salud que quie
 ### 📋 Notas, tareas y recordatorios
 - Anotaciones rápidas sin salir de la plataforma
 
+### 📊 Reportes *(Plan Pro)*
+- Estadísticas mensuales: sesiones, asistencias, inasistencias
+- Contabilidad: ingresos por tipo de pago, comparativa mensual
+
+### 🧾 Exportaciones *(Plan Pro)*
+- Historia clínica en PDF por paciente
+- Planilla de asistencias mensual en PDF
+- Envío directo por WhatsApp
+
+### 🎙️ Notas de voz *(Plan Pro)*
+- Grabación de audio directamente en la sesión
+
+---
+
+## Sistema de planes
+
+| Funcionalidad | Free | Pro |
+|---|:---:|:---:|
+| Pacientes ilimitados | ✓ | ✓ |
+| Agenda y sesiones | ✓ | ✓ |
+| Gestión de pagos | ✓ | ✓ |
+| Documentos y archivos | ✓ | ✓ |
+| Multi-consultorio | ✓ | ✓ |
+| Reportes y estadísticas | — | ✓ |
+| Historia clínica PDF | — | ✓ |
+| Planilla de asistencias PDF | — | ✓ |
+| Envío por WhatsApp | — | ✓ |
+| Notas de voz en sesiones | — | ✓ |
+| Soporte prioritario | — | ✓ |
+
+El plan se gestiona desde el panel `/admin` (requiere `is_admin = true` en el perfil).
+
 ---
 
 ## Sistema de autenticación
 
 ### Login por nombre de usuario
-Los usuarios **no se registran solos**. El administrador los crea desde el panel de Supabase. El login usa nombre de usuario (no email).
+Los usuarios **no se registran solos**. El administrador los crea desde el panel `/admin` dentro de la misma app. El login usa nombre de usuario (sin dominio).
 
 Internamente el sistema construye el email como:
 ```
@@ -65,35 +97,19 @@ El flag que controla este comportamiento es `must_change_password` en `user_meta
 
 ---
 
-## Cómo crear un usuario nuevo
+## Panel de administración
 
-### Paso 1 — Crear en Supabase
-Ir a **Authentication → Users → Add user → Create new user** con:
-- **Email:** `nombreusuario@bounaprax.com`
-- **Password:** contraseña temporal (la va a cambiar en el primer acceso)
+Accesible en `/admin` únicamente para usuarios con `is_admin = true` en la tabla `profiles`.
 
-### Paso 2 — Setear el flag de primer acceso
-Ejecutar en el **SQL Editor** de Supabase:
+Permite:
+- **Crear usuarios**: nombre, usuario (se convierte a `usuario@bounaprax.com`), contraseña temporal y plan inicial
+- **Eliminar usuarios**: con confirmación
+- **Cambiar plan**: toggle Free ↔ Pro directamente desde la tabla
 
+Para marcar un usuario como admin, ejecutar en Supabase SQL Editor:
 ```sql
--- Para un usuario específico
-UPDATE auth.users
-SET raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"must_change_password": true}'::jsonb
-WHERE email = 'nombreusuario@bounaprax.com';
-
--- Para todos los usuarios que no tengan el flag
-UPDATE auth.users
-SET raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || '{"must_change_password": true}'::jsonb
-WHERE raw_user_meta_data->>'must_change_password' IS NULL
-OR raw_user_meta_data->>'must_change_password' != 'true';
+UPDATE profiles SET is_admin = true WHERE email = 'usuario@bounaprax.com';
 ```
-
-### Paso 3 — El usuario inicia sesión
-El profesional ingresa con:
-- **Usuario:** `nombreusuario` (sin el @bounaprax.com)
-- **Contraseña:** la temporal que le diste
-
-El sistema lo redirige a la pantalla de cambio de contraseña. Una vez que la cambia, accede al dashboard normalmente.
 
 ---
 
@@ -115,10 +131,9 @@ src/
 │   ├── (auth)/
 │   │   ├── layout.tsx                    # Layout con panel de branding pastel
 │   │   ├── login/page.tsx                # Login por nombre de usuario
-│   │   ├── cambiar-contrasena/page.tsx   # Primer acceso — cambio de contraseña
-│   │   └── register/page.tsx             # Redirige a /login (no disponible)
+│   │   └── cambiar-contrasena/page.tsx   # Primer acceso — cambio de contraseña
 │   ├── (dashboard)/
-│   │   ├── layout.tsx                    # Layout con Sidebar
+│   │   ├── layout.tsx                    # Layout con Sidebar (pasa isPro, isAdmin)
 │   │   ├── inicio/page.tsx               # Bienvenida + agenda semanal
 │   │   ├── pacientes/
 │   │   │   ├── page.tsx
@@ -130,11 +145,19 @@ src/
 │   │   │       ├── sesiones/nueva/page.tsx
 │   │   │       └── pagos/nuevo/page.tsx
 │   │   ├── agenda/page.tsx
-│   │   └── consultorios/page.tsx
-│   ├── page.tsx                          # Redirige a /pacientes
+│   │   ├── reportes/
+│   │   │   ├── page.tsx                  # Server component (fetch isPro)
+│   │   │   └── ReportesClient.tsx        # Tabs: Estadísticas + Contabilidad
+│   │   ├── contabilidad/page.tsx         # Redirige a /reportes
+│   │   ├── consultorios/page.tsx
+│   │   └── admin/
+│   │       ├── page.tsx                  # Server component (requiere is_admin)
+│   │       ├── AdminClient.tsx           # Tabla de usuarios + modales
+│   │       └── actions.ts                # Server actions: createUser, deleteUser
+│   ├── page.tsx                          # Redirige a /inicio
 │   └── globals.css
 ├── components/
-│   ├── layout/Sidebar.tsx
+│   ├── layout/Sidebar.tsx                # Navegación (badge PRO, sección Admin)
 │   ├── Greeting.tsx                      # Saludo por hora (client component)
 │   └── ui/                              # Componentes shadcn
 ├── lib/
@@ -142,6 +165,7 @@ src/
 │       ├── client.ts
 │       ├── server.ts
 │       └── middleware.ts                 # Auth guard + lógica de primer acceso
+├── types/index.ts
 └── middleware.ts
 ```
 
@@ -154,6 +178,8 @@ Crear un archivo `.env.local` en la raíz del proyecto:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key   # requerida para el panel admin
+TZ=America/Argentina/Buenos_Aires
 ```
 
 ---
@@ -234,18 +260,19 @@ Abrir [http://localhost:3000](http://localhost:3000)
 
 ## Planes comerciales
 
-| | Gratuito | Personal | Pro |
-|---|---|---|---|
-| Precio | $0 · 15 días | $20.000/mes | $45.000/mes |
-| Pacientes ilimitados | ✓ | ✓ | ✓ |
-| Agenda y sesiones | ✓ | ✓ | ✓ |
-| Pagos y documentos | ✓ | ✓ | ✓ |
-| Multi-consultorio | ✓ | ✓ | ✓ |
-| Reportes mensuales PDF | — | — | ✓ |
-| Recordatorios automáticos | — | — | ✓ |
-| Exportación historia clínica | — | — | ✓ |
-| Sync Google Calendar | — | — | ✓ |
-| Soporte | Normal | Normal | Prioritario |
+| | Gratuito | Pro |
+|---|---|---|
+| Precio | $0 · 15 días de prueba | $20.000/mes |
+| Pacientes ilimitados | ✓ | ✓ |
+| Agenda y sesiones | ✓ | ✓ |
+| Pagos y documentos | ✓ | ✓ |
+| Multi-consultorio | ✓ | ✓ |
+| Reportes y estadísticas | — | ✓ |
+| Historia clínica PDF | — | ✓ |
+| Planilla de asistencias PDF | — | ✓ |
+| Envío por WhatsApp | — | ✓ |
+| Notas de voz en sesiones | — | ✓ |
+| Soporte | Normal | Prioritario |
 
 ---
 

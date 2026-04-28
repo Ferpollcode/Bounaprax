@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buonaprax — Tu consultorio, siempre contigo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rojo:    #FFB3B3;
+      --naranja: #FFDAC1;
+      --amarillo:#FFF3B0;
+      --verde:   #B5EAD7;
+      --azul:    #A8D8EA;
+      --morado:  #C7CEEA;
+
+      --rojo-d:    #E05555;
+      --naranja-d: #E07A30;
+      --amarillo-d:#C9A800;
+      --verde-d:   #2EAA7A;
+      --azul-d:    #2E86AB;
+      --morado-d:  #6C5CE7;
+
+      --dark: #1E1B2E;
+      --text: #3D3A50;
+      --muted: #7A7690;
+      --bg: #FAFAFA;
+      --white: #FFFFFF;
+      --radius: 20px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 14px 40px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .nav-logo {
+      grid-column: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      text-decoration: none;
+    }
+    .nav-logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--naranja-d) 0%, var(--morado-d) 60%, var(--azul-d) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+    }
+    .nav-logo-tagline {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .nav-cta {
+      grid-column: 3;
+      justify-self: end;
+      background: var(--morado-d);
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+      text-decoration: none;
+    }
+    .nav-cta:hover { opacity: .85; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(155deg, #FFF9F0 0%, #F5F0FF 50%, #F0F7FF 100%);
+      z-index: 0;
+    }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: .5;
+      pointer-events: none;
+    }
+    .blob-1 { width: 500px; height: 500px; top: -150px; left: -150px; background: var(--naranja); }
+    .blob-2 { width: 400px; height: 400px; top: 20%; right: -100px; background: var(--morado); }
+    .blob-3 { width: 350px; height: 350px; bottom: -100px; left: 30%; background: var(--verde); }
+    .blob-4 { width: 300px; height: 300px; bottom: 10%; left: -50px; background: var(--azul); }
+
+    .hero-content { position: relative; z-index: 1; max-width: 760px; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--white);
+      border: 1px solid rgba(108,92,231,.2);
+      border-radius: 50px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--morado-d);
+      margin-bottom: 28px;
+      box-shadow: 0 2px 12px rgba(108,92,231,.1);
+    }
+    .hero-badge .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--morado-d);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: .5; transform: scale(.8); }
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(42px, 6vw, 72px);
+      font-weight: 900;
+      color: var(--dark);
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--morado-d), var(--azul-d));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 40px;
+    }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--morado-d), #8B7CF6);
+      color: #fff;
+      padding: 16px 36px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 8px 24px rgba(108,92,231,.35);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(108,92,231,.45); }
+    .btn-secondary {
+      background: var(--white);
+      color: var(--text);
+      padding: 16px 36px;
+      border-radius: 50px;
+      font-size: 16px;
+      font-weight: 600;
+      border: 2px solid rgba(0,0,0,.1);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: border-color .2s;
+    }
+    .btn-secondary:hover { border-color: var(--morado-d); color: var(--morado-d); }
+
+    .hero-strip {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 56px;
+    }
+    .hero-strip span {
+      height: 4px;
+      width: 48px;
+      border-radius: 4px;
+    }
+
+    /* ── SECTION COMMONS ── */
+    section { padding: 96px 24px; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 900;
+      color: var(--dark);
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 560px;
+      margin-bottom: 56px;
+    }
+
+    /* ── FEATURES ── */
+    .features-bg { background: var(--white); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .feature-card {
+      border-radius: var(--radius);
+      padding: 32px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .25s;
+    }
+    .feature-card:hover { transform: translateY(-4px); }
+    .feature-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 10px;
+    }
+    .feature-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+    /* ── HOW IT WORKS ── */
+    .how-bg { background: linear-gradient(155deg, #FFF9F0, #F5F0FF); }
+    .steps { display: flex; flex-direction: column; gap: 0; max-width: 640px; }
+    .step { display: flex; gap: 24px; position: relative; padding-bottom: 40px; }
+    .step:last-child { padding-bottom: 0; }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 23px; top: 52px; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--morado), transparent);
+    }
+    .step-num {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 18px;
+      flex-shrink: 0;
+      color: var(--white);
+    }
+    .step-body h3 { font-size: 18px; font-weight: 700; color: var(--dark); margin-bottom: 6px; padding-top: 10px; }
+    .step-body p { font-size: 15px; color: var(--muted); }
+
+    /* ── PRO FEATURES ── */
+    .pro-section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #F5A623, #E07A30);
+      color: #fff;
+      padding: 6px 18px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin: 56px 0 32px;
+    }
+    .pro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #F5A623, #E07A30);
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    /* ── PRICING ── */
+    .pricing-bg { background: var(--white); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      max-width: 760px;
+    }
+    .pricing-card {
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      border: 2px solid transparent;
+      position: relative;
+      transition: transform .25s;
+    }
+    .pricing-card:hover { transform: translateY(-4px); }
+    .pricing-card.featured {
+      background: linear-gradient(135deg, var(--morado-d), #8B7CF6);
+      color: #fff;
+    }
+    .pricing-card.free { background: var(--bg); border-color: rgba(0,0,0,.08); }
+    .pricing-badge {
+      position: absolute;
+      top: -14px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--amarillo);
+      color: var(--dark);
+      padding: 5px 16px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .pricing-label { font-size: 13px; font-weight: 600; opacity: .7; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .08em; }
+    .pricing-price {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .pricing-price sup { font-size: 24px; vertical-align: top; margin-top: 8px; }
+    .pricing-period { font-size: 14px; opacity: .7; margin-bottom: 28px; }
+    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+    .pricing-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; }
+    .pricing-features li .check { flex-shrink: 0; font-weight: 700; margin-top: 1px; }
+    .pricing-card.featured .pricing-features li .check { color: var(--amarillo); }
+    .pricing-card.free .pricing-features li .check { color: var(--verde-d); }
+    .pricing-features .feat-pro-tag {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255,255,255,.25);
+      color: #fff;
+      padding: 1px 8px;
+      border-radius: 50px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      margin-left: 6px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+    .pricing-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,.2);
+      margin: 16px 0;
+    }
+    .pricing-divider-free {
+      border: none;
+      border-top: 1px solid rgba(0,0,0,.08);
+      margin: 16px 0;
+    }
+    .pricing-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      opacity: .6;
+      margin-bottom: 8px;
+    }
+    .btn-pricing-free {
+      display: block; text-align: center;
+      padding: 14px;
+      border-radius: 50px;
+      font-weight: 700; font-size: 15px;
+      background: var(--morado-d);
+      color: #fff;
+      text-decoration: none;
+      transition: opacity .2s;
+    }
+    .btn-pricing-free:hover { opacity: .85; }
+    .btn-pricing-featured {
+      display: block; text-align: center;
+      padding: 14px;
+      border-radius: 50px;
+      font-weight: 700; font-size: 15px;
+      background: rgba(255,255,255,.2);
+      color: #fff;
+      border: 2px solid rgba(255,255,255,.4);
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-pricing-featured:hover { background: rgba(255,255,255,.3); }
+
+    /* ── WHY ── */
+    .why-bg { background: linear-gradient(155deg, #F0F7FF, #F5F0FF); }
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .why-card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      text-align: center;
+      box-shadow: 0 2px 16px rgba(0,0,0,.05);
+    }
+    .why-emoji { font-size: 36px; margin-bottom: 14px; }
+    .why-card h4 { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .why-card p { font-size: 13px; color: var(--muted); }
+
+    /* ── CTA FINAL ── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--morado-d), #8B7CF6, var(--azul-d));
+      padding: 96px 24px;
+      text-align: center;
+      color: #fff;
+    }
+    .cta-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+    .cta-section p { font-size: 18px; opacity: .85; margin-bottom: 40px; }
+    .btn-cta-white {
+      background: #fff;
+      color: var(--morado-d);
+      padding: 18px 48px;
+      border-radius: 50px;
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      transition: transform .2s;
+    }
+    .btn-cta-white:hover { transform: translateY(-2px); }
+    .cta-note { margin-top: 20px; font-size: 13px; opacity: .65; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark);
+      color: rgba(255,255,255,.5);
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 13px;
+    }
+    footer strong { color: rgba(255,255,255,.85); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      nav { padding: 14px 20px; }
+      .hero { padding: 100px 20px 60px; }
+      .hero-actions { flex-direction: column; align-items: center; }
+      section { padding: 64px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <span class="nav-logo-name">buonaprax</span>
+    <span class="nav-logo-tagline">gestión de consultorios</span>
+  </a>
+  <a href="#contacto" class="nav-cta">Quiero probarlo gratis</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      15 días de prueba gratuita · Sin tarjeta de crédito
+    </div>
+    <h1>Tu consultorio,<br/><em>siempre contigo.</em></h1>
+    <p>La plataforma pensada para profesionales de la salud que quieren organizarse de verdad.</p>
+    <div class="hero-actions">
+      <a href="#contacto" class="btn-primary">Empezar gratis 15 días</a>
+      <a href="#funcionalidades" class="btn-secondary">Ver funcionalidades</a>
+    </div>
+    <div class="hero-strip">
+      <span style="background:#FFB3B3"></span>
+      <span style="background:#FFDAC1"></span>
+      <span style="background:#FFF3B0"></span>
+      <span style="background:#B5EAD7"></span>
+      <span style="background:#A8D8EA"></span>
+      <span style="background:#C7CEEA"></span>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-bg" id="funcionalidades">
+  <div class="container">
+    <div class="section-label" style="color: var(--morado-d)">Funcionalidades</div>
+    <h2 class="section-title">Todo lo que necesitás,<br/>en un solo lugar</h2>
+    <p class="section-sub">Dejá atrás las planillas, los cuadernos y el desorden. Buonaprax lo centraliza todo.</p>
+
+    <div class="features-grid">
+
+      <div class="feature-card" style="background:#FFF0F0;">
+        <div class="feature-icon" style="background:#FFB3B3;">🧑‍⚕️</div>
+        <h3>Historia clínica digital</h3>
+        <p>Datos personales, diagnóstico, motivo de consulta, obra social, número de afiliado y estado del tratamiento de cada paciente.</p>
+      </div>
+
+      <div class="feature-card" style="background:#FFF7F0;">
+        <div class="feature-icon" style="background:#FFDAC1;">📅</div>
+        <h3>Agenda semanal</h3>
+        <p>Visualizá de un vistazo todas las sesiones de la semana organizadas por consultorio y horario. Nunca más un turno perdido.</p>
+      </div>
+
+      <div class="feature-card" style="background:#FFFCF0;">
+        <div class="feature-icon" style="background:#FFF3B0;">📝</div>
+        <h3>Seguimiento de sesiones</h3>
+        <p>Registrá evolución, tratamiento, objetivos, próximos pasos y el estado de cada sesión: realizada, cancelada o inasistencia.</p>
+      </div>
+
+      <div class="feature-card" style="background:#F0FBF6;">
+        <div class="feature-icon" style="background:#B5EAD7;">💰</div>
+        <h3>Gestión de pagos</h3>
+        <p>Registrá cobros en efectivo, transferencia, tarjeta u obra social. Sabé en todo momento quién pagó y quién tiene deuda.</p>
+      </div>
+
+      <div class="feature-card" style="background:#F0F7FB;">
+        <div class="feature-icon" style="background:#A8D8EA;">📎</div>
+        <h3>Documentos y archivos</h3>
+        <p>Adjuntá informes, análisis, tests psicológicos e historia clínica directamente al perfil del paciente. Siempre disponibles.</p>
+      </div>
+
+      <div class="feature-card" style="background:#F5F0FF;">
+        <div class="feature-icon" style="background:#C7CEEA;">🏥</div>
+        <h3>Multi-consultorio</h3>
+        <p>¿Trabajás en más de un lugar? Gestioná todos tus consultorios desde un solo acceso, cada uno con su propio color.</p>
+      </div>
+
+    </div>
+
+    <!-- PRO FEATURES -->
+    <div class="pro-section-label">⭐ Exclusivo Plan Pro</div>
+
+    <div class="features-grid">
+
+      <div class="feature-card" style="background: linear-gradient(135deg, #FFF8ED, #FFF3E0); border: 1.5px solid rgba(245,166,35,.2);">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #F5A623, #E07A30); color:#fff;">📊</div>
+        <h3>Reportes y estadísticas <span class="pro-badge">PRO</span></h3>
+        <p>Analizá sesiones realizadas, inasistencias y facturación mensual con gráficos claros. Tomá decisiones basadas en datos reales.</p>
+      </div>
+
+      <div class="feature-card" style="background: linear-gradient(135deg, #FFF8ED, #FFF3E0); border: 1.5px solid rgba(245,166,35,.2);">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #F5A623, #E07A30); color:#fff;">🧾</div>
+        <h3>Historia clínica en PDF <span class="pro-badge">PRO</span></h3>
+        <p>Exportá la historia completa de cada paciente en un PDF prolijo con un clic. Ideal para derivaciones, informes o respaldo propio.</p>
+      </div>
+
+      <div class="feature-card" style="background: linear-gradient(135deg, #FFF8ED, #FFF3E0); border: 1.5px solid rgba(245,166,35,.2);">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #F5A623, #E07A30); color:#fff;">📋</div>
+        <h3>Planilla de asistencias PDF <span class="pro-badge">PRO</span></h3>
+        <p>Generá en segundos la planilla mensual de asistencias de cada paciente en formato PDF listo para imprimir o compartir.</p>
+      </div>
+
+      <div class="feature-card" style="background: linear-gradient(135deg, #FFF8ED, #FFF3E0); border: 1.5px solid rgba(245,166,35,.2);">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #F5A623, #E07A30); color:#fff;">💬</div>
+        <h3>Envío por WhatsApp <span class="pro-badge">PRO</span></h3>
+        <p>Enviá directamente desde la app la historia clínica o la planilla de asistencias al paciente o a otro profesional vía WhatsApp.</p>
+      </div>
+
+      <div class="feature-card" style="background: linear-gradient(135deg, #FFF8ED, #FFF3E0); border: 1.5px solid rgba(245,166,35,.2);">
+        <div class="feature-icon" style="background: linear-gradient(135deg, #F5A623, #E07A30); color:#fff;">🎙️</div>
+        <h3>Notas de voz en sesiones <span class="pro-badge">PRO</span></h3>
+        <p>Grabá notas de audio directamente en la sesión para capturar observaciones clínicas al instante, sin perder el hilo de la consulta.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-bg">
+  <div class="container">
+    <div class="section-label" style="color: var(--naranja-d)">¿Cómo funciona?</div>
+    <h2 class="section-title">Tres pasos y<br/>ya estás adentro</h2>
+    <p class="section-sub">Sin instalaciones, sin complicaciones. Funciona directo desde el navegador.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num" style="background: linear-gradient(135deg, var(--rojo-d), var(--naranja-d))">1</div>
+        <div class="step-body">
+          <h3>Te creamos tu acceso</h3>
+          <p>No hace falta registrarse. Nosotros te damos tu usuario y contraseña temporal en menos de 24 horas.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background: linear-gradient(135deg, var(--verde-d), var(--azul-d))">2</div>
+        <div class="step-body">
+          <h3>Elegís tu contraseña</h3>
+          <p>Al ingresar por primera vez, configurás tu propia contraseña segura y tu cuenta queda lista.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num" style="background: linear-gradient(135deg, var(--morado-d), var(--azul-d))">3</div>
+        <div class="step-body">
+          <h3>Empezás a gestionar</h3>
+          <p>Cargás tus pacientes, agendás sesiones y tenés tu consultorio digitalizado desde el primer día.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why-bg">
+  <div class="container">
+    <div class="section-label" style="color: var(--azul-d)">¿Por qué Buonaprax?</div>
+    <h2 class="section-title">Diseñado para<br/>profesionales de la salud</h2>
+    <p class="section-sub">Cada detalle pensado para que puedas enfocarte en tus pacientes, no en el papeleo.</p>
+
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="why-emoji">🔒</div>
+        <h4>Datos seguros</h4>
+        <p>Cada profesional ve únicamente su propia información. Privacidad total garantizada.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-emoji">📱</div>
+        <h4>Desde cualquier lugar</h4>
+        <p>Celular, tablet o computadora. Con conexión a internet ya tenés tu consultorio en el bolsillo.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-emoji">⚡</div>
+        <h4>Sin instalaciones</h4>
+        <p>Funciona directo desde el navegador. Sin descargas, sin configuraciones técnicas.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-emoji">🔄</div>
+        <h4>Siempre actualizado</h4>
+        <p>Las mejoras y nuevas funciones llegan automáticamente. Siempre tenés la última versión.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-bg" id="precios">
+  <div class="container">
+    <div class="section-label" style="color: var(--verde-d)">Precios</div>
+    <h2 class="section-title">Simple y transparente</h2>
+    <p class="section-sub">Probalo sin costo durante 15 días. Si te convence, seguís por un precio accesible.</p>
+
+    <div class="pricing-grid">
+
+      <div class="pricing-card free">
+        <div class="pricing-label">Plan gratuito</div>
+        <div class="pricing-price">$0</div>
+        <div class="pricing-period">15 días de prueba · Sin tarjeta</div>
+        <div class="pricing-section-label">Incluye</div>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Pacientes ilimitados</li>
+          <li><span class="check">✓</span> Agenda semanal</li>
+          <li><span class="check">✓</span> Seguimiento de sesiones</li>
+          <li><span class="check">✓</span> Gestión de pagos</li>
+          <li><span class="check">✓</span> Documentos y archivos</li>
+          <li><span class="check">✓</span> Multi-consultorio</li>
+          <li><span class="check">✓</span> Soporte incluido</li>
+        </ul>
+        <a href="#contacto" class="btn-pricing-free">Empezar gratis</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-badge">⭐ Más elegido</div>
+        <div class="pricing-label">Plan Pro</div>
+        <div class="pricing-price"><sup>$</sup>20.000</div>
+        <div class="pricing-period">por mes · Cancelá cuando quieras</div>
+        <div class="pricing-section-label" style="opacity:.7;">Todo el plan gratuito, más</div>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> <span>Reportes y estadísticas <span class="feat-pro-tag">PRO</span></span></li>
+          <li><span class="check">✓</span> <span>Historia clínica en PDF <span class="feat-pro-tag">PRO</span></span></li>
+          <li><span class="check">✓</span> <span>Planilla de asistencias PDF <span class="feat-pro-tag">PRO</span></span></li>
+          <li><span class="check">✓</span> <span>Envío por WhatsApp <span class="feat-pro-tag">PRO</span></span></li>
+          <li><span class="check">✓</span> <span>Notas de voz en sesiones <span class="feat-pro-tag">PRO</span></span></li>
+          <li><span class="check">✓</span> Soporte prioritario</li>
+        </ul>
+        <a href="#contacto" class="btn-pricing-featured">Quiero el Plan Pro</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-section" id="contacto">
+  <h2>¿Listo para digitalizar<br/>tu consultorio?</h2>
+  <p>Empezá hoy con 15 días gratis. Sin tarjeta de crédito, sin compromisos.</p>
+  <a href="mailto:nahuelripoll33@gmail.com?subject=Quiero%20probar%20Buonaprax&body=Hola%2C%20quiero%20empezar%20mi%20prueba%20gratuita%20de%2015%20d%C3%ADas%20de%20Buonaprax." class="btn-cta-white">
+    Contactarme ahora →
+  </a>
+  <p class="cta-note">Respondemos en menos de 24 horas · nahuelripoll33@gmail.com</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p><strong>buonaprax</strong> · Plataforma de gestión para profesionales de la salud · 2026</p>
+</footer>
+
+</body>
+</html>

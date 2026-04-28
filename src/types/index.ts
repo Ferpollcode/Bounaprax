@@ -117,3 +117,9 @@ export interface Recordatorio {
   prioridad: 'baja' | 'normal' | 'alta'
   created_at: string
 }
+
+export interface Profile {
+  id: string
+  plan: 'free' | 'pro'
+  created_at: string
+}

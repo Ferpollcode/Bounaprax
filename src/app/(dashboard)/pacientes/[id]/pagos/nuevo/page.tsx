@@ -53,7 +53,7 @@ export default function NuevoPagoPage() {
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
 
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
   const [form, setForm] = useState({
     fecha:    hoy,
     monto:    '',

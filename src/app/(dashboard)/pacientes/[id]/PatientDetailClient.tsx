@@ -469,7 +469,7 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
   onSuccess: () => void
   onCancel: () => void
 }) {
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
   const [form, setForm] = useState({
     fecha: hoy, hora_inicio: '', hora_fin: '',
     tipo: 'presencial', estado: 'realizada',
@@ -691,7 +691,7 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
   onSuccess: () => void
   onCancel: () => void
 }) {
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
   const [form, setForm] = useState({
     fecha: hoy, monto: '', tipo: 'efectivo', concepto: '', estado: 'pagado',
   })
@@ -1133,18 +1133,33 @@ function DocumentsSection({ pacienteId, initialDocs }: {
 /* ── Main export ─────────────────────────────────────────── */
 type ConsultorioOpt = { id: string; nombre: string; color: string }
 
+function ProGate({ isPro, children }: { isPro: boolean; children: React.ReactNode }) {
+  if (isPro) return <>{children}</>
+  return (
+    <div className="relative" title="Disponible en Plan Pro">
+      <div style={{ opacity: 0.4, pointerEvents: 'none', userSelect: 'none' }}>{children}</div>
+      <span
+        className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 rounded-full"
+        style={{ background: '#F5A623', color: '#0a0600', lineHeight: '16px' }}
+      >PRO</span>
+    </div>
+  )
+}
+
 export function PatientDetailClient({
   paciente,
   sesiones,
   pagos,
   docs,
   consultorios = [],
+  isPro = false,
 }: {
   paciente: Paciente
   sesiones: Sesion[]
   pagos: Pago[]
   docs: DocWithPath[]
   consultorios?: ConsultorioOpt[]
+  isPro?: boolean
 }) {
   const router = useRouter()
   const [sesionOpen,     setSesionOpen]     = useState(false)
@@ -1167,7 +1182,7 @@ export function PatientDetailClient({
     .filter(item => item.count > 0)
 
   function handleWhatsApp() {
-    const hoy = new Date().toISOString().split('T')[0]
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
     const proxima = sesiones
       .filter(s => s.estado === 'programada' && s.fecha >= hoy)
       .sort((a, b) => a.fecha.localeCompare(b.fecha))[0]
@@ -1480,28 +1495,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
               </svg>
               Registrar pago
             </button>
-            <button
-              onClick={handleHistoriaClinica}
-              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-              style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)', color: 'var(--virtual)' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Historia clínica
-            </button>
-            <button
-              onClick={handleAsistenciasPDF}
-              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-              style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.25)', color: 'var(--primary)' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8 13h8M8 17h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              PDF asistencias
-            </button>
+            <ProGate isPro={isPro}>
+              <button
+                onClick={handleHistoriaClinica}
+                className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 w-full"
+                style={{ background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)', color: 'var(--virtual)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Historia clínica
+              </button>
+            </ProGate>
+            <ProGate isPro={isPro}>
+              <button
+                onClick={handleAsistenciasPDF}
+                className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 w-full"
+                style={{ background: 'rgba(62,201,201,0.12)', border: '1px solid rgba(62,201,201,0.25)', color: 'var(--primary)' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M8 13h8M8 17h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                PDF asistencias
+              </button>
+            </ProGate>
             <button
               onClick={handleDownloadAll}
               disabled={docs.length === 0 || downloadingAll}
@@ -1521,28 +1540,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
             </button>
 
             {/* WhatsApp recordatorio */}
-            <button
-              onClick={handleWhatsApp}
-              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-              style={{ background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)', color: '#25D366' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Recordatorio
-            </button>
+            <ProGate isPro={isPro}>
+              <button
+                onClick={handleWhatsApp}
+                className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 w-full"
+                style={{ background: 'rgba(37,211,102,0.12)', border: '1px solid rgba(37,211,102,0.3)', color: '#25D366' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Recordatorio
+              </button>
+            </ProGate>
 
             {/* Imprimir historia clínica */}
-            <Link
-              href={`/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/imprimir`}
-              target="_blank"
-              className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
-              style={{ background: 'rgba(255,159,67,0.12)', border: '1px solid rgba(255,159,67,0.3)', color: '#FF9F43' }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
-              </svg>
-              Imprimir historia
-            </Link>
+            <ProGate isPro={isPro}>
+              <Link
+                href={isPro ? `/pacientes/${pacienteSlug(p.apellido, p.nombre, p.id)}/imprimir` : '#'}
+                target={isPro ? '_blank' : undefined}
+                className="h-11 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+                style={{ background: 'rgba(255,159,67,0.12)', border: '1px solid rgba(255,159,67,0.3)', color: '#FF9F43' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+                </svg>
+                Imprimir historia
+              </Link>
+            </ProGate>
           </div>
         </div>
 
@@ -1599,26 +1622,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
               </svg>
               Pago
             </button>
-            <button onClick={handleHistoriaClinica}
-              className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
-              style={{ background: 'var(--virtual-dim)', border: '1px solid rgba(167,139,250,0.2)', color: 'var(--virtual)' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Historia
-            </button>
-            <button onClick={handleAsistenciasPDF}
-              className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
-              style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8 13h8M8 17h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              Asistencias
-            </button>
+            <ProGate isPro={isPro}>
+              <button onClick={handleHistoriaClinica}
+                className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
+                style={{ background: 'var(--virtual-dim)', border: '1px solid rgba(167,139,250,0.2)', color: 'var(--virtual)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Historia
+              </button>
+            </ProGate>
+            <ProGate isPro={isPro}>
+              <button onClick={handleAsistenciasPDF}
+                className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
+                style={{ background: 'var(--teal-dim)', border: '1px solid rgba(62,201,201,0.2)', color: 'var(--primary)' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M8 13h8M8 17h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Asistencias
+              </button>
+            </ProGate>
             <button onClick={handleDownloadAll} disabled={docs.length === 0 || downloadingAll}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80 disabled:opacity-40"
               style={{ background: 'var(--success-dim)', border: '1px solid rgba(52,211,153,0.2)', color: 'var(--success)' }}>

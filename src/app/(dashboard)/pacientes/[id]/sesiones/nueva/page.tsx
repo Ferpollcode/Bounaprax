@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -31,12 +31,18 @@ function Label({ text, required }: { text: string; required?: boolean }) {
   )
 }
 
-function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Card({ title, icon, badge, children }: { title: string; icon: React.ReactNode; badge?: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
       <div className="flex items-center gap-2.5 px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <span style={{ color: TEAL }}>{icon}</span>
         <span className="text-sm font-semibold" style={{ color: 'var(--foreground-muted)' }}>{title}</span>
+        {badge && (
+          <span className="ml-1 text-[9px] font-bold px-1.5 rounded-full"
+            style={{ background: '#F5A623', color: '#0a0600', lineHeight: '16px' }}>
+            {badge}
+          </span>
+        )}
       </div>
       <div className="p-6 space-y-4">{children}</div>
     </div>
@@ -83,6 +89,12 @@ export default function NuevaSesionPage() {
   const id = extractIdFromSlug(slug)
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState('')
+  const [isPro,  setIsPro]  = useState(false)
+
+  useEffect(() => {
+    createClient().from('profiles').select('plan').single()
+      .then(({ data }) => setIsPro(data?.plan === 'pro'))
+  }, [])
 
   // Nota de voz
   const [recording,   setRecording]   = useState(false)
@@ -132,7 +144,7 @@ export default function NuevaSesionPage() {
     return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
   }
 
-  const hoy = new Date().toISOString().split('T')[0]
+  const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
   const [form, setForm] = useState({
     fecha:        hoy,
     hora_inicio:  '',
@@ -353,40 +365,59 @@ export default function NuevaSesionPage() {
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
-          }>
-            <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>
-              Grabá una nota rápida al finalizar la sesión. Se guardará como documento adjunto al paciente.
-            </p>
-
-            {!audioUrl ? (
-              <button type="button"
-                onClick={recording ? stopRecording : startRecording}
-                className="flex items-center gap-3 h-12 px-5 rounded-xl text-sm font-semibold transition-all"
-                style={{
-                  background: recording ? 'rgba(248,113,113,0.15)' : 'rgba(62,201,201,0.1)',
-                  border: `1px solid ${recording ? 'rgba(248,113,113,0.4)' : 'rgba(62,201,201,0.3)'}`,
-                  color: recording ? 'var(--danger)' : TEAL,
-                }}>
-                {recording ? (
-                  <>
-                    <span className="w-3 h-3 rounded-sm" style={{ background: 'var(--danger)', animation: 'pulse 1s infinite' }} />
-                    Detener — {fmtSec(recSeconds)}
-                  </>
+          } badge={!isPro ? 'PRO' : undefined}>
+            {isPro ? (
+              <>
+                <p className="text-xs mb-3" style={{ color: 'var(--muted-foreground)' }}>
+                  Grabá una nota rápida al finalizar la sesión. Se guardará como documento adjunto al paciente.
+                </p>
+                {!audioUrl ? (
+                  <button type="button"
+                    onClick={recording ? stopRecording : startRecording}
+                    className="flex items-center gap-3 h-12 px-5 rounded-xl text-sm font-semibold transition-all"
+                    style={{
+                      background: recording ? 'rgba(248,113,113,0.15)' : 'rgba(62,201,201,0.1)',
+                      border: `1px solid ${recording ? 'rgba(248,113,113,0.4)' : 'rgba(62,201,201,0.3)'}`,
+                      color: recording ? 'var(--danger)' : TEAL,
+                    }}>
+                    {recording ? (
+                      <>
+                        <span className="w-3 h-3 rounded-sm" style={{ background: 'var(--danger)', animation: 'pulse 1s infinite' }} />
+                        Detener — {fmtSec(recSeconds)}
+                      </>
+                    ) : (
+                      <>
+                        <span className="w-3 h-3 rounded-full" style={{ background: TEAL }} />
+                        Iniciar grabación
+                      </>
+                    )}
+                  </button>
                 ) : (
-                  <>
-                    <span className="w-3 h-3 rounded-full" style={{ background: TEAL }} />
-                    Iniciar grabación
-                  </>
+                  <div className="space-y-3">
+                    <audio src={audioUrl} controls className="w-full h-10" style={{ borderRadius: 12 }} />
+                    <button type="button" onClick={discardAudio}
+                      className="text-xs font-medium transition-opacity hover:opacity-70"
+                      style={{ color: 'var(--danger)' }}>
+                      × Descartar nota
+                    </button>
+                  </div>
                 )}
-              </button>
+              </>
             ) : (
-              <div className="space-y-3">
-                <audio src={audioUrl} controls className="w-full h-10" style={{ borderRadius: 12 }} />
-                <button type="button" onClick={discardAudio}
-                  className="text-xs font-medium transition-opacity hover:opacity-70"
-                  style={{ color: 'var(--danger)' }}>
-                  × Descartar nota
-                </button>
+              <div className="flex items-center gap-3 py-2">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.25)' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="11" width="18" height="11" rx="2" stroke="#F5A623" strokeWidth="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#F5A623" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Disponible en Plan Pro</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                    Grabá notas de voz al finalizar cada sesión.
+                  </p>
+                </div>
               </div>
             )}
           </Card>

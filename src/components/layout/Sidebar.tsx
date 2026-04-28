@@ -74,19 +74,6 @@ const navItems = [
     ),
   },
   {
-    href: '/contabilidad',
-    label: 'Contabilidad',
-    color: '#22C55E',
-    colorLight: '#15803D',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.8"/>
-        <path d="M2 10h20" stroke="currentColor" strokeWidth="1.8"/>
-        <path d="M6 15h4M14 15h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
     href: '/reportes',
     label: 'Reportes',
     color: '#FF9F43',
@@ -99,7 +86,7 @@ const navItems = [
   },
 ]
 
-export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?: string }) {
+export function Sidebar({ userEmail, userName, isPro = false, isAdmin = false }: { userEmail?: string; userName?: string; isPro?: boolean; isAdmin?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -142,9 +129,25 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
           </span>
         </Link>
 
-        {/* Toggle + logout */}
+        {/* Toggle + admin + logout */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <ThemeToggle compact />
+          {isAdmin && (
+            <Link
+              href="/admin"
+              className="w-9 h-9 flex items-center justify-center rounded-xl transition-opacity active:opacity-60"
+              style={{
+                background: pathname.startsWith('/admin') ? 'rgba(245,166,35,0.15)' : 'var(--sidebar-action-bg)',
+                border: `1px solid ${pathname.startsWith('/admin') ? 'rgba(245,166,35,0.4)' : 'var(--sidebar-action-border)'}`,
+                color: pathname.startsWith('/admin') ? '#F5A623' : 'var(--muted-foreground)',
+              }}
+              aria-label="Administración"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          )}
           <button
             onClick={handleLogout}
             className="w-9 h-9 flex items-center justify-center rounded-xl transition-opacity active:opacity-60"
@@ -191,8 +194,14 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
                   style={{ width: 24, height: 2, background: activeColor, borderRadius: '0 0 3px 3px' }}
                 />
               )}
-              <span style={{ color: active ? activeColor : 'var(--muted-foreground)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="relative" style={{ color: active ? activeColor : 'var(--muted-foreground)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {React.cloneElement(item.icon, { width: 18, height: 18 })}
+                {item.href === '/reportes' && !isPro && (
+                  <span className="absolute -top-1 -right-2 text-[7px] font-bold px-1 rounded-full"
+                    style={{ background: '#F5A623', color: '#0a0600', lineHeight: '14px' }}>
+                    PRO
+                  </span>
+                )}
               </span>
               <span style={{ fontSize: '8px', fontWeight: 600, letterSpacing: '0.02em', color: active ? activeColor : 'var(--text-subtle)', lineHeight: 1, textAlign: 'center', width: '100%', paddingInline: 2 }}
                 className="truncate">
@@ -215,7 +224,7 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
         </Link>
 
         {/* Navegación */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
           <p className="text-[10px] font-semibold tracking-widest uppercase px-3 mb-3"
             style={{ color: 'var(--text-subtle)' }}>
             Principal
@@ -236,12 +245,48 @@ export function Sidebar({ userEmail, userName }: { userEmail?: string; userName?
               >
                 <span style={{ color: active ? activeColor : 'var(--muted-foreground)' }}>{item.icon}</span>
                 {item.label}
-                {active && (
+                {item.href === '/reportes' && !isPro && (
+                  <span className="ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ background: '#F5A623', color: '#0a0600', lineHeight: 1 }}>
+                    PRO
+                  </span>
+                )}
+                {active && (item.href !== '/reportes' || isPro) && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: activeColor }} />
                 )}
               </Link>
             )
           })}
+
+          {/* Sección admin */}
+          {isAdmin && (
+            <>
+              <div className="pt-3 pb-1">
+                <p className="text-[10px] font-semibold tracking-widest uppercase px-3"
+                  style={{ color: 'var(--text-subtle)' }}>
+                  Admin
+                </p>
+              </div>
+              <Link
+                href="/admin"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{
+                  color: pathname.startsWith('/admin') ? '#F5A623' : 'var(--muted-foreground)',
+                  background: pathname.startsWith('/admin') ? 'rgba(245,166,35,0.12)' : 'transparent',
+                }}
+              >
+                <span style={{ color: pathname.startsWith('/admin') ? '#F5A623' : 'var(--muted-foreground)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                Usuarios
+                {pathname.startsWith('/admin') && (
+                  <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: '#F5A623' }} />
+                )}
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* Usuario */}

@@ -15,15 +15,23 @@ export default async function PacienteDetailPage({ params }: { params: Promise<{
     { data: pagos },
     { data: documentos },
     { data: consultorios },
+    { data: { user } },
   ] = await Promise.all([
     supabase.from('pacientes').select('*').eq('id', id).single(),
     supabase.from('sesiones').select('*').eq('paciente_id', id).order('fecha', { ascending: false }),
     supabase.from('pagos').select('*').eq('paciente_id', id).order('fecha', { ascending: false }),
     supabase.from('documentos').select('*').eq('paciente_id', id).order('created_at', { ascending: false }),
     supabase.from('consultorios').select('id, nombre, color').eq('activo', true).order('nombre'),
+    supabase.auth.getUser(),
   ])
 
   if (!paciente) notFound()
+
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('plan').eq('id', user.id).single()
+    : { data: null }
+
+  const isPro = profile?.plan === 'pro'
 
   // Extract storage path from URL for each document (needed for signed URLs)
   const MARKER = '/storage/v1/object/public/documentos/'
@@ -39,6 +47,7 @@ export default async function PacienteDetailPage({ params }: { params: Promise<{
       pagos={(pagos ?? []) as Pago[]}
       docs={docs}
       consultorios={(consultorios ?? []) as Pick<Consultorio, 'id' | 'nombre' | 'color'>[]}
+      isPro={isPro}
     />
   )
 }
