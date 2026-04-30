@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { pacienteSlug } from '@/lib/utils'
@@ -1165,6 +1165,14 @@ export function PatientDetailClient({
   const [sesionOpen,     setSesionOpen]     = useState(false)
   const [pagoOpen,       setPagoOpen]       = useState(false)
   const [downloadingAll, setDownloadingAll] = useState(false)
+  const [proName,        setProName]        = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setProName((user?.user_metadata?.nombre as string | undefined) ?? '')
+    })
+  }, [])
 
   const p   = paciente
   const est = estadoConfig[p.estado] ?? estadoConfig.activo
@@ -1205,6 +1213,92 @@ export function PatientDetailClient({
       ? `https://wa.me/549${telefono}?text=${encodeURIComponent(mensaje)}`
       : `https://wa.me/?text=${encodeURIComponent(mensaje)}`
     window.open(url, '_blank')
+  }
+
+  function handleReciboPDF(pay: Pago) {
+    const fechaEmision = new Date(pay.fecha + 'T00:00:00').toLocaleDateString('es-AR', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    })
+    const fechaHoy = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+    const tipoPagoLabel: Record<string, string> = {
+      efectivo: 'Efectivo', transferencia: 'Transferencia bancaria',
+      tarjeta: 'Tarjeta', obra_social: 'Obra social', otro: 'Otro',
+    }
+    const estadoPago: Record<string, { label: string; bg: string; fg: string; dot: string }> = {
+      pagado:    { label: 'PAGADO',    bg: '#D1FAE5', fg: '#065F46', dot: '#059669' },
+      pendiente: { label: 'PENDIENTE', bg: '#FEF3C7', fg: '#92400E', dot: '#D97706' },
+      devuelto:  { label: 'DEVUELTO',  bg: '#FEE2E2', fg: '#991B1B', dot: '#DC2626' },
+    }
+    const ep = estadoPago[pay.estado] ?? estadoPago.pagado
+    const nroRecibo = pay.id.replace(/-/g, '').slice(-8).toUpperCase()
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recibo N° ${nroRecibo}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111827;background:#F3F4F6;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px}
+.card{background:#fff;max-width:460px;width:100%;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.10)}
+.top{background:#0A0E1A;padding:22px 28px;display:flex;justify-content:space-between;align-items:center}
+.logo{color:#3EC9C9;font-size:19px;font-weight:800;letter-spacing:-0.4px}
+.nro{color:#6B7A99;font-size:11px;text-align:right}
+.nro b{color:#9CA3AF;display:block;font-size:13px;font-weight:700}
+.status{background:${ep.bg};padding:11px 28px;display:flex;align-items:center;gap:9px}
+.dot{width:9px;height:9px;border-radius:50%;background:${ep.dot};flex-shrink:0}
+.status-txt{font-size:12px;font-weight:800;color:${ep.fg};letter-spacing:.12em}
+.body{padding:28px}
+.importe{text-align:center;padding:22px 0 26px;border-bottom:2px dashed #E5E7EB;margin-bottom:26px}
+.importe-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9CA3AF;margin-bottom:10px}
+.importe-val{font-size:44px;font-weight:900;color:#111827;letter-spacing:-2px}
+.concepto{background:#F9FAFB;border:1px solid #E5E7EB;border-radius:12px;padding:14px 18px;margin-bottom:22px}
+.concepto-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#9CA3AF;margin-bottom:5px}
+.concepto-val{font-size:15px;color:#111827;font-weight:600}
+.row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #F3F4F6}
+.row:last-child{border-bottom:none}
+.rl{font-size:12px;color:#6B7280;font-weight:500}
+.rv{font-size:13px;color:#1F2937;font-weight:600;text-align:right;max-width:58%}
+.footer{background:#F9FAFB;border-top:1px solid #E5E7EB;padding:16px 28px;display:flex;justify-content:space-between;align-items:center}
+.footer-txt{font-size:11px;color:#9CA3AF;line-height:1.5}
+.print-btn{background:linear-gradient(135deg,#3EC9C9,#2BA8A8);color:#fff;border:none;padding:10px 20px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 3px 10px rgba(62,201,201,.4)}
+@media print{body{background:#fff;padding:0}.card{box-shadow:none;border-radius:0;max-width:100%}.print-btn,.footer{display:none!important}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <span class="logo">Bounaprax</span>
+    <div class="nro">Recibo<b>N° ${nroRecibo}</b></div>
+  </div>
+  <div class="status">
+    <div class="dot"></div>
+    <span class="status-txt">${ep.label}</span>
+  </div>
+  <div class="body">
+    <div class="importe">
+      <div class="importe-lbl">Importe</div>
+      <div class="importe-val">${fmtMoney(pay.monto)}</div>
+    </div>
+    <div class="concepto">
+      <div class="concepto-lbl">Concepto</div>
+      <div class="concepto-val">${pay.concepto || 'Consulta'}</div>
+    </div>
+    <div class="row"><span class="rl">Paciente</span><span class="rv">${p.apellido}, ${p.nombre}</span></div>
+    ${p.dni ? `<div class="row"><span class="rl">DNI</span><span class="rv">${p.dni}</span></div>` : ''}
+    ${p.obra_social ? `<div class="row"><span class="rl">Obra social</span><span class="rv">${p.obra_social}${p.numero_afiliado ? ' · ' + p.numero_afiliado : ''}</span></div>` : ''}
+    <div class="row"><span class="rl">Fecha</span><span class="rv">${fechaEmision}</span></div>
+    <div class="row"><span class="rl">Medio de pago</span><span class="rv">${tipoPagoLabel[pay.tipo] ?? pay.tipo}</span></div>
+    ${proName ? `<div class="row"><span class="rl">Profesional</span><span class="rv">${proName}</span></div>` : ''}
+  </div>
+  <div class="footer">
+    <div class="footer-txt">Generado el ${fechaHoy}<br>Bounaprax · Gestión de pacientes</div>
+    <button class="print-btn" onclick="window.print()">Imprimir / PDF</button>
+  </div>
+</div>
+</body></html>`
+    const w = window.open('', '_blank')
+    if (w) { w.document.write(html); w.document.close() }
   }
 
   async function handleDownloadAll() {
@@ -1646,6 +1740,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                 Asistencias
               </button>
             </ProGate>
+            <ProGate isPro={isPro}>
+              <button onClick={handleWhatsApp}
+                className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80"
+                style={{ background: 'rgba(37,211,102,0.1)', border: '1px solid rgba(37,211,102,0.2)', color: '#25D366' }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Recordatorio
+              </button>
+            </ProGate>
             <button onClick={handleDownloadAll} disabled={docs.length === 0 || downloadingAll}
               className="h-9 px-4 rounded-xl text-sm font-medium flex items-center gap-2 transition-opacity hover:opacity-80 disabled:opacity-40"
               style={{ background: 'var(--success-dim)', border: '1px solid rgba(52,211,153,0.2)', color: 'var(--success)' }}>
@@ -1801,8 +1905,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                       const catCfg = s.categoria ? (sesionCategoriaLabel[s.categoria] ?? null) : null
                       const d = new Date(s.fecha + 'T00:00:00')
                       return (
-                        <div key={s.id} className="rounded-xl p-3.5 flex items-start gap-3"
-                          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <Link key={s.id} href={`/agenda?dia=${s.fecha}`}
+                          className="rounded-xl p-3.5 flex items-start gap-3 block"
+                          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)', textDecoration: 'none' }}>
                           {/* Date badge */}
                           <div className="flex-shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
                             style={{ background: `${se.color}15` }}>
@@ -1834,11 +1939,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                                 </span>
                               )}
                             </div>
-                            {s.observaciones && (
-                              <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>
-                                {s.observaciones}
-                              </p>
-                            )}
+                            {s.observaciones
+                              ? <p className="text-xs leading-relaxed line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>
+                                  {s.observaciones}
+                                </p>
+                              : <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--primary)' }}>
+                                  Ver sesión
+                                </p>
+                            }
                           </div>
                           {s.monto != null && (
                             <div className="flex-shrink-0 text-right">
@@ -1848,7 +1956,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                               <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
                             </div>
                           )}
-                        </div>
+                        </Link>
                       )
                     })}
                   </div>
@@ -1897,6 +2005,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                         <p className="text-base font-bold flex-shrink-0" style={{ color: 'var(--foreground)' }}>
                           {fmtMoney(pay.monto)}
                         </p>
+                        <ProGate isPro={isPro}>
+                          <button
+                            onClick={() => handleReciboPDF(pay)}
+                            title="Generar recibo PDF"
+                            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-opacity hover:opacity-80"
+                            style={{ background: 'rgba(245,166,35,0.1)', border: '1px solid rgba(245,166,35,0.2)' }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke={AMBER} strokeWidth="2" strokeLinecap="round"/>
+                              <polyline points="14,2 14,8 20,8" stroke={AMBER} strokeWidth="2" strokeLinecap="round"/>
+                              <line x1="16" y1="13" x2="8" y2="13" stroke={AMBER} strokeWidth="2" strokeLinecap="round"/>
+                              <line x1="16" y1="17" x2="8" y2="17" stroke={AMBER} strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                          </button>
+                        </ProGate>
                       </div>
                     )
                   })}

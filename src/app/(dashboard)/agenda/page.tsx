@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { pacienteSlug } from '@/lib/utils'
 
@@ -1788,10 +1789,15 @@ export default function AgendaPage() {
   const today    = new Date()
   const todayStr = toDateStr(today)
 
-  const [view,           setView]           = useState<ViewMode>('mes')
-  const [year,           setYear]           = useState(today.getFullYear())
-  const [month,          setMonth]          = useState(today.getMonth())
-  const [selectedDay,    setSelectedDay]    = useState<string>(todayStr)
+  const searchParams  = useSearchParams()
+  const diaParam      = searchParams.get('dia')
+  const initialDay    = diaParam ?? todayStr
+  const initialDate   = diaParam ? new Date(diaParam + 'T12:00:00') : today
+
+  const [view,           setView]           = useState<ViewMode>(diaParam ? 'dia' : 'mes')
+  const [year,           setYear]           = useState(initialDate.getFullYear())
+  const [month,          setMonth]          = useState(initialDate.getMonth())
+  const [selectedDay,    setSelectedDay]    = useState<string>(initialDay)
   const [sesiones,       setSesiones]       = useState<SesionWithPaciente[]>([])
   const [pacientes,      setPacientes]      = useState<PacienteOpt[]>([])
   const [consultorios,   setConsultorios]   = useState<ConsultorioOpt[]>([])

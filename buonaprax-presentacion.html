@@ -325,9 +325,9 @@
     .pricing-bg { background: var(--white); }
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 24px;
-      max-width: 760px;
+      max-width: 1060px;
     }
     .pricing-card {
       border-radius: var(--radius);
@@ -696,7 +696,7 @@
     <div class="pricing-grid">
 
       <div class="pricing-card free">
-        <div class="pricing-label">Plan gratuito</div>
+        <div class="pricing-label">Optimiza</div>
         <div class="pricing-price">$0</div>
         <div class="pricing-period">15 días de prueba · Sin tarjeta</div>
         <div class="pricing-section-label">Incluye</div>
@@ -712,12 +712,29 @@
         <a href="#contacto" class="btn-pricing-free">Empezar gratis</a>
       </div>
 
-      <div class="pricing-card featured">
-        <div class="pricing-badge">⭐ Más elegido</div>
-        <div class="pricing-label">Plan Pro</div>
-        <div class="pricing-price"><sup>$</sup>20.000</div>
+      <div class="pricing-card free" style="border-color: rgba(46,134,171,.25); background: #F0F7FB;">
+        <div class="pricing-label" style="color: var(--azul-d);">Avanza</div>
+        <div class="pricing-price"><sup style="font-size:22px">$</sup>25.000</div>
         <div class="pricing-period">por mes · Cancelá cuando quieras</div>
-        <div class="pricing-section-label" style="opacity:.7;">Todo el plan gratuito, más</div>
+        <div class="pricing-section-label">Todo lo de Optimiza, sin límite de tiempo</div>
+        <ul class="pricing-features">
+          <li><span class="check" style="color:var(--azul-d)">✓</span> Pacientes ilimitados</li>
+          <li><span class="check" style="color:var(--azul-d)">✓</span> Agenda semanal</li>
+          <li><span class="check" style="color:var(--azul-d)">✓</span> Seguimiento de sesiones</li>
+          <li><span class="check" style="color:var(--azul-d)">✓</span> Gestión de pagos</li>
+          <li><span class="check" style="color:var(--azul-d)">✓</span> Documentos y archivos</li>
+          <li><span class="check" style="color:var(--azul-d)">✓</span> Multi-consultorio</li>
+          <li><span class="check" style="color:var(--azul-d)">✓</span> Soporte incluido</li>
+        </ul>
+        <a href="#contacto" class="btn-pricing-free" style="background: var(--azul-d);">Quiero el plan Avanza</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="pricing-badge">⭐ Más completo</div>
+        <div class="pricing-label">Pro</div>
+        <div class="pricing-price"><sup>$</sup>30.000</div>
+        <div class="pricing-period">por mes · Cancelá cuando quieras</div>
+        <div class="pricing-section-label" style="opacity:.7;">Todo lo de Avanza, más</div>
         <ul class="pricing-features">
           <li><span class="check">✓</span> <span>Reportes y estadísticas <span class="feat-pro-tag">PRO</span></span></li>
           <li><span class="check">✓</span> <span>Historia clínica en PDF <span class="feat-pro-tag">PRO</span></span></li>
