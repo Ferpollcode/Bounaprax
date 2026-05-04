@@ -20,5 +20,5 @@ export default async function AdminPage() {
 
   if (error || !users) redirect('/inicio')
 
-  return <AdminClient initialUsers={users} />
+  return <AdminClient initialUsers={users} currentUserId={user.id} />
 }

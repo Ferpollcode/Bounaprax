@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { createUser, deleteUser, grantAdmin } from './actions'
+import { createUser, deleteUser, setAdminPermission } from './actions'
 
 type UserRow = {
   id: string
@@ -169,7 +169,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 }
 
 // ── Componente principal ───────────────────────────────────────────────
-export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
+export function AdminClient({ initialUsers, currentUserId }: { initialUsers: UserRow[]; currentUserId: string }) {
   const router = useRouter()
   const [users, setUsers]     = useState<UserRow[]>(initialUsers)
   const [loadingId, setLoadingId] = useState<string | null>(null)
@@ -193,10 +193,10 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
     setLoadingId(null)
   }
 
-  async function handleGrantAdmin(user: UserRow) {
+  async function handleSetAdmin(user: UserRow, isAdmin: boolean) {
     setLoadingId(user.id + '_admin')
-    const res = await grantAdmin(user.id)
-    if (!res.error) setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_admin: true } : u))
+    const res = await setAdminPermission(user.id, isAdmin)
+    if (!res.error) setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_admin: isAdmin } : u))
     setLoadingId(null)
   }
 
@@ -334,35 +334,41 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
                     </button>
                   </td>
                   <td className="px-4 py-3.5">
-                    {!u.is_admin && (
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => handleGrantAdmin(u)}
-                          disabled={loadingId === u.id + '_admin'}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70 disabled:opacity-40"
-                          style={{ background: 'rgba(245,166,35,0.1)', color: '#F5A623' }}
-                          title="Dar permisos de admin">
-                          {loadingId === u.id + '_admin'
-                            ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
-                              </svg>
-                            : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                                <path d="M12 3l7 3v5c0 4.6-2.8 8.7-7 10-4.2-1.3-7-5.4-7-10V6l7-3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-                                <path d="M9 12l2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                          }
-                        </button>
-                      <button onClick={() => setConfirmDelete(u)}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70"
-                        style={{ background: 'rgba(248,113,113,0.08)', color: '#F87171' }}
-                        title="Eliminar usuario">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                          <polyline points="3,6 5,6 21,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        </svg>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleSetAdmin(u, !u.is_admin)}
+                        disabled={loadingId === u.id + '_admin' || (u.is_admin && u.id === currentUserId)}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70 disabled:opacity-40"
+                        style={{
+                          background: u.is_admin ? 'rgba(248,113,113,0.08)' : 'rgba(245,166,35,0.1)',
+                          color: u.is_admin ? '#F87171' : '#F5A623',
+                        }}
+                        title={u.is_admin ? 'Quitar permisos de admin' : 'Dar permisos de admin'}>
+                        {loadingId === u.id + '_admin'
+                          ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                            </svg>
+                          : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                              <path d="M12 3l7 3v5c0 4.6-2.8 8.7-7 10-4.2-1.3-7-5.4-7-10V6l7-3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                              {u.is_admin
+                                ? <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                : <path d="M9 12l2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              }
+                            </svg>
+                        }
                       </button>
-                      </div>
-                    )}
+                      {!u.is_admin && (
+                        <button onClick={() => setConfirmDelete(u)}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70"
+                          style={{ background: 'rgba(248,113,113,0.08)', color: '#F87171' }}
+                          title="Eliminar usuario">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <polyline points="3,6 5,6 21,6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -403,23 +409,28 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
                     <span className="w-1.5 h-1.5 rounded-full" style={{ background: u.plan === 'pro' ? '#F5A623' : 'var(--text-subtle)' }} />
                     {u.plan === 'pro' ? 'Pro' : 'Free'}
                   </button>
+                  <button onClick={() => handleSetAdmin(u, !u.is_admin)}
+                    disabled={loadingId === u.id + '_admin' || (u.is_admin && u.id === currentUserId)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center disabled:opacity-40"
+                    style={{
+                      background: u.is_admin ? 'rgba(248,113,113,0.08)' : 'rgba(245,166,35,0.1)',
+                      color: u.is_admin ? '#F87171' : '#F5A623',
+                    }}
+                    title={u.is_admin ? 'Quitar permisos de admin' : 'Dar permisos de admin'}>
+                    {loadingId === u.id + '_admin'
+                      ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                        </svg>
+                      : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                          <path d="M12 3l7 3v5c0 4.6-2.8 8.7-7 10-4.2-1.3-7-5.4-7-10V6l7-3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                          {u.is_admin
+                            ? <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            : <path d="M9 12l2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          }
+                        </svg>
+                    }
+                  </button>
                   {!u.is_admin && (
-                    <>
-                    <button onClick={() => handleGrantAdmin(u)}
-                      disabled={loadingId === u.id + '_admin'}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center disabled:opacity-40"
-                      style={{ background: 'rgba(245,166,35,0.1)', color: '#F5A623' }}
-                      title="Dar permisos de admin">
-                      {loadingId === u.id + '_admin'
-                        ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
-                          </svg>
-                        : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                            <path d="M12 3l7 3v5c0 4.6-2.8 8.7-7 10-4.2-1.3-7-5.4-7-10V6l7-3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
-                            <path d="M9 12l2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                      }
-                    </button>
                     <button onClick={() => setConfirmDelete(u)}
                       className="w-7 h-7 rounded-lg flex items-center justify-center"
                       style={{ background: 'rgba(248,113,113,0.08)', color: '#F87171' }}>
@@ -428,7 +439,6 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
                         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                       </svg>
                     </button>
-                    </>
                   )}
                 </div>
               </div>

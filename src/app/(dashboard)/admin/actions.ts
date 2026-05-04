@@ -16,6 +16,7 @@ async function assertAdmin() {
   if (!user) throw new Error('No autenticado')
   const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
   if (!profile?.is_admin) throw new Error('Sin permisos')
+  return user.id
 }
 
 export async function createUser(formData: FormData) {
@@ -68,13 +69,17 @@ export async function deleteUser(userId: string) {
   return { success: true }
 }
 
-export async function grantAdmin(userId: string) {
-  await assertAdmin()
+export async function setAdminPermission(userId: string, isAdmin: boolean) {
+  const currentUserId = await assertAdmin()
+
+  if (!isAdmin && userId === currentUserId) {
+    return { error: 'No podés quitarte tus propios permisos de admin.' }
+  }
 
   const admin = getAdminClient()
   const { error } = await admin
     .from('profiles')
-    .update({ is_admin: true })
+    .update({ is_admin: isAdmin })
     .eq('id', userId)
 
   if (error) return { error: error.message }
