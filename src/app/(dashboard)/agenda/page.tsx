@@ -464,9 +464,9 @@ function SesionCard({
         className="rounded-lg p-2 cursor-pointer transition-all hover:brightness-110"
         onClick={() => onEdit(sesion)}
         style={{ background: `${display.color}10`, border: `1px solid ${display.color}28` }}>
-        <div className="flex items-center justify-between gap-1 mb-0.5">
-          <span className="text-xs font-semibold truncate" style={{ color: display.color, maxWidth: 60 }}>
-            {pac ? pac.apellido : '—'}
+        <div className="flex items-start justify-between gap-2 mb-0.5">
+          <span className="text-xs font-semibold leading-tight line-clamp-2 min-w-0" style={{ color: display.color }}>
+            {pac ? `${pac.apellido}, ${pac.nombre}` : '—'}
           </span>
           <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
             <button

@@ -6,6 +6,7 @@ import type { Sesion } from '@/types'
 import Link from 'next/link'
 
 type ConsultorioOpt = { id: string; nombre: string; color: string }
+type PacienteOpt = { id: string; nombre: string; apellido: string }
 type Period = 'hoy' | 'semana' | 'mes'
 
 const TEAL = '#3EC9C9'
@@ -60,6 +61,7 @@ export default function SesionesPage() {
   const [period,      setPeriod]      = useState<Period>('mes')
   const [sesiones,    setSesiones]    = useState<Sesion[]>([])
   const [consultorios,setConsultorios]= useState<ConsultorioOpt[]>([])
+  const [pacientes,   setPacientes]   = useState<PacienteOpt[]>([])
   const [loading,     setLoading]     = useState(true)
 
   useEffect(() => {
@@ -81,9 +83,14 @@ export default function SesionesPage() {
         .select('id, nombre, color')
         .eq('activo', true)
         .order('nombre'),
-    ]).then(([{ data: ses }, { data: cons }]) => {
+      supabase
+        .from('pacientes')
+        .select('id, nombre, apellido')
+        .order('apellido'),
+    ]).then(([{ data: ses }, { data: cons }, { data: pacs }]) => {
       setSesiones((ses ?? []) as Sesion[])
       setConsultorios((cons ?? []) as ConsultorioOpt[])
+      setPacientes((pacs ?? []) as PacienteOpt[])
       setLoading(false)
     })
   }, [])
@@ -116,6 +123,12 @@ export default function SesionesPage() {
     }
     return map
   }, [filtered])
+
+  const pacientesById = useMemo(() => {
+    const map = new Map<string, PacienteOpt>()
+    for (const p of pacientes) map.set(p.id, p)
+    return map
+  }, [pacientes])
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 w-full">
@@ -330,6 +343,10 @@ export default function SesionesPage() {
                   const cons = s.consultorio_id
                     ? consultorios.find(c => c.id === s.consultorio_id)
                     : null
+                  const paciente = pacientesById.get(s.paciente_id)
+                  const pacienteNombre = paciente
+                    ? `${paciente.apellido}, ${paciente.nombre}`
+                    : `Paciente ${s.paciente_id.slice(0, 8)}`
                   return (
                     <Link
                       key={s.id}
@@ -354,6 +371,10 @@ export default function SesionesPage() {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                            {pacienteNombre}
+                          </span>
+                          <span className="text-xs" style={{ color: 'var(--text-subtle)' }}>·</span>
                           <span className="text-xs font-semibold" style={{ color: se.color }}>
                             {se.label}
                           </span>
