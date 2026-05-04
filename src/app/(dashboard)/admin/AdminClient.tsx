@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { createUser, deleteUser } from './actions'
+import { createUser, deleteUser, grantAdmin } from './actions'
 
 type UserRow = {
   id: string
@@ -125,6 +125,24 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
             </div>
           </div>
 
+          <label className="flex items-start gap-3 rounded-xl p-3 cursor-pointer"
+            style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(245,166,35,0.22)' }}>
+            <input
+              type="checkbox"
+              name="is_admin"
+              className="mt-0.5 h-4 w-4 rounded"
+              style={{ accentColor: '#F5A623' }}
+            />
+            <span>
+              <span className="block text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
+                Dar permisos de admin
+              </span>
+              <span className="block text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                Podrá acceder al panel de administración y gestionar usuarios.
+              </span>
+            </span>
+          </label>
+
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm"
               style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
@@ -172,6 +190,13 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
     const res = await deleteUser(user.id)
     if (!res.error) setUsers(prev => prev.filter(u => u.id !== user.id))
     setConfirmDelete(null)
+    setLoadingId(null)
+  }
+
+  async function handleGrantAdmin(user: UserRow) {
+    setLoadingId(user.id + '_admin')
+    const res = await grantAdmin(user.id)
+    if (!res.error) setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_admin: true } : u))
     setLoadingId(null)
   }
 
@@ -310,6 +335,22 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
                   </td>
                   <td className="px-4 py-3.5">
                     {!u.is_admin && (
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleGrantAdmin(u)}
+                          disabled={loadingId === u.id + '_admin'}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70 disabled:opacity-40"
+                          style={{ background: 'rgba(245,166,35,0.1)', color: '#F5A623' }}
+                          title="Dar permisos de admin">
+                          {loadingId === u.id + '_admin'
+                            ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                              </svg>
+                            : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 3l7 3v5c0 4.6-2.8 8.7-7 10-4.2-1.3-7-5.4-7-10V6l7-3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                                <path d="M9 12l2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                          }
+                        </button>
                       <button onClick={() => setConfirmDelete(u)}
                         className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70"
                         style={{ background: 'rgba(248,113,113,0.08)', color: '#F87171' }}
@@ -320,6 +361,7 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
                           <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                         </svg>
                       </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -362,6 +404,22 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
                     {u.plan === 'pro' ? 'Pro' : 'Free'}
                   </button>
                   {!u.is_admin && (
+                    <>
+                    <button onClick={() => handleGrantAdmin(u)}
+                      disabled={loadingId === u.id + '_admin'}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center disabled:opacity-40"
+                      style={{ background: 'rgba(245,166,35,0.1)', color: '#F5A623' }}
+                      title="Dar permisos de admin">
+                      {loadingId === u.id + '_admin'
+                        ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                          </svg>
+                        : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                            <path d="M12 3l7 3v5c0 4.6-2.8 8.7-7 10-4.2-1.3-7-5.4-7-10V6l7-3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>
+                            <path d="M9 12l2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                      }
+                    </button>
                     <button onClick={() => setConfirmDelete(u)}
                       className="w-7 h-7 rounded-lg flex items-center justify-center"
                       style={{ background: 'rgba(248,113,113,0.08)', color: '#F87171' }}>
@@ -370,6 +428,7 @@ export function AdminClient({ initialUsers }: { initialUsers: UserRow[] }) {
                         <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                       </svg>
                     </button>
+                    </>
                   )}
                 </div>
               </div>

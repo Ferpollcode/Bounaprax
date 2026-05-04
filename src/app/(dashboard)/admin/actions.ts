@@ -25,6 +25,7 @@ export async function createUser(formData: FormData) {
   const password  = formData.get('password') as string
   const nombre    = (formData.get('nombre') as string).trim()
   const plan      = formData.get('plan') as 'free' | 'pro'
+  const isAdmin   = formData.get('is_admin') === 'on'
 
   if (!username || !password || password.length < 6) {
     return { error: 'Usuario y contraseña (mín. 6 caracteres) son obligatorios.' }
@@ -45,9 +46,14 @@ export async function createUser(formData: FormData) {
     return { error: error.message }
   }
 
-  // Actualizar el plan si es pro (el trigger ya creó el perfil en 'free')
-  if (plan === 'pro' && data.user) {
-    await admin.from('profiles').update({ plan: 'pro', email }).eq('id', data.user.id)
+  // El trigger crea el perfil en 'free'; desde admin definimos los permisos iniciales.
+  if (data.user) {
+    const { error: profileError } = await admin
+      .from('profiles')
+      .update({ plan: plan === 'pro' ? 'pro' : 'free', is_admin: isAdmin, email })
+      .eq('id', data.user.id)
+
+    if (profileError) return { error: profileError.message }
   }
 
   return { success: true }
@@ -58,6 +64,19 @@ export async function deleteUser(userId: string) {
 
   const admin = getAdminClient()
   const { error } = await admin.auth.admin.deleteUser(userId)
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
+export async function grantAdmin(userId: string) {
+  await assertAdmin()
+
+  const admin = getAdminClient()
+  const { error } = await admin
+    .from('profiles')
+    .update({ is_admin: true })
+    .eq('id', userId)
+
   if (error) return { error: error.message }
   return { success: true }
 }
