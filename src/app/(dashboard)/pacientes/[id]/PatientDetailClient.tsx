@@ -1215,6 +1215,10 @@ export function PatientDetailClient({
     window.open(url, '_blank')
   }
 
+  function handleViewSesion(sesion: Sesion) {
+    router.push(`/agenda?dia=${sesion.fecha}&sesion=${sesion.id}`)
+  }
+
   function handleReciboPDF(pay: Pago) {
     const fechaEmision = new Date(pay.fecha + 'T00:00:00').toLocaleDateString('es-AR', {
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -1905,8 +1909,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                       const catCfg = s.categoria ? (sesionCategoriaLabel[s.categoria] ?? null) : null
                       const d = new Date(s.fecha + 'T00:00:00')
                       return (
-                        <Link key={s.id} href={`/agenda?dia=${s.fecha}`}
-                          className="rounded-xl p-3.5 flex items-start gap-3 block"
+                        <button key={s.id} type="button" onClick={() => handleViewSesion(s)}
+                          className="w-full rounded-xl p-3.5 flex items-start gap-3 text-left transition-colors hover:bg-white/[0.03]"
                           style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)', textDecoration: 'none' }}>
                           {/* Date badge */}
                           <div className="flex-shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
@@ -1947,6 +1951,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                                   Ver sesión
                                 </p>
                             }
+                            {s.observaciones && (
+                              <p className="text-xs font-medium mt-1" style={{ color: 'var(--primary)' }}>
+                                Ver sesión
+                              </p>
+                            )}
                           </div>
                           {s.monto != null && (
                             <div className="flex-shrink-0 text-right">
@@ -1956,7 +1965,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                               <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
                             </div>
                           )}
-                        </Link>
+                        </button>
                       )
                     })}
                   </div>
