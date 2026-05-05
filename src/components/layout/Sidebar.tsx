@@ -6,6 +6,7 @@ import React from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { BounapraxLogo } from '@/components/BounapraxLogo'
+import { submitFeedback } from '@/lib/actions/feedback'
 
 const navItems = [
   {
@@ -89,6 +90,11 @@ const navItems = [
 export function Sidebar({ userEmail, userName, isPro = false, isAdmin = false }: { userEmail?: string; userName?: string; isPro?: boolean; isAdmin?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [showFeedback, setShowFeedback] = React.useState(false)
+  const [feedbackMessage, setFeedbackMessage] = React.useState('')
+  const [feedbackError, setFeedbackError] = React.useState('')
+  const [feedbackSent, setFeedbackSent] = React.useState(false)
+  const [feedbackPending, startFeedbackTransition] = React.useTransition()
 
   const rawName = userName || userEmail?.split('@')[0] || 'Profesional'
   const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1)
@@ -100,8 +106,103 @@ export function Sidebar({ userEmail, userName, isPro = false, isAdmin = false }:
     router.refresh()
   }
 
+  function handleFeedbackSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setFeedbackError('')
+    setFeedbackSent(false)
+
+    const formData = new FormData(e.currentTarget)
+    startFeedbackTransition(async () => {
+      const res = await submitFeedback(formData)
+      if (res.error) {
+        setFeedbackError(res.error)
+        return
+      }
+      setFeedbackMessage('')
+      setFeedbackSent(true)
+      setTimeout(() => {
+        setShowFeedback(false)
+        setFeedbackSent(false)
+      }, 1200)
+    })
+  }
+
   return (
     <>
+      {showFeedback && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-5"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+          >
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>
+                  Enviar feedback
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>
+                  Ideas, mejoras o algo que te gustaría simplificar.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFeedback(false)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ background: 'var(--overlay-sm)', color: 'var(--muted-foreground)' }}
+                aria-label="Cerrar feedback"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+              <textarea
+                name="message"
+                value={feedbackMessage}
+                onChange={e => setFeedbackMessage(e.target.value)}
+                rows={5}
+                placeholder="Escribí tu recomendación..."
+                className="w-full rounded-xl px-3.5 py-3 text-sm outline-none resize-none"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--foreground)',
+                }}
+              />
+              {feedbackError && (
+                <p className="text-xs" style={{ color: '#F87171' }}>{feedbackError}</p>
+              )}
+              {feedbackSent && (
+                <p className="text-xs" style={{ color: '#3EC9C9' }}>Gracias, feedback enviado.</p>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowFeedback(false)}
+                  className="h-9 px-3 rounded-xl text-xs font-semibold"
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={feedbackPending}
+                  className="h-9 px-4 rounded-xl text-xs font-semibold disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#fff' }}
+                >
+                  {feedbackPending ? 'Enviando...' : 'Enviar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* ══ MOBILE: barra superior ══════════════════════════ */}
       <header
         className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 flex items-center justify-between px-4"
@@ -132,6 +233,18 @@ export function Sidebar({ userEmail, userName, isPro = false, isAdmin = false }:
         {/* Toggle + admin + logout */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <ThemeToggle compact />
+          <button
+            type="button"
+            onClick={() => setShowFeedback(true)}
+            className="w-9 h-9 flex items-center justify-center rounded-xl transition-opacity active:opacity-60"
+            style={{ background: 'var(--sidebar-action-bg)', border: '1px solid var(--sidebar-action-border)', color: 'var(--muted-foreground)' }}
+            aria-label="Enviar feedback"
+            title="Enviar feedback"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
           {isAdmin && (
             <Link
               href="/admin"
@@ -251,7 +364,7 @@ export function Sidebar({ userEmail, userName, isPro = false, isAdmin = false }:
                     PRO
                   </span>
                 )}
-                {active && (item.href !== '/reportes' || isPro) && (
+                {active && (
                   <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: activeColor }} />
                 )}
               </Link>
@@ -298,6 +411,17 @@ export function Sidebar({ userEmail, userName, isPro = false, isAdmin = false }:
             <p className="text-xs truncate mb-3" style={{ color: 'var(--text-subtle)' }}>
               {userEmail ?? ''}
             </p>
+            <button
+              type="button"
+              onClick={() => setShowFeedback(true)}
+              className="mb-3 flex items-center gap-2 text-xs font-medium transition-opacity hover:opacity-80"
+              style={{ color: 'var(--text-subtle)' }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Enviar feedback
+            </button>
             <div className="flex items-center justify-between">
               <button
                 onClick={handleLogout}

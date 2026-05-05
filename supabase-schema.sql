@@ -173,3 +173,66 @@ $$ language plpgsql;
 
 create trigger pacientes_updated_at before update on pacientes
   for each row execute function update_updated_at();
+
+-- PLANES Y ACCESO
+-- Ejecutar también en proyectos existentes para que Admin pueda aplicar:
+-- Free por 15 días y Optimiza por tiempo ilimitado.
+alter table profiles
+  add column if not exists access_expires_at timestamptz;
+
+create or replace function admin_get_users()
+returns table (
+  id uuid,
+  email text,
+  plan text,
+  access_expires_at timestamptz,
+  is_admin boolean,
+  created_at timestamptz
+)
+language sql
+security definer
+set search_path = public, auth
+as $$
+  select
+    u.id,
+    coalesce(p.email, u.email)::text as email,
+    coalesce(p.plan, 'free')::text as plan,
+    p.access_expires_at,
+    coalesce(p.is_admin, false) as is_admin,
+    u.created_at
+  from auth.users u
+  left join public.profiles p on p.id = u.id
+  order by u.created_at desc;
+$$;
+
+grant execute on function admin_get_users() to authenticated;
+
+-- FEEDBACK DE USUARIOS
+-- Ejecutar en proyectos existentes para que los usuarios puedan enviar
+-- recomendaciones y el Admin pueda verlas desde la sección Usuarios.
+create table if not exists feedback (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users(id) on delete set null,
+  email text,
+  message text not null check (char_length(message) between 5 and 2000),
+  created_at timestamptz default now()
+);
+
+alter table feedback enable row level security;
+
+drop policy if exists "Usuarios envian feedback" on feedback;
+create policy "Usuarios envian feedback" on feedback
+  for insert
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Admin ve feedback" on feedback;
+create policy "Admin ve feedback" on feedback
+  for select
+  using (
+    exists (
+      select 1
+      from profiles
+      where profiles.id = auth.uid()
+        and profiles.is_admin = true
+    )
+  );

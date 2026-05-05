@@ -2,14 +2,23 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { createUser, deleteUser, setAdminPermission } from './actions'
+import { createUser, deleteUser, setAdminPermission, setUserAccessPlan } from './actions'
+import { formatAccessDate, getAccessExpiresAt, isOptimizaPlan } from '@/lib/access'
 
 type UserRow = {
   id: string
   email: string | null
-  plan: 'free' | 'pro'
+  plan?: 'free' | 'pro' | 'optimiza' | null
+  access_expires_at?: string | null
   is_admin: boolean
+  created_at: string
+}
+
+type FeedbackRow = {
+  id: string
+  user_id: string
+  email: string | null
+  message: string
   created_at: string
 }
 
@@ -28,6 +37,15 @@ function username(email: string | null) {
 function displayName(email: string | null) {
   const u = username(email)
   return u.charAt(0).toUpperCase() + u.slice(1)
+}
+
+function planLabel(user: UserRow) {
+  if (isOptimizaPlan(user.plan)) return 'PRO'
+  return 'Free'
+}
+
+function freeUntil(user: UserRow) {
+  return getAccessExpiresAt(user)
 }
 
 // ── Modal crear usuario ────────────────────────────────────────────────
@@ -118,7 +136,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
                       border: `1px solid ${p === 'pro' ? 'rgba(245,166,35,0.3)' : 'var(--border)'}`,
                       color: p === 'pro' ? '#F5A623' : 'var(--muted-foreground)',
                     }}>
-                    {p === 'pro' ? '⭐ Pro' : 'Free'}
+                    {p === 'pro' ? 'PRO' : 'Free'}
                   </div>
                 </label>
               ))}
@@ -169,19 +187,37 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 }
 
 // ── Componente principal ───────────────────────────────────────────────
-export function AdminClient({ initialUsers, currentUserId }: { initialUsers: UserRow[]; currentUserId: string }) {
+export function AdminClient({
+  initialUsers,
+  initialFeedback,
+  currentUserId,
+}: {
+  initialUsers: UserRow[]
+  initialFeedback?: FeedbackRow[]
+  currentUserId: string
+}) {
   const router = useRouter()
   const [users, setUsers]     = useState<UserRow[]>(initialUsers)
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<UserRow | null>(null)
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackRow | null>(null)
 
-  async function togglePlan(user: UserRow) {
-    const newPlan = user.plan === 'pro' ? 'free' : 'pro'
-    setLoadingId(user.id + '_plan')
-    const supabase = createClient()
-    const { error } = await supabase.rpc('admin_set_plan', { target_id: user.id, new_plan: newPlan })
-    if (!error) setUsers(prev => prev.map(u => u.id === user.id ? { ...u, plan: newPlan } : u))
+  async function applyAccessPlan(user: UserRow, plan: 'free' | 'optimiza') {
+    setLoadingId(`${user.id}_${plan}`)
+    const res = await setUserAccessPlan(user.id, plan)
+    if (!res.error) {
+      setUsers(prev => prev.map(u => {
+        if (u.id !== user.id) return u
+        const profile = res.profile as Partial<UserRow> | undefined
+        return {
+          ...u,
+          plan: profile?.plan ?? (plan === 'optimiza' ? 'pro' : 'free'),
+          access_expires_at: plan === 'optimiza' ? null : profile?.access_expires_at ?? u.access_expires_at,
+        }
+      }))
+      router.refresh()
+    }
     setLoadingId(null)
   }
 
@@ -205,12 +241,53 @@ export function AdminClient({ initialUsers, currentUserId }: { initialUsers: Use
     router.refresh()
   }
 
-  const pros  = users.filter(u => u.plan === 'pro').length
   const total = users.length
+  const optimiza = users.filter(u => isOptimizaPlan(u.plan)).length
+  const free = total - optimiza
+  const feedback = initialFeedback ?? []
 
   return (
     <>
       {showCreate && <CreateUserModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />}
+
+      {selectedFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="w-full max-w-lg rounded-2xl p-5 anim-fade-up"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--text-subtle)' }}>
+                  Feedback
+                </p>
+                <h2 className="text-base font-bold truncate" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
+                  {displayName(selectedFeedback.email)}
+                </h2>
+                <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>
+                  {fmtDate(selectedFeedback.created_at)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedFeedback(null)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: 'var(--overlay-sm)', color: 'var(--muted-foreground)' }}
+                aria-label="Cerrar feedback"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <div className="rounded-xl p-4 max-h-[55vh] overflow-y-auto"
+              style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--muted-foreground)' }}>
+                {selectedFeedback.message}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -240,7 +317,7 @@ export function AdminClient({ initialUsers, currentUserId }: { initialUsers: Use
         </div>
       )}
 
-      <div className="p-4 sm:p-6 lg:p-8 w-full max-w-3xl">
+      <div className="p-4 sm:p-6 lg:p-8 w-full max-w-5xl">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-8 anim-fade-up">
@@ -250,7 +327,7 @@ export function AdminClient({ initialUsers, currentUserId }: { initialUsers: Use
               Usuarios
             </h1>
             <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)' }}>
-              {pros} de {total} con Plan Pro
+              {optimiza} en PRO · {free} en Free
             </p>
           </div>
           <button onClick={() => setShowCreate(true)}
@@ -264,11 +341,11 @@ export function AdminClient({ initialUsers, currentUserId }: { initialUsers: Use
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6 stagger">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 stagger">
           {[
             { label: 'Total', value: total, color: '#3EC9C9' },
-            { label: 'Plan Pro', value: pros, color: '#F5A623' },
-            { label: 'Plan Free', value: total - pros, color: 'var(--muted-foreground)' },
+            { label: 'PRO', value: optimiza, color: '#F5A623' },
+            { label: 'Free', value: free, color: 'var(--muted-foreground)' },
           ].map(s => (
             <div key={s.label} className="rounded-2xl p-4 anim-fade-up"
               style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
@@ -278,13 +355,65 @@ export function AdminClient({ initialUsers, currentUserId }: { initialUsers: Use
           ))}
         </div>
 
+        {/* Feedback */}
+        <div className="rounded-2xl p-4 mb-6 anim-fade-up"
+          style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-subtle)' }}>
+                Feedback
+              </p>
+              <h2 className="text-base font-bold mt-1" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
+                Recomendaciones de usuarios
+              </h2>
+            </div>
+            <span className="h-7 px-2.5 rounded-lg text-xs font-semibold flex items-center"
+              style={{ background: 'rgba(62,201,201,0.1)', color: '#3EC9C9', border: '1px solid rgba(62,201,201,0.2)' }}>
+              {feedback.length}
+            </span>
+          </div>
+
+          {feedback.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+              Todavía no hay feedback recibido.
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {feedback.map(item => (
+                <div key={item.id} className="rounded-xl px-3 py-2.5"
+                  style={{ background: 'rgba(255,255,255,0.035)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div className="flex items-center justify-between gap-3 mb-1">
+                    <p className="text-xs font-semibold truncate" style={{ color: 'var(--foreground)' }}>
+                      {displayName(item.email)}
+                    </p>
+                    <p className="text-[10px] whitespace-nowrap" style={{ color: 'var(--text-subtle)' }}>
+                      {fmtDate(item.created_at)}
+                    </p>
+                  </div>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap max-h-16 overflow-hidden" style={{ color: 'var(--muted-foreground)' }}>
+                    {item.message}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFeedback(item)}
+                    className="mt-2 text-xs font-semibold transition-opacity hover:opacity-80"
+                    style={{ color: '#3EC9C9' }}
+                  >
+                    Ver completo
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Tabla desktop */}
         <div className="hidden sm:block rounded-2xl overflow-hidden anim-fade-up"
           style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
-                {['Usuario', 'Email', 'Alta', 'Plan', ''].map((h, i) => (
+                {['Usuario', 'Email', 'Alta', 'Acceso', ''].map((h, i) => (
                   <th key={i} className="px-4 py-3 text-left text-xs font-semibold tracking-widest uppercase"
                     style={{ color: 'var(--text-subtle)' }}>{h}</th>
                 ))}
@@ -310,28 +439,42 @@ export function AdminClient({ initialUsers, currentUserId }: { initialUsers: Use
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                  <td className="px-4 py-3.5 text-sm whitespace-nowrap" style={{ color: 'var(--muted-foreground)' }}>
                     {username(u.email)}
                   </td>
                   <td className="px-4 py-3.5 text-sm whitespace-nowrap" style={{ color: 'var(--muted-foreground)' }}>
                     {fmtDate(u.created_at)}
                   </td>
                   <td className="px-4 py-3.5">
-                    <button onClick={() => togglePlan(u)} disabled={loadingId === u.id + '_plan'}
-                      className="flex items-center gap-1.5 h-7 px-3 rounded-lg text-xs font-semibold transition-all disabled:opacity-40"
-                      style={{
-                        background: u.plan === 'pro' ? 'rgba(245,166,35,0.12)' : 'rgba(255,255,255,0.05)',
-                        border: `1px solid ${u.plan === 'pro' ? 'rgba(245,166,35,0.3)' : 'rgba(255,255,255,0.1)'}`,
-                        color: u.plan === 'pro' ? '#F5A623' : 'var(--muted-foreground)',
-                      }}>
-                      {loadingId === u.id + '_plan'
-                        ? <svg className="animate-spin" width="10" height="10" viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
-                          </svg>
-                        : <span className="w-1.5 h-1.5 rounded-full" style={{ background: u.plan === 'pro' ? '#F5A623' : 'var(--text-subtle)' }} />
-                      }
-                      {u.plan === 'pro' ? 'Pro' : 'Free'}
-                    </button>
+                    <div className="flex items-center gap-2 whitespace-nowrap">
+                        <span className="inline-flex items-center h-7 px-3 rounded-lg text-xs font-semibold"
+                          style={{
+                            background: isOptimizaPlan(u.plan) ? 'rgba(245,166,35,0.12)' : 'rgba(255,255,255,0.05)',
+                            border: `1px solid ${isOptimizaPlan(u.plan) ? 'rgba(245,166,35,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                            color: isOptimizaPlan(u.plan) ? '#F5A623' : 'var(--muted-foreground)',
+                          }}>
+                          {planLabel(u)}
+                        </span>
+                        {!isOptimizaPlan(u.plan) && (
+                          <span className="text-[10px]" style={{ color: 'var(--text-subtle)' }}>
+                            hasta {formatAccessDate(freeUntil(u))}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => applyAccessPlan(u, 'free')}
+                          disabled={loadingId === `${u.id}_free`}
+                          className="h-7 px-2.5 rounded-lg text-xs font-semibold disabled:opacity-40"
+                          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--muted-foreground)' }}>
+                          {loadingId === `${u.id}_free` ? '...' : 'Free 15 días'}
+                        </button>
+                        <button
+                          onClick={() => applyAccessPlan(u, 'optimiza')}
+                          disabled={loadingId === `${u.id}_optimiza`}
+                          className="h-7 px-2.5 rounded-lg text-xs font-semibold disabled:opacity-40"
+                          style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.3)', color: '#F5A623' }}>
+                          {loadingId === `${u.id}_optimiza` ? '...' : 'PRO'}
+                        </button>
+                    </div>
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
@@ -396,18 +539,25 @@ export function AdminClient({ initialUsers, currentUserId }: { initialUsers: Use
                       )}
                     </p>
                     <p className="text-xs truncate" style={{ color: 'var(--muted-foreground)' }}>{username(u.email)}</p>
+                    <p className="text-[10px] mt-1" style={{ color: isOptimizaPlan(u.plan) ? '#F5A623' : 'var(--text-subtle)' }}>
+                      {planLabel(u)}{!isOptimizaPlan(u.plan) && freeUntil(u) ? ` · hasta ${formatAccessDate(freeUntil(u))}` : ''}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                  <button onClick={() => togglePlan(u)} disabled={loadingId === u.id + '_plan'}
-                    className="flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-semibold disabled:opacity-40"
-                    style={{
-                      background: u.plan === 'pro' ? 'rgba(245,166,35,0.12)' : 'rgba(255,255,255,0.05)',
-                      border: `1px solid ${u.plan === 'pro' ? 'rgba(245,166,35,0.3)' : 'rgba(255,255,255,0.1)'}`,
-                      color: u.plan === 'pro' ? '#F5A623' : 'var(--muted-foreground)',
-                    }}>
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: u.plan === 'pro' ? '#F5A623' : 'var(--text-subtle)' }} />
-                    {u.plan === 'pro' ? 'Pro' : 'Free'}
+                  <button
+                    onClick={() => applyAccessPlan(u, 'free')}
+                    disabled={loadingId === `${u.id}_free`}
+                    className="h-7 px-2 rounded-lg text-[11px] font-semibold disabled:opacity-40"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--muted-foreground)' }}>
+                    Free
+                  </button>
+                  <button
+                    onClick={() => applyAccessPlan(u, 'optimiza')}
+                    disabled={loadingId === `${u.id}_optimiza`}
+                    className="h-7 px-2 rounded-lg text-[11px] font-semibold disabled:opacity-40"
+                    style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.3)', color: '#F5A623' }}>
+                    PRO
                   </button>
                   <button onClick={() => handleSetAdmin(u, !u.is_admin)}
                     disabled={loadingId === u.id + '_admin' || (u.is_admin && u.id === currentUserId)}

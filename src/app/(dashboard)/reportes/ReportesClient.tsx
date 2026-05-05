@@ -122,7 +122,8 @@ function Bar({ label, value, max, color }: { label: string; value: number; max: 
 }
 
 // ── Main component ─────────────────────────────────────────────────────
-function UpgradeWall() {
+
+function OptimizaWall() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 w-full max-w-2xl">
       <div className="mb-6 anim-fade-up">
@@ -133,9 +134,8 @@ function UpgradeWall() {
       </div>
 
       <div className="rounded-2xl overflow-hidden anim-fade-up" style={{ border: '1px solid rgba(245,166,35,0.25)' }}>
-        {/* Header */}
         <div className="px-6 py-5" style={{ background: 'linear-gradient(135deg, rgba(245,166,35,0.12), rgba(255,159,67,0.06))' }}>
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
               style={{ background: 'rgba(245,166,35,0.15)', border: '1px solid rgba(245,166,35,0.3)' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -143,36 +143,10 @@ function UpgradeWall() {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Función exclusiva del Plan Pro</p>
-              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Accedé a reportes completos y contabilidad</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Requiere plan Optimiza</p>
+              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Activá Optimiza o renová el acceso Free desde Administración.</p>
             </div>
-            <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0"
-              style={{ background: '#F5A623', color: '#0a0600' }}>PRO</span>
           </div>
-        </div>
-
-        {/* Feature list */}
-        <div className="px-6 py-5 space-y-3" style={{ background: 'var(--card)' }}>
-          {[
-            { icon: '📊', label: 'Estadísticas mensuales', sub: 'Sesiones, ingresos, tasa de asistencia y más' },
-            { icon: '💰', label: 'Contabilidad completa', sub: 'Historial de pagos con filtros por período y tipo' },
-            { icon: '📄', label: 'Exportación PDF', sub: 'Imprimí los reportes para tus registros o impuestos' },
-          ].map(f => (
-            <div key={f.label} className="flex items-start gap-3">
-              <span className="text-lg leading-none mt-0.5">{f.icon}</span>
-              <div>
-                <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{f.label}</p>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{f.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="px-6 py-4 flex items-center gap-3" style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-          <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>
-            Contactá al administrador para activar el Plan Pro en tu cuenta.
-          </p>
         </div>
       </div>
     </div>
@@ -180,9 +154,9 @@ function UpgradeWall() {
 }
 
 export function ReportesClient({ sesiones, pagos, pacientes, mes, desde, hasta, isPro }: Props) {
-  if (!isPro) return <UpgradeWall />
   const router = useRouter()
   const [tab, setTab] = useState<'estadisticas' | 'contabilidad'>('estadisticas')
+  if (!isPro) return <OptimizaWall />
 
   // ── Estadísticas ───────────────────────────────────────────────────
   const [year, month] = mes.split('-').map(Number)

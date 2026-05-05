@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { FREE_TRIAL_DAYS } from '@/lib/access'
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -47,17 +48,59 @@ export async function createUser(formData: FormData) {
     return { error: error.message }
   }
 
-  // El trigger crea el perfil en 'free'; desde admin definimos los permisos iniciales.
   if (data.user) {
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + FREE_TRIAL_DAYS)
+
+    const normalizedPlan = plan === 'pro' ? 'pro' : 'free'
+    const accessExpiresAt = normalizedPlan === 'pro' ? null : expiresAt.toISOString()
+
     const { error: profileError } = await admin
       .from('profiles')
-      .update({ plan: plan === 'pro' ? 'pro' : 'free', is_admin: isAdmin, email })
+      .update({ email, plan: normalizedPlan, is_admin: isAdmin, access_expires_at: accessExpiresAt })
       .eq('id', data.user.id)
 
-    if (profileError) return { error: profileError.message }
-  }
+    if (profileError) {
+      const fallback = await admin
+        .from('profiles')
+        .update({ email, plan: normalizedPlan, is_admin: isAdmin })
+        .eq('id', data.user.id)
 
+      if (fallback.error) return { error: fallback.error.message }
+    }
+  }
   return { success: true }
+}
+
+export async function setUserAccessPlan(userId: string, plan: 'free' | 'optimiza') {
+  await assertAdmin()
+
+  const admin = getAdminClient()
+  const expiresAt = new Date()
+  expiresAt.setDate(expiresAt.getDate() + FREE_TRIAL_DAYS)
+
+  const payload = plan === 'optimiza'
+    ? { plan: 'pro', access_expires_at: null }
+    : { plan: 'free', access_expires_at: expiresAt.toISOString() }
+
+  const { data, error } = await admin
+    .from('profiles')
+    .update(payload)
+    .eq('id', userId)
+    .select('plan, access_expires_at')
+    .single()
+
+  if (!error) return { success: true, profile: data }
+
+  const fallback = await admin
+    .from('profiles')
+    .update({ plan: payload.plan })
+    .eq('id', userId)
+    .select('plan')
+    .single()
+
+  if (fallback.error) return { error: fallback.error.message }
+  return { success: true, profile: fallback.data }
 }
 
 export async function deleteUser(userId: string) {

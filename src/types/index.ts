@@ -120,6 +120,7 @@ export interface Recordatorio {
 
 export interface Profile {
   id: string
-  plan: 'free' | 'pro'
+  plan: 'free' | 'pro' | 'optimiza'
+  access_expires_at?: string | null
   created_at: string
 }
