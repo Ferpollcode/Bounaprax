@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createUser, deleteUser, setAdminPermission, setUserAccessPlan } from './actions'
-import { formatAccessDate, getAccessExpiresAt, isOptimizaPlan } from '@/lib/access'
+import { formatAccessDate, getAccessExpiresAt, hasOptimizaAccess, isOptimizaPlan } from '@/lib/access'
 
 type UserRow = {
   id: string
@@ -46,6 +46,10 @@ function planLabel(user: UserRow) {
 
 function freeUntil(user: UserRow) {
   return getAccessExpiresAt(user)
+}
+
+function isFreeAccessActive(user: UserRow) {
+  return !isOptimizaPlan(user.plan) && hasOptimizaAccess(user)
 }
 
 // ── Modal crear usuario ────────────────────────────────────────────────
@@ -204,7 +208,7 @@ export function AdminClient({
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackRow | null>(null)
   const [adminError, setAdminError] = useState('')
 
-  async function applyAccessPlan(user: UserRow, plan: 'free' | 'optimiza') {
+  async function applyAccessPlan(user: UserRow, plan: 'free' | 'pro') {
     setLoadingId(`${user.id}_${plan}`)
     setAdminError('')
     const res = await setUserAccessPlan(user.id, plan)
@@ -214,8 +218,8 @@ export function AdminClient({
         const profile = res.profile as Partial<UserRow> | undefined
         return {
           ...u,
-          plan: profile?.plan ?? (plan === 'optimiza' ? 'pro' : 'free'),
-          access_expires_at: plan === 'optimiza' ? null : profile?.access_expires_at ?? u.access_expires_at,
+          plan: profile?.plan ?? (plan === 'pro' ? 'pro' : 'free'),
+          access_expires_at: plan === 'pro' ? null : profile?.access_expires_at ?? u.access_expires_at,
         }
       }))
       router.refresh()
@@ -462,33 +466,37 @@ export function AdminClient({
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2 whitespace-nowrap">
-                        <span className="inline-flex items-center h-7 px-3 rounded-lg text-xs font-semibold"
+                        <button
+                          onClick={() => applyAccessPlan(u, 'free')}
+                          disabled={loadingId === `${u.id}_free`}
+                          className="h-7 px-2.5 rounded-lg text-xs font-semibold disabled:opacity-40"
+                          style={{
+                            background: isFreeAccessActive(u) ? 'rgba(62,201,201,0.12)' : 'rgba(255,255,255,0.05)',
+                            border: `1px solid ${isFreeAccessActive(u) ? 'rgba(62,201,201,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                            color: isFreeAccessActive(u) ? '#3EC9C9' : 'var(--muted-foreground)',
+                          }}>
+                          {loadingId === `${u.id}_free` ? '...' : 'Free 15 días'}
+                        </button>
+                        <button
+                          onClick={() => applyAccessPlan(u, 'pro')}
+                          disabled={loadingId === `${u.id}_pro`}
+                          className="h-7 px-2.5 rounded-lg text-xs font-semibold disabled:opacity-40"
                           style={{
                             background: isOptimizaPlan(u.plan) ? 'rgba(245,166,35,0.12)' : 'rgba(255,255,255,0.05)',
                             border: `1px solid ${isOptimizaPlan(u.plan) ? 'rgba(245,166,35,0.3)' : 'rgba(255,255,255,0.1)'}`,
                             color: isOptimizaPlan(u.plan) ? '#F5A623' : 'var(--muted-foreground)',
                           }}>
-                          {planLabel(u)}
-                        </span>
-                        {!isOptimizaPlan(u.plan) && (
+                          {loadingId === `${u.id}_pro` ? '...' : 'PRO'}
+                        </button>
+                        {isOptimizaPlan(u.plan) ? (
+                          <span className="text-[10px]" style={{ color: 'var(--text-subtle)' }}>ilimitado</span>
+                        ) : isFreeAccessActive(u) ? (
                           <span className="text-[10px]" style={{ color: 'var(--text-subtle)' }}>
                             hasta {formatAccessDate(freeUntil(u))}
                           </span>
+                        ) : (
+                          <span className="text-[10px] font-semibold" style={{ color: '#F87171' }}>Sin acceso</span>
                         )}
-                        <button
-                          onClick={() => applyAccessPlan(u, 'free')}
-                          disabled={loadingId === `${u.id}_free`}
-                          className="h-7 px-2.5 rounded-lg text-xs font-semibold disabled:opacity-40"
-                          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--muted-foreground)' }}>
-                          {loadingId === `${u.id}_free` ? '...' : 'Free 15 días'}
-                        </button>
-                        <button
-                          onClick={() => applyAccessPlan(u, 'optimiza')}
-                          disabled={loadingId === `${u.id}_optimiza`}
-                          className="h-7 px-2.5 rounded-lg text-xs font-semibold disabled:opacity-40"
-                          style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.3)', color: '#F5A623' }}>
-                          {loadingId === `${u.id}_optimiza` ? '...' : 'PRO'}
-                        </button>
                     </div>
                   </td>
                   <td className="px-4 py-3.5">
@@ -554,8 +562,12 @@ export function AdminClient({
                       )}
                     </p>
                     <p className="text-xs truncate" style={{ color: 'var(--muted-foreground)' }}>{username(u.email)}</p>
-                    <p className="text-[10px] mt-1" style={{ color: isOptimizaPlan(u.plan) ? '#F5A623' : 'var(--text-subtle)' }}>
-                      {planLabel(u)}{!isOptimizaPlan(u.plan) && freeUntil(u) ? ` · hasta ${formatAccessDate(freeUntil(u))}` : ''}
+                    <p className="text-[10px] mt-1" style={{ color: isOptimizaPlan(u.plan) ? '#F5A623' : isFreeAccessActive(u) ? 'var(--text-subtle)' : '#F87171' }}>
+                      {isOptimizaPlan(u.plan)
+                        ? 'PRO · ilimitado'
+                        : isFreeAccessActive(u)
+                          ? `Free · hasta ${formatAccessDate(freeUntil(u))}`
+                          : 'Sin acceso'}
                     </p>
                   </div>
                 </div>
@@ -564,14 +576,22 @@ export function AdminClient({
                     onClick={() => applyAccessPlan(u, 'free')}
                     disabled={loadingId === `${u.id}_free`}
                     className="h-7 px-2 rounded-lg text-[11px] font-semibold disabled:opacity-40"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--muted-foreground)' }}>
+                    style={{
+                      background: isFreeAccessActive(u) ? 'rgba(62,201,201,0.12)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${isFreeAccessActive(u) ? 'rgba(62,201,201,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                      color: isFreeAccessActive(u) ? '#3EC9C9' : 'var(--muted-foreground)',
+                    }}>
                     Free
                   </button>
                   <button
-                    onClick={() => applyAccessPlan(u, 'optimiza')}
-                    disabled={loadingId === `${u.id}_optimiza`}
+                    onClick={() => applyAccessPlan(u, 'pro')}
+                    disabled={loadingId === `${u.id}_pro`}
                     className="h-7 px-2 rounded-lg text-[11px] font-semibold disabled:opacity-40"
-                    style={{ background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.3)', color: '#F5A623' }}>
+                    style={{
+                      background: isOptimizaPlan(u.plan) ? 'rgba(245,166,35,0.12)' : 'rgba(255,255,255,0.05)',
+                      border: `1px solid ${isOptimizaPlan(u.plan) ? 'rgba(245,166,35,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                      color: isOptimizaPlan(u.plan) ? '#F5A623' : 'var(--muted-foreground)',
+                    }}>
                     PRO
                   </button>
                   <button onClick={() => handleSetAdmin(u, !u.is_admin)}

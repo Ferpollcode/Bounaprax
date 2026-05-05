@@ -76,7 +76,7 @@ export async function createUser(formData: FormData) {
   return { success: true }
 }
 
-export async function setUserAccessPlan(userId: string, plan: 'free' | 'optimiza') {
+export async function setUserAccessPlan(userId: string, plan: 'free' | 'pro') {
   await assertAdmin()
 
   const admin = getAdminClient()
@@ -84,7 +84,7 @@ export async function setUserAccessPlan(userId: string, plan: 'free' | 'optimiza
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + FREE_TRIAL_DAYS)
 
-  const payload = plan === 'optimiza'
+  const payload = plan === 'pro'
     ? { plan: 'pro', access_expires_at: null }
     : { plan: 'free', access_expires_at: expiresAt.toISOString() }
 
