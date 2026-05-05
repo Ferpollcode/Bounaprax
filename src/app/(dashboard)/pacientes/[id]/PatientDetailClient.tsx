@@ -1136,12 +1136,12 @@ type ConsultorioOpt = { id: string; nombre: string; color: string }
 function ProGate({ isPro, children }: { isPro: boolean; children: React.ReactNode }) {
   if (isPro) return <>{children}</>
   return (
-    <div className="relative" title="Requiere plan Optimiza">
+    <div className="relative" title="Requiere plan PRO">
       <div style={{ opacity: 0.4, pointerEvents: 'none', userSelect: 'none' }}>{children}</div>
       <span
         className="absolute -top-1.5 -right-1.5 text-[9px] font-bold px-1.5 rounded-full"
         style={{ background: '#F5A623', color: '#0a0600', lineHeight: '16px' }}
-      >OPT</span>
+      >PRO</span>
     </div>
   )
 }

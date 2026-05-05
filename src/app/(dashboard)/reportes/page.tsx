@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { ReportesClient } from './ReportesClient'
-import { hasOptimizaAccess } from '@/lib/access'
+import { getAccessProfile, hasProAccess } from '@/lib/access'
 
 export default async function ReportesPage({ searchParams }: { searchParams: Promise<{ mes?: string }> }) {
   const { mes } = await searchParams
@@ -26,9 +26,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
     supabase.auth.getUser(),
   ])
 
-  const { data: profile } = user
-    ? await supabase.from('profiles').select('plan, access_expires_at, created_at').eq('id', user.id).single()
-    : { data: null }
+  const profile = await getAccessProfile(supabase, user?.id)
 
   return (
     <ReportesClient
@@ -38,7 +36,7 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
       mes={`${year}-${String(month).padStart(2, '0')}`}
       desde={desde}
       hasta={hasta}
-      isPro={hasOptimizaAccess(profile)}
+      isPro={hasProAccess(profile)}
     />
   )
 }

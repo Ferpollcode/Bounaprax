@@ -25,6 +25,30 @@ export function hasOptimizaAccess(profile?: { plan?: string | null; access_expir
   return new Date(expiresAt).getTime() >= Date.now()
 }
 
+export function hasProAccess(profile?: { plan?: string | null } | null) {
+  return isOptimizaPlan(profile?.plan)
+}
+
+export async function getAccessProfile(supabase: any, userId?: string | null) {
+  if (!userId) return null
+
+  const full = await supabase
+    .from('profiles')
+    .select('plan, access_expires_at, created_at')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (!full.error) return full.data
+
+  const fallback = await supabase
+    .from('profiles')
+    .select('plan, created_at')
+    .eq('id', userId)
+    .maybeSingle()
+
+  return fallback.data ?? null
+}
+
 export function formatAccessDate(iso?: string | null) {
   if (!iso) return ''
   const date = new Date(iso)

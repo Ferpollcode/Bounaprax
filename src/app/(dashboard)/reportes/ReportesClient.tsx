@@ -143,8 +143,8 @@ function OptimizaWall() {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Requiere plan Optimiza</p>
-              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Activá Optimiza o renová el acceso Free desde Administración.</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>Requiere plan PRO</p>
+              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>Activá PRO o renová el acceso Free desde Administración.</p>
             </div>
           </div>
         </div>

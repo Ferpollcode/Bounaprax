@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { hasOptimizaAccess } from '@/lib/access'
+import { getAccessProfile, hasProAccess } from '@/lib/access'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -17,13 +17,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     .eq('id', user.id)
     .single()
 
-  const { data: accessProfile } = await supabase
-    .from('profiles')
-    .select('plan, access_expires_at, created_at')
-    .eq('id', user.id)
-    .single()
+  const accessProfile = await getAccessProfile(supabase, user.id)
 
-  const hasAccess = hasOptimizaAccess(accessProfile)
+  const hasAccess = hasProAccess(accessProfile)
   const isAdmin  = adminProfile?.is_admin === true
 
   return (

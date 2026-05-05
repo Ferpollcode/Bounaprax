@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import type { Paciente, Sesion, Pago, Documento, Consultorio } from '@/types'
 import { PatientDetailClient, type DocWithPath } from './PatientDetailClient'
 import { extractIdFromSlug } from '@/lib/utils'
-import { hasOptimizaAccess } from '@/lib/access'
+import { getAccessProfile, hasProAccess } from '@/lib/access'
 
 export default async function PacienteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: slug } = await params
@@ -28,9 +28,7 @@ export default async function PacienteDetailPage({ params }: { params: Promise<{
 
   if (!paciente) notFound()
 
-  const { data: profile } = user
-    ? await supabase.from('profiles').select('plan, access_expires_at, created_at').eq('id', user.id).single()
-    : { data: null }
+  const profile = await getAccessProfile(supabase, user?.id)
 
   // Extract storage path from URL for each document (needed for signed URLs)
   const MARKER = '/storage/v1/object/public/documentos/'
@@ -46,7 +44,7 @@ export default async function PacienteDetailPage({ params }: { params: Promise<{
       pagos={(pagos ?? []) as Pago[]}
       docs={docs}
       consultorios={(consultorios ?? []) as Pick<Consultorio, 'id' | 'nombre' | 'color'>[]}
-      isPro={hasOptimizaAccess(profile)}
+      isPro={hasProAccess(profile)}
     />
   )
 }
