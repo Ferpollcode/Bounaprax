@@ -57,14 +57,18 @@ export async function createUser(formData: FormData) {
 
     const { error: profileError } = await admin
       .from('profiles')
-      .update({ email, plan: normalizedPlan, is_admin: isAdmin, access_expires_at: accessExpiresAt })
-      .eq('id', data.user.id)
+      .upsert(
+        { id: data.user.id, email, plan: normalizedPlan, is_admin: isAdmin, access_expires_at: accessExpiresAt },
+        { onConflict: 'id' },
+      )
 
     if (profileError) {
       const fallback = await admin
         .from('profiles')
-        .update({ email, plan: normalizedPlan, is_admin: isAdmin })
-        .eq('id', data.user.id)
+        .upsert(
+          { id: data.user.id, email, plan: normalizedPlan, is_admin: isAdmin },
+          { onConflict: 'id' },
+        )
 
       if (fallback.error) return { error: fallback.error.message }
     }
@@ -76,6 +80,7 @@ export async function setUserAccessPlan(userId: string, plan: 'free' | 'optimiza
   await assertAdmin()
 
   const admin = getAdminClient()
+  const { data: authUser } = await admin.auth.admin.getUserById(userId)
   const expiresAt = new Date()
   expiresAt.setDate(expiresAt.getDate() + FREE_TRIAL_DAYS)
 
@@ -83,10 +88,15 @@ export async function setUserAccessPlan(userId: string, plan: 'free' | 'optimiza
     ? { plan: 'pro', access_expires_at: null }
     : { plan: 'free', access_expires_at: expiresAt.toISOString() }
 
+  const profilePayload = {
+    id: userId,
+    email: authUser.user?.email ?? null,
+    ...payload,
+  }
+
   const { data, error } = await admin
     .from('profiles')
-    .update(payload)
-    .eq('id', userId)
+    .upsert(profilePayload, { onConflict: 'id' })
     .select('plan, access_expires_at')
     .single()
 
@@ -94,8 +104,10 @@ export async function setUserAccessPlan(userId: string, plan: 'free' | 'optimiza
 
   const fallback = await admin
     .from('profiles')
-    .update({ plan: payload.plan })
-    .eq('id', userId)
+    .upsert(
+      { id: userId, email: authUser.user?.email ?? null, plan: payload.plan },
+      { onConflict: 'id' },
+    )
     .select('plan')
     .single()
 

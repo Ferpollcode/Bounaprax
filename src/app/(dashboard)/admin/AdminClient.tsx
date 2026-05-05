@@ -202,9 +202,11 @@ export function AdminClient({
   const [showCreate, setShowCreate] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<UserRow | null>(null)
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackRow | null>(null)
+  const [adminError, setAdminError] = useState('')
 
   async function applyAccessPlan(user: UserRow, plan: 'free' | 'optimiza') {
     setLoadingId(`${user.id}_${plan}`)
+    setAdminError('')
     const res = await setUserAccessPlan(user.id, plan)
     if (!res.error) {
       setUsers(prev => prev.map(u => {
@@ -217,22 +219,28 @@ export function AdminClient({
         }
       }))
       router.refresh()
+    } else {
+      setAdminError(res.error)
     }
     setLoadingId(null)
   }
 
   async function handleDelete(user: UserRow) {
     setLoadingId(user.id + '_del')
+    setAdminError('')
     const res = await deleteUser(user.id)
     if (!res.error) setUsers(prev => prev.filter(u => u.id !== user.id))
+    else setAdminError(res.error)
     setConfirmDelete(null)
     setLoadingId(null)
   }
 
   async function handleSetAdmin(user: UserRow, isAdmin: boolean) {
     setLoadingId(user.id + '_admin')
+    setAdminError('')
     const res = await setAdminPermission(user.id, isAdmin)
     if (!res.error) setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_admin: isAdmin } : u))
+    else setAdminError(res.error)
     setLoadingId(null)
   }
 
@@ -354,6 +362,13 @@ export function AdminClient({
             </div>
           ))}
         </div>
+
+        {adminError && (
+          <div className="rounded-2xl px-4 py-3 text-sm mb-6 anim-fade-up"
+            style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+            {adminError}
+          </div>
+        )}
 
         {/* Feedback */}
         <div className="rounded-2xl p-4 mb-6 anim-fade-up"
