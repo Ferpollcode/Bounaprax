@@ -31,6 +31,7 @@ create table pacientes (
   numero_afiliado text,
   motivo_consulta text,
   diagnostico text,
+  hoja_ruta text,
   estado text default 'activo' check (estado in ('activo','inactivo','alta','derivado')),
   consultorio_id uuid references consultorios(id) on delete set null,
   created_at timestamptz default now(),
@@ -179,6 +180,11 @@ create trigger pacientes_updated_at before update on pacientes
 -- Free por 15 días y Optimiza por tiempo ilimitado.
 alter table profiles
   add column if not exists access_expires_at timestamptz;
+
+-- HOJA DE RUTA POR PACIENTE
+-- Ejecutar en proyectos existentes para habilitar el seguimiento editable.
+alter table pacientes
+  add column if not exists hoja_ruta text;
 
 create or replace function admin_get_users()
 returns table (

@@ -84,6 +84,21 @@ function formatBytes(b: number) {
   if (b < 1024 * 1024) return `${(b / 1024).toFixed(0)} KB`
   return `${(b / 1024 / 1024).toFixed(1)} MB`
 }
+function storagePathFromUrl(url?: string | null) {
+  if (!url) return undefined
+  const marker = '/storage/v1/object/public/documentos/'
+  const index = url.indexOf(marker)
+  if (index === -1) return undefined
+  return decodeURIComponent(url.slice(index + marker.length))
+}
+function escapeHtml(value?: string | null) {
+  return (value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 /* ── shared form styles ─────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
@@ -461,6 +476,126 @@ function Modal({ open, onClose, title, subtitle, wide, children }: {
   )
 }
 
+function RoadmapSection({ paciente }: { paciente: Paciente }) {
+  const [content, setContent] = useState(paciente.hoja_ruta ?? '')
+  const [draft, setDraft] = useState(paciente.hoja_ruta ?? '')
+  const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSave() {
+    setSaving(true)
+    setError('')
+    const supabase = createClient()
+    const { error: err } = await supabase
+      .from('pacientes')
+      .update({ hoja_ruta: draft.trim() ? draft : null })
+      .eq('id', paciente.id)
+
+    if (err) {
+      setError('Error al guardar la hoja de ruta.')
+      setSaving(false)
+      return
+    }
+
+    setContent(draft)
+    setSaving(false)
+    setOpen(false)
+  }
+
+  return (
+    <>
+      <div className="rounded-2xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-subtle)' }}>
+              Hoja de ruta
+            </p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>
+              Seguimiento editable del paciente, sesión tras sesión.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setDraft(content); setOpen(true); setError('') }}
+            className="h-8 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-80"
+            style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)', color: TEAL }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M12 20h9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Editar
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => { setDraft(content); setOpen(true); setError('') }}
+          className="w-full rounded-xl p-4 text-left transition-colors hover:bg-white/[0.03]"
+          style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}
+        >
+          {content.trim() ? (
+            <p className="text-sm leading-relaxed line-clamp-6 whitespace-pre-wrap" style={{ color: 'var(--muted-foreground)' }}>
+              {content}
+            </p>
+          ) : (
+            <p className="text-sm" style={{ color: 'var(--text-subtle)' }}>
+              Sin hoja de ruta todavía. Abrila para empezar a escribir.
+            </p>
+          )}
+        </button>
+      </div>
+
+      {open && (
+        <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: 'var(--background)' }}>
+          <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-subtle)' }}>Hoja de ruta</p>
+              <h2 className="text-lg font-bold truncate" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
+                {paciente.apellido}, {paciente.nombre}
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="h-10 px-4 rounded-xl text-sm font-medium transition-opacity hover:opacity-70"
+                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="h-10 px-4 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+                style={{ background: saving ? 'rgba(62,201,201,0.35)' : 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: 'var(--primary-foreground)', cursor: saving ? 'not-allowed' : 'pointer' }}
+              >
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+          {error && (
+            <div className="mx-4 sm:mx-6 mt-4 rounded-xl px-4 py-3 text-sm"
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
+              {error}
+            </div>
+          )}
+          <div className="flex-1 p-4 sm:p-6">
+            <textarea
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              placeholder={`# Hoja de ruta\n\n## ${new Date().toLocaleDateString('es-AR')}\n- Observaciones de la sesión\n- Próximos puntos a revisar`}
+              className="w-full h-full resize-none rounded-2xl p-4 sm:p-5 text-sm sm:text-base leading-relaxed outline-none"
+              style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
+            />
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 /* ── SesionForm ─────────────────────────────────────────── */
 function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess, onCancel }: {
   pacienteId: string
@@ -473,8 +608,7 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
   const [form, setForm] = useState({
     fecha: hoy, hora_inicio: '', hora_fin: '',
     tipo: 'presencial', estado: 'realizada',
-    observaciones: '', tratamiento: '', objetivo: '',
-    evolucion: '', proximos_pasos: '', monto: '', pagado: false,
+    observaciones: '', monto: '', pagado: false,
     consultorio_id: defaultConsultorioId ?? '',
   })
   const [saving, setSaving] = useState(false)
@@ -500,10 +634,6 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
       tipo:            form.tipo,
       estado:          form.estado,
       observaciones:   form.observaciones || null,
-      tratamiento:     form.tratamiento   || null,
-      objetivo:        form.objetivo      || null,
-      evolucion:       form.evolucion     || null,
-      proximos_pasos:  form.proximos_pasos || null,
       monto:           form.monto ? parseFloat(form.monto) : null,
       pagado:          form.pagado,
     })
@@ -595,33 +725,6 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
           <FTextarea value={form.observaciones} onChange={setStr('observaciones')}
             placeholder="¿Qué sucedió en la sesión? Resumen del encuentro…" rows={4} />
         </div>
-        <div>
-          <Label text="Tratamiento aplicado" />
-          <FTextarea value={form.tratamiento} onChange={setStr('tratamiento')}
-            placeholder="Técnicas o intervenciones utilizadas…" rows={2} />
-        </div>
-        <div>
-          <Label text="Objetivo de la sesión" />
-          <FTextarea value={form.objetivo} onChange={setStr('objetivo')}
-            placeholder="Objetivos planteados para este encuentro…" rows={2} />
-        </div>
-      </FormCard>
-
-      <FormCard title="Evolución y seguimiento" icon={
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      }>
-        <div>
-          <Label text="Evolución del paciente" />
-          <FTextarea value={form.evolucion} onChange={setStr('evolucion')}
-            placeholder="¿Cómo evolucionó el paciente? Cambios observados…" rows={3} />
-        </div>
-        <div>
-          <Label text="Próximos pasos" />
-          <FTextarea value={form.proximos_pasos} onChange={setStr('proximos_pasos')}
-            placeholder="Tareas, indicaciones o puntos para la próxima sesión…" rows={2} />
-        </div>
       </FormCard>
 
       <FormCard title="Honorarios" icon={
@@ -686,19 +789,36 @@ function SesionForm({ pacienteId, consultorios, defaultConsultorioId, onSuccess,
 }
 
 /* ── PagoForm ───────────────────────────────────────────── */
-function PagoForm({ pacienteId, onSuccess, onCancel }: {
+function PagoForm({ pacienteId, sesiones, onSuccess, onCancel }: {
   pacienteId: string
+  sesiones: Sesion[]
   onSuccess: () => void
   onCancel: () => void
 }) {
   const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' })
   const [form, setForm] = useState({
-    fecha: hoy, monto: '', tipo: 'efectivo', concepto: '', estado: 'pagado',
+    fecha: hoy, monto: '', tipo: 'efectivo', concepto: '', estado: 'pagado', sesion_id: '',
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   function setStr(field: string) { return (v: string) => setForm(f => ({ ...f, [field]: v })) }
+  function sessionLabel(s: Sesion) {
+    const date = fmtDate(s.fecha)
+    const hour = s.hora_inicio ? ` · ${s.hora_inicio.slice(0, 5)}` : ''
+    const amount = s.monto != null ? ` · ${fmtMoney(s.monto)}` : ''
+    return `${date}${hour}${amount}`
+  }
+  function handleSesionChange(id: string) {
+    const selected = sesiones.find(s => s.id === id)
+    setForm(f => ({
+      ...f,
+      sesion_id: id,
+      fecha: selected?.fecha ?? f.fecha,
+      monto: selected?.monto != null ? String(selected.monto) : f.monto,
+      concepto: selected ? `Sesión ${fmtDate(selected.fecha)}` : f.concepto,
+    }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -708,10 +828,11 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
     setSaving(true); setError('')
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setSaving(false); return }
 
     const { error: err } = await supabase.from('pagos').insert({
       paciente_id:     pacienteId,
+      sesion_id:       form.sesion_id || null,
       professional_id: user.id,
       fecha:           form.fecha,
       monto:           parseFloat(form.monto),
@@ -721,7 +842,15 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
     })
 
     if (err) { setError('Error al registrar el pago.'); setSaving(false) }
-    else onSuccess()
+    else {
+      if (form.sesion_id) {
+        await supabase
+          .from('sesiones')
+          .update({ pagado: form.estado === 'pagado' })
+          .eq('id', form.sesion_id)
+      }
+      onSuccess()
+    }
   }
 
   return (
@@ -746,6 +875,17 @@ function PagoForm({ pacienteId, onSuccess, onCancel }: {
         <Label text="Fecha" />
         <input type="date" value={form.fecha} onChange={e => setStr('fecha')(e.target.value)}
           className={inputCls} style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
+      </div>
+
+      <div>
+        <Label text="Sesión asociada" />
+        <select value={form.sesion_id} onChange={e => handleSesionChange(e.target.value)}
+          className={inputCls} style={inputStyle}>
+          <option value="">Sin asociar a una sesión</option>
+          {sesiones.map(s => (
+            <option key={s.id} value={s.id}>{sessionLabel(s)}</option>
+          ))}
+        </select>
       </div>
 
       <div>
@@ -903,7 +1043,20 @@ function DocumentsSection({ pacienteId, initialDocs }: {
       if (docData) uploaded.push({ ...(docData as Documento), storagePath: path })
     }
 
-    setDocs(prev => [...uploaded.reverse(), ...prev])
+    const { data: refreshedDocs } = await supabase
+      .from('documentos')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .order('created_at', { ascending: false })
+
+    if (refreshedDocs) {
+      setDocs((refreshedDocs as Documento[]).map(doc => ({
+        ...doc,
+        storagePath: storagePathFromUrl(doc.archivo_url) ?? '',
+      })))
+    } else {
+      setDocs(prev => [...uploaded.reverse(), ...prev])
+    }
     setNewFiles([])
     setUploadOpen(false)
     setUploading(false)
@@ -1166,6 +1319,7 @@ export function PatientDetailClient({
   const [pagoOpen,       setPagoOpen]       = useState(false)
   const [downloadingAll, setDownloadingAll] = useState(false)
   const [proName,        setProName]        = useState('')
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -1179,8 +1333,15 @@ export function PatientDetailClient({
   const edad = calcEdad(p.fecha_nacimiento)
   const consultorioActivo = consultorios.find(c => c.id === p.consultorio_id)
 
-  const totalPagado    = pagos.filter(pay => pay.estado === 'pagado').reduce((a, b) => a + (b.monto ?? 0), 0)
-  const totalPendiente = pagos.filter(pay => pay.estado === 'pendiente').reduce((a, b) => a + (b.monto ?? 0), 0)
+  const sesionesConPagoIds = new Set(pagos.map(pay => pay.sesion_id).filter(Boolean))
+  const totalSesionesPagadas = sesiones
+    .filter(s => s.pagado && s.monto != null && !sesionesConPagoIds.has(s.id))
+    .reduce((a, s) => a + (s.monto ?? 0), 0)
+  const totalSesionesPendientes = sesiones
+    .filter(s => !s.pagado && s.monto != null && !sesionesConPagoIds.has(s.id))
+    .reduce((a, s) => a + (s.monto ?? 0), 0)
+  const totalPagado    = pagos.filter(pay => pay.estado === 'pagado').reduce((a, b) => a + (b.monto ?? 0), 0) + totalSesionesPagadas
+  const totalPendiente = pagos.filter(pay => pay.estado === 'pendiente').reduce((a, b) => a + (b.monto ?? 0), 0) + totalSesionesPendientes
   const attendanceSummary = [
     { key: 'realizada',    label: 'Asistió',   color: 'var(--success)' },
     { key: 'programada',   label: 'Pendiente', color: 'var(--primary)' },
@@ -1217,6 +1378,20 @@ export function PatientDetailClient({
 
   function handleViewSesion(sesion: Sesion) {
     router.push(`/agenda?dia=${sesion.fecha}&sesion=${sesion.id}`)
+  }
+
+  async function handleDeleteSesion(sesion: Sesion) {
+    const fecha = fmtDate(sesion.fecha)
+    if (!window.confirm(`¿Eliminar la sesión del ${fecha}?`)) return
+    setDeletingSessionId(sesion.id)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('sesiones')
+      .delete()
+      .eq('id', sesion.id)
+
+    setDeletingSessionId(null)
+    if (!error) router.refresh()
   }
 
   function handleReciboPDF(pay: Pago) {
@@ -1340,7 +1515,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Historia Clínica — ${p.apellido}, ${p.nombre}</title>
+<title>Hoja de ruta clínica — ${p.apellido}, ${p.nombre}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#111827;background:#fff}
@@ -1357,17 +1532,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
 .info-label{font-size:11px;color:#9CA3AF;margin-bottom:2px}
 .info-value{font-size:14px;color:#1F2937;line-height:1.6;white-space:pre-wrap}
 .info-row{margin-bottom:12px}
-.ses{border:1px solid #E5E7EB;border-radius:10px;padding:16px 18px;margin-bottom:12px;page-break-inside:avoid}
-.ses-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
-.ses-fecha{font-size:13px;font-weight:600;color:#111827}
+.roadmap{border:1px solid #E5E7EB;border-radius:10px;padding:18px;font-size:14px;color:#1F2937;line-height:1.7;white-space:pre-wrap;page-break-inside:auto}
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
 .b-realizada{background:#D1FAE5;color:#065F46}
 .b-programada{background:#CFFAFE;color:#0E7490}
 .b-cancelada{background:#FEE2E2;color:#991B1B}
 .b-inasistencia{background:#FEF3C7;color:#92400E}
-.fl{margin-top:8px}
-.fl-label{font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
-.fl-value{font-size:13px;color:#374151;line-height:1.6}
 .docs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .doc-item{border:1px solid #E5E7EB;border-radius:8px;padding:12px}
 .print-btn{position:fixed;bottom:24px;right:24px;background:#3EC9C9;color:white;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;box-shadow:0 4px 14px rgba(62,201,201,.4)}
@@ -1375,7 +1545,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
 </style>
 </head>
 <body>
-<div class="top"><span class="top-logo">Bounaprax</span><span class="top-date">Historia Clínica generada el ${fechaHoy}</span></div>
+<div class="top"><span class="top-logo">Bounaprax</span><span class="top-date">Hoja de ruta generada el ${fechaHoy}</span></div>
 <div class="page">
   <div class="ph">
     <div class="ph-name">${p.apellido}, ${p.nombre}</div>
@@ -1396,24 +1566,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
   </div>` : ''}
 
   <div class="sec">
-    <div class="sec-title">Historial de sesiones (${sesiones.length})</div>
-    ${sesiones.length === 0 ? '<p style="color:#9CA3AF;font-size:14px">Sin sesiones registradas.</p>' :
-      [...sesiones].reverse().map(s => {
-        const fecha = new Date(s.fecha + 'T00:00:00').toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-        const estadoLabel: Record<string, string> = { realizada: 'Asistió', programada: 'Programada', cancelada: 'Cancelada', inasistencia: 'Inasistencia' }
-        return `<div class="ses">
-          <div class="ses-head">
-            <span class="ses-fecha">${fecha}</span>
-            <span class="badge b-${s.estado}">${estadoLabel[s.estado] ?? s.estado}</span>
-            <span style="font-size:12px;color:#9CA3AF">${s.tipo}${s.hora_inicio ? ' · ' + s.hora_inicio.slice(0,5) : ''}</span>
-          </div>
-          ${s.observaciones ? `<div class="fl"><div class="fl-label">Observaciones</div><div class="fl-value">${s.observaciones}</div></div>` : ''}
-          ${s.tratamiento ? `<div class="fl"><div class="fl-label">Tratamiento</div><div class="fl-value">${s.tratamiento}</div></div>` : ''}
-          ${s.objetivo ? `<div class="fl"><div class="fl-label">Objetivo</div><div class="fl-value">${s.objetivo}</div></div>` : ''}
-          ${s.evolucion ? `<div class="fl"><div class="fl-label">Evolución</div><div class="fl-value">${s.evolucion}</div></div>` : ''}
-          ${s.proximos_pasos ? `<div class="fl"><div class="fl-label">Próximos pasos</div><div class="fl-value">${s.proximos_pasos}</div></div>` : ''}
-        </div>`
-      }).join('')
+    <div class="sec-title">Hoja de ruta</div>
+    ${p.hoja_ruta?.trim()
+      ? `<div class="roadmap">${escapeHtml(p.hoja_ruta)}</div>`
+      : '<p style="color:#9CA3AF;font-size:14px">Sin hoja de ruta registrada.</p>'
     }
   </div>
 
@@ -1603,7 +1759,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                   <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                Historia clínica
+                Hoja de ruta
               </button>
             </ProGate>
             <ProGate isPro={isPro}>
@@ -1729,7 +1885,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                   <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                Historia
+                Hoja de ruta
               </button>
             </ProGate>
             <ProGate isPro={isPro}>
@@ -1852,6 +2008,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
           {/* ── Columna derecha ── */}
           <div className="lg:col-span-2 space-y-4">
 
+            <RoadmapSection paciente={p} />
+
             {/* Sesiones */}
             <div className="rounded-2xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
               <div className="flex items-center justify-between mb-4">
@@ -1909,8 +2067,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                       const catCfg = s.categoria ? (sesionCategoriaLabel[s.categoria] ?? null) : null
                       const d = new Date(s.fecha + 'T00:00:00')
                       return (
-                        <button key={s.id} type="button" onClick={() => handleViewSesion(s)}
-                          className="w-full rounded-xl p-3.5 flex items-start gap-3 text-left transition-colors hover:bg-white/[0.03]"
+                        <div key={s.id} role="button" tabIndex={0}
+                          onClick={() => handleViewSesion(s)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              handleViewSesion(s)
+                            }
+                          }}
+                          className="w-full rounded-xl p-3.5 flex items-start gap-3 text-left transition-colors hover:bg-white/[0.03] cursor-pointer"
                           style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)', textDecoration: 'none' }}>
                           {/* Date badge */}
                           <div className="flex-shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
@@ -1957,15 +2122,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                               </p>
                             )}
                           </div>
-                          {s.monto != null && (
-                            <div className="flex-shrink-0 text-right">
-                              <p className="text-sm font-semibold" style={{ color: s.pagado ? 'var(--success)' : 'var(--warning)' }}>
-                                {fmtMoney(s.monto)}
-                              </p>
-                              <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
-                            </div>
-                          )}
-                        </button>
+                          <div className="flex-shrink-0 text-right flex flex-col items-end gap-2">
+                            {s.monto != null && (
+                              <div>
+                                <p className="text-sm font-semibold" style={{ color: s.pagado ? 'var(--success)' : 'var(--warning)' }}>
+                                  {fmtMoney(s.monto)}
+                                </p>
+                                <p className="text-xs" style={{ color: 'var(--text-subtle)' }}>{s.pagado ? 'pagado' : 'pendiente'}</p>
+                              </div>
+                            )}
+                            <button
+                              type="button"
+                              onClick={e => {
+                                e.stopPropagation()
+                                handleDeleteSesion(s)
+                              }}
+                              disabled={deletingSessionId === s.id}
+                              title="Eliminar sesión"
+                              className="h-7 w-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-80 disabled:opacity-50"
+                              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                <path d="M8 6V4h8v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M10 11v5M14 11v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
                       )
                     })}
                   </div>
@@ -1996,6 +2181,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                     const ep = pay.estado === 'pagado' ? { color: 'var(--success)', label: 'Pagado' }
                       : pay.estado === 'pendiente' ? { color: 'var(--warning)', label: 'Pendiente' }
                       : { color: 'var(--danger)', label: 'Devuelto' }
+                    const linkedSession = pay.sesion_id ? sesiones.find(s => s.id === pay.sesion_id) : null
                     return (
                       <div key={pay.id} className="flex items-center gap-3 rounded-xl px-3.5 py-3"
                         style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -2006,6 +2192,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
                           <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                             {fmtDate(pay.fecha)} · {pay.tipo.replace('_', ' ')}
                           </p>
+                          {linkedSession && (
+                            <p className="text-xs mt-1" style={{ color: 'var(--primary)' }}>
+                              Sesión: {fmtDate(linkedSession.fecha)}{linkedSession.hora_inicio ? ` · ${linkedSession.hora_inicio.slice(0, 5)}` : ''}
+                            </p>
+                          )}
                         </div>
                         <span className="text-xs px-2 py-0.5 rounded-lg font-medium flex-shrink-0"
                           style={{ background: `${ep.color}15`, color: ep.color }}>
@@ -2075,6 +2266,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
       >
         <PagoForm
           pacienteId={p.id}
+          sesiones={sesiones}
           onSuccess={() => { setPagoOpen(false); router.refresh() }}
           onCancel={() => setPagoOpen(false)}
         />

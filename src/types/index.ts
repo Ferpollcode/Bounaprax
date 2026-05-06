@@ -11,6 +11,7 @@ export interface Paciente {
   numero_afiliado?: string
   motivo_consulta?: string
   diagnostico?: string
+  hoja_ruta?: string
   estado: 'activo' | 'inactivo' | 'alta' | 'derivado'
   consultorio_id?: string
   // Facturación

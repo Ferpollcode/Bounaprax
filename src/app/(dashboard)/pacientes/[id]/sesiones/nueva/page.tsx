@@ -98,10 +98,6 @@ export default function NuevaSesionPage() {
     tipo:         'presencial',
     estado:       'realizada',
     observaciones: '',
-    tratamiento:   '',
-    objetivo:      '',
-    evolucion:     '',
-    proximos_pasos:'',
     monto:         '',
     pagado:        false,
   })
@@ -126,10 +122,6 @@ export default function NuevaSesionPage() {
       tipo:           form.tipo,
       estado:         form.estado,
       observaciones:  form.observaciones || null,
-      tratamiento:    form.tratamiento  || null,
-      objetivo:       form.objetivo     || null,
-      evolucion:      form.evolucion    || null,
-      proximos_pasos: form.proximos_pasos || null,
       monto:          form.monto ? parseFloat(form.monto) : null,
       pagado:         form.pagado,
     })
@@ -216,34 +208,6 @@ export default function NuevaSesionPage() {
               <Label text="Observaciones de la sesión" />
               <Textarea value={form.observaciones} onChange={set('observaciones')}
                 placeholder="¿Qué sucedió en la sesión? Resumen del encuentro…" rows={4} />
-            </div>
-            <div>
-              <Label text="Tratamiento aplicado" />
-              <Textarea value={form.tratamiento} onChange={set('tratamiento')}
-                placeholder="Técnicas o intervenciones utilizadas…" rows={2} />
-            </div>
-            <div>
-              <Label text="Objetivo de la sesión" />
-              <Textarea value={form.objetivo} onChange={set('objetivo')}
-                placeholder="Objetivos planteados para este encuentro…" rows={2} />
-            </div>
-          </Card>
-
-          {/* Evolución */}
-          <Card title="Evolución y seguimiento" icon={
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-              <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          }>
-            <div>
-              <Label text="Evolución del paciente" />
-              <Textarea value={form.evolucion} onChange={set('evolucion')}
-                placeholder="¿Cómo evolucionó el paciente? Cambios observados…" rows={3} />
-            </div>
-            <div>
-              <Label text="Próximos pasos" />
-              <Textarea value={form.proximos_pasos} onChange={set('proximos_pasos')}
-                placeholder="Tareas, indicaciones o puntos para la próxima sesión…" rows={2} />
             </div>
           </Card>
 

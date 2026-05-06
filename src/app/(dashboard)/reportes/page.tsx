@@ -20,8 +20,8 @@ export default async function ReportesPage({ searchParams }: { searchParams: Pro
     { data: pacientes },
     { data: { user } },
   ] = await Promise.all([
-    supabase.from('sesiones').select('id, fecha, estado, monto').gte('fecha', desde).lte('fecha', hasta),
-    supabase.from('pagos').select('id, fecha, monto, tipo, estado').gte('fecha', desde).lte('fecha', hasta),
+    supabase.from('sesiones').select('id, fecha, estado, monto, pagado').gte('fecha', desde).lte('fecha', hasta),
+    supabase.from('pagos').select('id, fecha, monto, tipo, estado, sesion_id').gte('fecha', desde).lte('fecha', hasta),
     supabase.from('pacientes').select('id, estado, created_at'),
     supabase.auth.getUser(),
   ])

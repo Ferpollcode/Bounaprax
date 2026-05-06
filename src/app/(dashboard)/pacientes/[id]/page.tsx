@@ -19,7 +19,7 @@ export default async function PacienteDetailPage({ params }: { params: Promise<{
     { data: { user } },
   ] = await Promise.all([
     supabase.from('pacientes').select('*').eq('id', id).single(),
-    supabase.from('sesiones').select('*').eq('paciente_id', id).order('fecha', { ascending: false }),
+    supabase.from('sesiones').select('*').eq('paciente_id', id).order('fecha', { ascending: true }),
     supabase.from('pagos').select('*').eq('paciente_id', id).order('fecha', { ascending: false }),
     supabase.from('documentos').select('*').eq('paciente_id', id).order('created_at', { ascending: false }),
     supabase.from('consultorios').select('id, nombre, color').eq('activo', true).order('nombre'),

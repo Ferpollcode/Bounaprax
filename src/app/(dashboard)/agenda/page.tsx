@@ -58,10 +58,6 @@ interface SesionWithPaciente {
   estado: string
   categoria: string | null
   observaciones: string | null
-  tratamiento: string | null
-  objetivo: string | null
-  evolucion: string | null
-  proximos_pasos: string | null
   monto: number | null
   pagado: boolean
   paciente_id: string
@@ -925,7 +921,6 @@ function NuevaSesionModal({
     categoria: '',
     consultorio_id: '',
     observaciones: '',
-    tratamiento: '', objetivo: '', evolucion: '', proximos_pasos: '',
     monto: '', pagado: false,
   })
   const [saving,   setSaving]   = useState(false)
@@ -942,7 +937,7 @@ function NuevaSesionModal({
     if (!open) {
       setSearch(''); setPacienteId(''); setSelectedPac(null); setShowDropdown(false); setError(''); setWaData(null)
       setRepetir(false); setSemanas(4)
-      setForm({ fecha: defaultDate, hora_inicio: '', hora_fin: '', tipo: 'presencial', estado: 'programada', categoria: '', consultorio_id: '', observaciones: '', tratamiento: '', objetivo: '', evolucion: '', proximos_pasos: '', monto: '', pagado: false })
+      setForm({ fecha: defaultDate, hora_inicio: '', hora_fin: '', tipo: 'presencial', estado: 'programada', categoria: '', consultorio_id: '', observaciones: '', monto: '', pagado: false })
     }
   }, [open, defaultDate])
 
@@ -977,10 +972,6 @@ function NuevaSesionModal({
       estado:          form.estado,
       categoria:       form.categoria   || null,
       observaciones:   form.observaciones || null,
-      tratamiento:     form.tratamiento || null,
-      objetivo:        form.objetivo || null,
-      evolucion:       form.evolucion || null,
-      proximos_pasos:  form.proximos_pasos || null,
       monto:           form.monto ? parseFloat(form.monto) : null,
       pagado:          form.pagado,
     }
@@ -1359,50 +1350,6 @@ function NuevaSesionModal({
             )}
           </div>
 
-          <div className="rounded-2xl p-4 space-y-4"
-            style={{ background: 'rgba(62,201,201,0.04)', border: '1px solid rgba(62,201,201,0.12)' }}>
-            <div>
-              <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: TEAL }}>
-                Plan de trabajo
-              </p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>
-                Registro clinico de la sesion y seguimiento.
-              </p>
-            </div>
-
-            <div>
-              <Label text="Como fue la sesion" />
-              <textarea value={form.evolucion} onChange={e => setStr('evolucion')(e.target.value)}
-                placeholder="Evaluacion de la sesion, respuesta del paciente, avances o dificultades observadas..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
-
-            <div>
-              <Label text="Actividades trabajadas" />
-              <textarea value={form.tratamiento} onChange={e => setStr('tratamiento')(e.target.value)}
-                placeholder="Actividades, tecnicas, intervenciones o ejercicios que se trabajaron..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
-
-            <div>
-              <Label text="Actividades a trabajar" />
-              <textarea value={form.objetivo} onChange={e => setStr('objetivo')(e.target.value)}
-                placeholder="Objetivos o actividades previstas para trabajar en la proxima etapa..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
-
-            <div>
-              <Label text="Proximos pasos" />
-              <textarea value={form.proximos_pasos} onChange={e => setStr('proximos_pasos')(e.target.value)}
-                placeholder="Tareas, indicaciones, ajustes del plan o puntos para la proxima sesion..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
-          </div>
-
           {error && (
             <div className="rounded-xl px-4 py-3 text-sm"
               style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: 'var(--danger)' }}>
@@ -1452,13 +1399,14 @@ function EditarSesionModal({
     tipo: 'presencial', estado: 'programada',
     categoria: '',
     consultorio_id: '', observaciones: '',
-    tratamiento: '', objetivo: '', evolucion: '', proximos_pasos: '',
     monto: '', pagado: false,
   })
   const [saving,         setSaving]         = useState(false)
   const [deleting,       setDeleting]       = useState(false)
   const [confirmDelete,  setConfirmDelete]  = useState(false)
   const [error,          setError]          = useState('')
+  const [roadmapStatus,  setRoadmapStatus]  = useState('')
+  const [addingRoadmap,  setAddingRoadmap]  = useState(false)
   const [showWa,         setShowWa]         = useState(false)
   const [waMensaje,      setWaMensaje]      = useState('')
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1474,14 +1422,10 @@ function EditarSesionModal({
         categoria:      sesion.categoria ?? '',
         consultorio_id: sesion.consultorio_id ?? '',
         observaciones:  sesion.observaciones ?? '',
-        tratamiento:    sesion.tratamiento ?? '',
-        objetivo:       sesion.objetivo ?? '',
-        evolucion:      sesion.evolucion ?? '',
-        proximos_pasos: sesion.proximos_pasos ?? '',
         monto:          sesion.monto != null ? String(sesion.monto) : '',
         pagado:         sesion.pagado,
       })
-      setError(''); setConfirmDelete(false); setSaving(false); setDeleting(false); setShowWa(false)
+      setError(''); setRoadmapStatus(''); setAddingRoadmap(false); setConfirmDelete(false); setSaving(false); setDeleting(false); setShowWa(false)
     }
   }, [sesion, open])
 
@@ -1508,10 +1452,6 @@ function EditarSesionModal({
         categoria:      form.categoria   || null,
         consultorio_id: form.consultorio_id || null,
         observaciones:  form.observaciones || null,
-        tratamiento:    form.tratamiento || null,
-        objetivo:       form.objetivo || null,
-        evolucion:      form.evolucion || null,
-        proximos_pasos: form.proximos_pasos || null,
         monto:          form.monto ? parseFloat(form.monto) : null,
         pagado:         form.pagado,
       }).eq('id', sesion.id)
@@ -1535,6 +1475,68 @@ function EditarSesionModal({
       await supabase.from('sesiones').delete().eq('id', sesion.id)
       onDeleted(); onClose()
     } catch { setDeleting(false) }
+  }
+
+  async function handleAddToRoadmap() {
+    if (!sesion) return
+    setAddingRoadmap(true)
+    setError('')
+    setRoadmapStatus('')
+
+    const fecha = new Date(form.fecha + 'T12:00:00').toLocaleDateString('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+    const estado = estadoConfig[form.estado]?.label ?? form.estado
+    const tipo = tipoConfig[form.tipo]?.label ?? form.tipo
+    const categoria = form.categoria ? CATEGORIA_OPCIONES.find(c => c.value === form.categoria)?.label : null
+    const horario = form.hora_inicio
+      ? `${form.hora_inicio.slice(0, 5)}${form.hora_fin ? `-${form.hora_fin.slice(0, 5)}` : ''}`
+      : null
+    const observaciones = form.observaciones.trim()
+
+    const entry = [
+      `## ${fecha} - ${estado}`,
+      `- Modalidad: ${tipo}`,
+      horario ? `- Horario: ${horario}` : null,
+      categoria ? `- Categoria: ${categoria}` : null,
+      observaciones ? `- Observaciones:\n${observaciones.split('\n').map(line => `  ${line}`).join('\n')}` : '- Observaciones: Sin observaciones cargadas.',
+    ].filter(Boolean).join('\n')
+
+    try {
+      const supabase = createClient()
+      const { data, error: fetchError } = await supabase
+        .from('pacientes')
+        .select('hoja_ruta')
+        .eq('id', sesion.paciente_id)
+        .single()
+
+      if (fetchError) {
+        setError('No se pudo leer la hoja de ruta del paciente.')
+        setAddingRoadmap(false)
+        return
+      }
+
+      const current = typeof data?.hoja_ruta === 'string' ? data.hoja_ruta.trimEnd() : ''
+      const next = current ? `${current}\n\n${entry}` : entry
+      const { error: updateError } = await supabase
+        .from('pacientes')
+        .update({ hoja_ruta: next })
+        .eq('id', sesion.paciente_id)
+
+      if (updateError) {
+        setError('No se pudo agregar la sesión a la hoja de ruta.')
+        setAddingRoadmap(false)
+        return
+      }
+
+      setRoadmapStatus('Sesión agregada a la hoja de ruta.')
+      setAddingRoadmap(false)
+    } catch {
+      setError('Error inesperado al actualizar la hoja de ruta.')
+      setAddingRoadmap(false)
+    }
   }
 
   if (!open || !sesion) return null
@@ -1705,48 +1707,44 @@ function EditarSesionModal({
               style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
           </div>
 
-          <div className="rounded-2xl p-4 space-y-4"
+          <div className="rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3"
             style={{ background: 'rgba(62,201,201,0.04)', border: '1px solid rgba(62,201,201,0.12)' }}>
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: TEAL }}>
-                Plan de trabajo
+                Hoja de ruta
               </p>
               <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>
-                Registro clinico de la sesion y seguimiento.
+                Anexa esta sesión al seguimiento general del paciente.
               </p>
+              {roadmapStatus && (
+                <p className="text-xs font-medium mt-2" style={{ color: 'var(--success)' }}>
+                  {roadmapStatus}
+                </p>
+              )}
             </div>
-
-            <div>
-              <Label text="Como fue la sesion" />
-              <textarea value={form.evolucion} onChange={e => setStr('evolucion')(e.target.value)}
-                placeholder="Evaluacion de la sesion, respuesta del paciente, avances o dificultades observadas..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
-
-            <div>
-              <Label text="Actividades trabajadas" />
-              <textarea value={form.tratamiento} onChange={e => setStr('tratamiento')(e.target.value)}
-                placeholder="Actividades, tecnicas, intervenciones o ejercicios que se trabajaron..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
-
-            <div>
-              <Label text="Actividades a trabajar" />
-              <textarea value={form.objetivo} onChange={e => setStr('objetivo')(e.target.value)}
-                placeholder="Objetivos o actividades previstas para trabajar en la proxima etapa..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
-
-            <div>
-              <Label text="Proximos pasos" />
-              <textarea value={form.proximos_pasos} onChange={e => setStr('proximos_pasos')(e.target.value)}
-                placeholder="Tareas, indicaciones, ajustes del plan o puntos para la proxima sesion..." rows={3}
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none transition-colors resize-none"
-                style={inputStyle} onFocus={focusTeal} onBlur={blurReset} />
-            </div>
+            <button
+              type="button"
+              onClick={handleAddToRoadmap}
+              disabled={addingRoadmap}
+              className="h-10 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-opacity hover:opacity-90 sm:flex-shrink-0"
+              style={{ background: addingRoadmap ? 'rgba(62,201,201,0.25)' : 'rgba(62,201,201,0.1)', border: '1px solid rgba(62,201,201,0.25)', color: TEAL, cursor: addingRoadmap ? 'not-allowed' : 'pointer' }}
+            >
+              {addingRoadmap ? (
+                <>
+                  <svg className="animate-spin" width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                  </svg>
+                  Agregando...
+                </>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round"/>
+                  </svg>
+                  Agregar a hoja
+                </>
+              )}
+            </button>
           </div>
 
           {error && (
@@ -1939,7 +1937,7 @@ export default function AgendaPage() {
 
     const { data } = await supabase
       .from('sesiones')
-      .select('id, fecha, hora_inicio, hora_fin, tipo, estado, categoria, observaciones, tratamiento, objetivo, evolucion, proximos_pasos, monto, pagado, paciente_id, consultorio_id, pacientes(nombre, apellido)')
+      .select('id, fecha, hora_inicio, hora_fin, tipo, estado, categoria, observaciones, monto, pagado, paciente_id, consultorio_id, pacientes(nombre, apellido)')
       .gte('fecha', toDateStr(fetchStart))
       .lte('fecha', toDateStr(fetchEnd))
       .order('hora_inicio', { ascending: true })

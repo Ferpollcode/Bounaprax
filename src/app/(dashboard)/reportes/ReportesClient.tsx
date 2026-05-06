@@ -7,8 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
 
 // ── Types ──────────────────────────────────────────────────────────────
-type Sesion   = { id: string; fecha: string; estado: string; monto: number | null }
-type Pago     = { id: string; fecha: string; monto: number; tipo: string; estado: string }
+type Sesion   = { id: string; fecha: string; estado: string; monto: number | null; pagado: boolean }
+type Pago     = { id: string; fecha: string; monto: number; tipo: string; estado: string; sesion_id?: string | null }
 type Paciente = { id: string; estado: string; created_at: string }
 
 interface Props {
@@ -22,7 +22,9 @@ interface Props {
 }
 
 type PagoRow = {
+  kind?: 'pago'
   id: string
+  sesion_id?: string | null
   fecha: string
   monto: number
   tipo: string
@@ -33,18 +35,35 @@ type PagoRow = {
   sesiones: { consultorios: { nombre: string; color: string } | null } | null
 }
 
+type SesionMoneyRow = {
+  kind: 'sesion'
+  id: string
+  fecha: string
+  monto: number
+  tipo: 'sesion'
+  concepto: string | null
+  estado: 'pagado' | 'pendiente'
+  created_at: string
+  pacientes: { nombre: string; apellido: string } | null
+  sesiones: { consultorios: { nombre: string; color: string } | null } | null
+}
+
+type MoneyRow = PagoRow | SesionMoneyRow
+
 type Period = 'semana' | 'mes' | 'todo'
 
 // ── Constants ──────────────────────────────────────────────────────────
 const TIPO_LABEL: Record<string, string> = {
   efectivo: 'Efectivo', transferencia: 'Transferencia',
   tarjeta: 'Tarjeta', obra_social: 'Obra social', otro: 'Otro',
+  sesion: 'Sesión',
 }
 const ESTADO_COLOR: Record<string, string> = {
   realizada: '#34D399', cancelada: '#F87171', inasistencia: '#FBBF24', programada: '#3EC9C9',
 }
 const TIPO_COLOR_BAR: Record<string, string> = {
   efectivo: '#34D399', transferencia: '#3EC9C9', tarjeta: '#818CF8', obra_social: '#F59E0B', otro: '#94A3B8',
+  sesion: '#22C55E',
 }
 const tipoColor: Record<string, string> = {
   efectivo:      'rgba(34,197,94,0.15)',
@@ -52,6 +71,7 @@ const tipoColor: Record<string, string> = {
   tarjeta:       'rgba(167,139,250,0.15)',
   obra_social:   'rgba(251,191,36,0.15)',
   otro:          'rgba(148,163,184,0.15)',
+  sesion:        'rgba(34,197,94,0.15)',
 }
 const tipoTextColor: Record<string, string> = {
   efectivo:      '#22C55E',
@@ -59,6 +79,7 @@ const tipoTextColor: Record<string, string> = {
   tarjeta:       '#B482FF',
   obra_social:   '#F59E0B',
   otro:          '#94A3B8',
+  sesion:        '#22C55E',
 }
 const estadoConfig: Record<string, { label: string; color: string; bg: string }> = {
   pagado:    { label: 'Pagado',    color: '#22C55E', bg: 'rgba(34,197,94,0.12)' },
@@ -167,8 +188,12 @@ export function ReportesClient({ sesiones, pagos, pacientes, mes, desde, hasta, 
   }
 
   const pagosPagados   = pagos.filter(p => p.estado === 'pagado')
+  const sesionesConPagoIds = new Set(pagos.map(p => p.sesion_id).filter(Boolean))
+  const sesionesConMonto = sesiones.filter(s => s.monto != null && !sesionesConPagoIds.has(s.id))
   const totalIngresos  = pagosPagados.reduce((s, p) => s + (p.monto ?? 0), 0)
+    + sesionesConMonto.filter(s => s.pagado).reduce((s, p) => s + (p.monto ?? 0), 0)
   const pendientes     = pagos.filter(p => p.estado === 'pendiente').reduce((s, p) => s + (p.monto ?? 0), 0)
+    + sesionesConMonto.filter(s => !s.pagado).reduce((s, p) => s + (p.monto ?? 0), 0)
 
   const realizadas     = sesiones.filter(s => s.estado === 'realizada').length
   const canceladas     = sesiones.filter(s => s.estado === 'cancelada').length
@@ -187,6 +212,9 @@ export function ReportesClient({ sesiones, pagos, pacientes, mes, desde, hasta, 
     acc[p.tipo] = (acc[p.tipo] || 0) + (p.monto ?? 0)
     return acc
   }, {})
+  sesionesConMonto.filter(s => s.pagado).forEach(s => {
+    pagosPorTipo.sesion = (pagosPorTipo.sesion || 0) + (s.monto ?? 0)
+  })
   const maxTipo = Math.max(...Object.values(pagosPorTipo), 1)
 
   const diasMes = new Date(year, month, 0).getDate()
@@ -200,7 +228,7 @@ export function ReportesClient({ sesiones, pagos, pacientes, mes, desde, hasta, 
   const fmt = (n: number) => `$${n.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`
 
   // ── Contabilidad ───────────────────────────────────────────────────
-  const [pagosRows, setPagosRows] = useState<PagoRow[]>([])
+  const [pagosRows, setPagosRows] = useState<MoneyRow[]>([])
   const [loadingCont, setLoadingCont] = useState(false)
   const [period, setPeriod] = useState<Period>('mes')
   const [filterTipo, setFilterTipo] = useState<string>('todos')
@@ -208,22 +236,58 @@ export function ReportesClient({ sesiones, pagos, pacientes, mes, desde, hasta, 
   const fetchPagos = useCallback(async (p: Period) => {
     setLoadingCont(true)
     const supabase = createClient()
-    let query = supabase
+    let pagosQuery = supabase
       .from('pagos')
-      .select('id, fecha, monto, tipo, concepto, estado, created_at, pacientes(nombre, apellido), sesiones(consultorios(nombre, color))')
+      .select('id, sesion_id, fecha, monto, tipo, concepto, estado, created_at, pacientes(nombre, apellido), sesiones(consultorios(nombre, color))')
+      .order('fecha', { ascending: false })
+      .order('created_at', { ascending: false })
+    let sesionesQuery = supabase
+      .from('sesiones')
+      .select('id, fecha, monto, pagado, estado, created_at, pacientes(nombre, apellido), consultorios(nombre, color)')
+      .not('monto', 'is', null)
       .order('fecha', { ascending: false })
       .order('created_at', { ascending: false })
 
     if (p === 'semana') {
       const { start, end } = getWeekBounds()
-      query = query.gte('fecha', start).lte('fecha', end)
+      pagosQuery = pagosQuery.gte('fecha', start).lte('fecha', end)
+      sesionesQuery = sesionesQuery.gte('fecha', start).lte('fecha', end)
     } else if (p === 'mes') {
       const { start, end } = getMonthBounds()
-      query = query.gte('fecha', start).lte('fecha', end)
+      pagosQuery = pagosQuery.gte('fecha', start).lte('fecha', end)
+      sesionesQuery = sesionesQuery.gte('fecha', start).lte('fecha', end)
     }
 
-    const { data } = await query
-    setPagosRows((data ?? []) as unknown as PagoRow[])
+    const [{ data: pagosData }, { data: sesionesData }] = await Promise.all([pagosQuery, sesionesQuery])
+    const linkedSessionIds = new Set(((pagosData ?? []) as unknown as PagoRow[]).map(pago => pago.sesion_id).filter(Boolean))
+    const sessionRows = ((sesionesData ?? []) as unknown as Array<{
+      id: string
+      fecha: string
+      monto: number | null
+      pagado: boolean
+      estado: string
+      created_at: string
+      pacientes: { nombre: string; apellido: string } | null
+      consultorios: { nombre: string; color: string } | null
+    }>)
+      .filter(s => !linkedSessionIds.has(s.id))
+      .map((s): SesionMoneyRow => ({
+      kind: 'sesion',
+      id: s.id,
+      fecha: s.fecha,
+      monto: Number(s.monto ?? 0),
+      tipo: 'sesion',
+      concepto: `Sesión ${s.estado}`,
+      estado: s.pagado ? 'pagado' : 'pendiente',
+      created_at: s.created_at,
+      pacientes: s.pacientes,
+      sesiones: { consultorios: s.consultorios },
+    }))
+    const rows = [
+      ...((pagosData ?? []) as unknown as PagoRow[]).map(pago => ({ ...pago, kind: 'pago' as const })),
+      ...sessionRows,
+    ].sort((a, b) => b.fecha.localeCompare(a.fecha) || b.created_at.localeCompare(a.created_at))
+    setPagosRows(rows)
     setLoadingCont(false)
   }, [])
 
