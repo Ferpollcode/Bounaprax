@@ -318,6 +318,150 @@ export function ReportesClient({ sesiones, pagos, pacientes, mes, desde, hasta, 
   const now = new Date()
   const mesActualLabel = `${MESES[now.getMonth()].toLowerCase()} ${now.getFullYear()}`
 
+  function xml(value: string | number) {
+    return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  }
+
+  function dataUrlToBytes(dataUrl: string) {
+    const binary = atob(dataUrl.split(',')[1])
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    return bytes
+  }
+
+  function downloadBlob(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  async function svgToJpegBytes(svg: string) {
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }))
+    try {
+      const img = new Image()
+      const loaded = new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = reject
+      })
+      img.src = url
+      await loaded
+      const canvas = document.createElement('canvas')
+      canvas.width = 1240
+      canvas.height = 1754
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('No canvas context')
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0)
+      return dataUrlToBytes(canvas.toDataURL('image/jpeg', 0.95))
+    } finally {
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  function statSvgCard(x: number, y: number, w: number, label: string, value: string, sub: string, color: string) {
+    return `<rect x="${x}" y="${y}" width="${w}" height="142" rx="20" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+      <text x="${x + 24}" y="${y + 42}" font-size="18" font-weight="800" letter-spacing="2" fill="#64748B">${xml(label.toUpperCase())}</text>
+      <text x="${x + 24}" y="${y + 92}" font-size="34" font-weight="900" fill="${color}">${xml(value)}</text>
+      <text x="${x + 24}" y="${y + 120}" font-size="17" fill="#64748B">${xml(sub)}</text>`
+  }
+
+  function barSvg(x: number, y: number, w: number, label: string, value: string, pct: number, color: string) {
+    const barWidth = Math.max(4, Math.round(w * Math.max(0, Math.min(1, pct))))
+    return `<text x="${x}" y="${y}" font-size="20" fill="#0F172A">${xml(label)}</text>
+      <text x="${x + w}" y="${y}" font-size="20" font-weight="800" fill="${color}" text-anchor="end">${xml(value)}</text>
+      <rect x="${x}" y="${y + 14}" width="${w}" height="14" rx="7" fill="#E2E8F0"/>
+      <rect x="${x}" y="${y + 14}" width="${barWidth}" height="14" rx="7" fill="${color}"/>`
+  }
+
+  function buildStatsReportSvg() {
+    const estadoBars = [
+      ['Realizadas', realizadas, ESTADO_COLOR.realizada],
+      ['Canceladas', canceladas, ESTADO_COLOR.cancelada],
+      ['Inasistencias', inasistencias, ESTADO_COLOR.inasistencia],
+      ['Programadas', programadas, ESTADO_COLOR.programada],
+    ] as const
+    const maxEstado = Math.max(sesiones.length, 1)
+    const tipoEntries = Object.entries(pagosPorTipo)
+    const tipoBars = tipoEntries.length > 0 ? tipoEntries : [['Sin cobros', 0] as [string, number]]
+    const dailyBars = sesionesPorDia.map((n, index) => {
+      const x = 74 + index * (1092 / diasMes)
+      const width = Math.max(8, 1092 / diasMes - 3)
+      const height = n > 0 ? Math.max(8, Math.round((n / maxDia) * 150)) : 3
+      return `<rect x="${x.toFixed(1)}" y="${(1360 - height).toFixed(1)}" width="${width.toFixed(1)}" height="${height}" rx="3" fill="${n > 0 ? '#3EC9C9' : '#CBD5E1'}"/>`
+    }).join('')
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1754" viewBox="0 0 1240 1754">
+      <rect width="1240" height="1754" fill="#FFFFFF"/>
+      <rect width="1240" height="190" fill="#0F172A"/>
+      <g font-family="Arial, Helvetica, sans-serif">
+        <text x="74" y="74" font-size="20" font-weight="900" letter-spacing="4" fill="#FF9F43">BOUNAPRAX - REPORTES</text>
+        <text x="74" y="130" font-size="44" font-weight="900" fill="#FFFFFF">${xml(MESES[month - 1])} ${year}</text>
+        <text x="74" y="166" font-size="20" fill="#CBD5E1">Periodo ${xml(desde)} al ${xml(hasta)} - Generado ${xml(new Date().toLocaleDateString('es-AR'))}</text>
+        ${statSvgCard(74, 240, 250, 'Ingresos', fmt(totalIngresos), pendientes > 0 ? `${fmt(pendientes)} pendiente` : 'Todo cobrado', '#16A34A')}
+        ${statSvgCard(350, 240, 250, 'Sesiones', String(realizadas), `de ${totalPasadas + programadas} totales`, '#0891B2')}
+        ${statSvgCard(626, 240, 250, 'Asistencia', `${tasaAsistencia}%`, `${inasistencias} inasistencias`, tasaAsistencia >= 80 ? '#16A34A' : tasaAsistencia >= 60 ? '#D97706' : '#DC2626')}
+        ${statSvgCard(902, 240, 264, 'Pacientes', String(pacientesActivos), pacientesNuevos > 0 ? `+${pacientesNuevos} nuevos` : 'Sin altas nuevas', '#6366F1')}
+        <text x="74" y="470" font-size="28" font-weight="900" fill="#0F172A">Sesiones por estado</text>
+        <rect x="74" y="498" width="500" height="350" rx="22" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+        ${estadoBars.map(([label, value, color], i) => barSvg(110, 560 + i * 68, 428, label, String(value), value / maxEstado, color)).join('')}
+        <text x="666" y="470" font-size="28" font-weight="900" fill="#0F172A">Ingresos por tipo</text>
+        <rect x="666" y="498" width="500" height="350" rx="22" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+        ${tipoBars.slice(0, 5).map(([tipo, total], i) => barSvg(702, 560 + i * 58, 428, TIPO_LABEL[tipo] ?? tipo, fmt(Number(total)), Number(total) / maxTipo, TIPO_COLOR_BAR[tipo] ?? '#64748B')).join('')}
+        <text x="74" y="940" font-size="28" font-weight="900" fill="#0F172A">Sesiones realizadas por dia</text>
+        <rect x="74" y="970" width="1092" height="430" rx="22" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="2"/>
+        <line x1="74" y1="1360" x2="1166" y2="1360" stroke="#CBD5E1" stroke-width="2"/>
+        ${dailyBars}
+        <text x="74" y="1436" font-size="18" fill="#64748B">1</text>
+        <text x="602" y="1436" font-size="18" fill="#64748B" text-anchor="middle">${Math.round(diasMes / 2)}</text>
+        <text x="1166" y="1436" font-size="18" fill="#64748B" text-anchor="end">${diasMes}</text>
+        <rect x="74" y="1510" width="1092" height="116" rx="18" fill="#FFF7ED" stroke="#FED7AA" stroke-width="2"/>
+        <text x="110" y="1558" font-size="22" font-weight="900" fill="#9A3412">Resumen</text>
+        <text x="110" y="1596" font-size="20" fill="#9A3412">Ingresos cobrados: ${xml(fmt(totalIngresos))} - Pendiente: ${xml(fmt(pendientes))} - Total de sesiones: ${sesiones.length}</text>
+        <text x="74" y="1682" font-size="17" fill="#94A3B8">PDF generado por Reportes con datos del periodo seleccionado.</text>
+      </g>
+    </svg>`
+  }
+
+  async function handleExportPdf() {
+    const jpegBytes = await svgToJpegBytes(buildStatsReportSvg())
+    const widthPt = 595.28
+    const heightPt = 841.89
+    const chunks: BlobPart[] = []
+    const offsets: number[] = []
+    let size = 0
+    const encode = (value: string) => new TextEncoder().encode(value)
+    const add = (value: string | Uint8Array) => {
+      const bytes = value instanceof Uint8Array ? value : encode(value)
+      chunks.push(bytes.slice().buffer)
+      size += bytes.length
+    }
+    const obj = (id: number, body: string) => {
+      offsets[id] = size
+      add(`${id} 0 obj\n${body}\nendobj\n`)
+    }
+    add('%PDF-1.4\n%binary\n')
+    obj(1, '<< /Type /Catalog /Pages 2 0 R >>')
+    obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>')
+    obj(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${widthPt} ${heightPt}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`)
+    offsets[4] = size
+    add(`4 0 obj\n<< /Type /XObject /Subtype /Image /Width 1240 /Height 1754 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`)
+    add(jpegBytes)
+    add('\nendstream\nendobj\n')
+    const content = `q\n${widthPt} 0 0 ${heightPt} 0 0 cm\n/Im0 Do\nQ\n`
+    obj(5, `<< /Length ${encode(content).length} >>\nstream\n${content}endstream`)
+    const xref = size
+    add('xref\n0 6\n0000000000 65535 f \n')
+    for (let i = 1; i <= 5; i++) add(`${String(offsets[i]).padStart(10, '0')} 00000 n \n`)
+    add(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`)
+    downloadBlob(new Blob(chunks, { type: 'application/pdf' }), `reporte-${mes}.pdf`)
+  }
+
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <>
@@ -381,7 +525,7 @@ export function ReportesClient({ sesiones, pagos, pacientes, mes, desde, hasta, 
                   <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </button>
-              <button onClick={() => window.print()}
+              <button onClick={handleExportPdf}
                 className="h-9 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 transition-opacity hover:opacity-80"
                 style={{ background: 'linear-gradient(135deg,#FF9F43,#E07A30)', color: '#fff' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

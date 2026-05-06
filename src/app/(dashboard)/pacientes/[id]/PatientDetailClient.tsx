@@ -476,12 +476,19 @@ function Modal({ open, onClose, title, subtitle, wide, children }: {
   )
 }
 
-function RoadmapSection({ paciente }: { paciente: Paciente }) {
+function RoadmapSection({ paciente, initialDocs }: { paciente: Paciente; initialDocs: DocWithPath[] }) {
+  const router = useRouter()
   const [content, setContent] = useState(paciente.hoja_ruta ?? '')
   const [draft, setDraft] = useState(paciente.hoja_ruta ?? '')
+  const [attachments, setAttachments] = useState<DocWithPath[]>(
+    initialDocs.filter(doc => doc.descripcion === 'hoja_ruta')
+  )
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const roadmapFileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleSave() {
     setSaving(true)
@@ -501,6 +508,82 @@ function RoadmapSection({ paciente }: { paciente: Paciente }) {
     setContent(draft)
     setSaving(false)
     setOpen(false)
+  }
+
+  async function handleUploadFiles(files: FileList | null) {
+    if (!files || files.length === 0) return
+    setUploading(true)
+    setError('')
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    const valid = Array.from(files).filter(file => allowed.includes(file.type) && file.size <= 20 * 1024 * 1024)
+    if (valid.length === 0) {
+      setError('No se pudo cargar. Usa imagenes, PDF o DOC de hasta 20 MB.')
+      setUploading(false)
+      return
+    }
+
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setError('No se pudo identificar el usuario.')
+      setUploading(false)
+      return
+    }
+
+    const uploaded: DocWithPath[] = []
+    for (const file of valid) {
+      const ext = file.name.split('.').pop()
+      const fileId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      const path = `${user.id}/${paciente.id}/hoja-ruta-${fileId}.${ext}`
+      const { error: upErr } = await supabase.storage.from('documentos').upload(path, file)
+      if (upErr) continue
+
+      const { data: { publicUrl } } = supabase.storage.from('documentos').getPublicUrl(path)
+      const { data: docData, error: docErr } = await supabase.from('documentos').insert({
+        paciente_id: paciente.id,
+        professional_id: user.id,
+        nombre: file.name.replace(/\.[^.]+$/, ''),
+        tipo: file.type.startsWith('image/') ? 'foto' : 'historia_clinica',
+        descripcion: 'hoja_ruta',
+        archivo_url: publicUrl,
+        archivo_nombre: file.name,
+        archivo_tipo: file.type,
+        archivo_tamanio: file.size,
+      }).select().single()
+
+      if (!docErr && docData) uploaded.push({ ...(docData as Documento), storagePath: path })
+    }
+
+    if (uploaded.length === 0) setError('No se pudo subir el archivo. Intenta de nuevo.')
+    setAttachments(prev => [...uploaded, ...prev])
+    if (roadmapFileInputRef.current) roadmapFileInputRef.current.value = ''
+    setUploading(false)
+    router.refresh()
+  }
+
+  async function handleDownloadAttachment(doc: DocWithPath) {
+    const supabase = createClient()
+    if (doc.storagePath) {
+      const { data } = await supabase.storage.from('documentos').createSignedUrl(doc.storagePath, 120)
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank')
+        return
+      }
+    }
+    window.open(doc.archivo_url, '_blank')
+  }
+
+  async function handleDeleteAttachment(doc: DocWithPath) {
+    if (!window.confirm(`Eliminar "${doc.nombre}" de la hoja de ruta?`)) return
+    setDeletingDocId(doc.id)
+    const supabase = createClient()
+    if (doc.storagePath) await supabase.storage.from('documentos').remove([doc.storagePath])
+    await supabase.from('documentos').delete().eq('id', doc.id)
+    setAttachments(prev => prev.filter(item => item.id !== doc.id))
+    setDeletingDocId(null)
+    router.refresh()
   }
 
   return (
@@ -581,7 +664,7 @@ function RoadmapSection({ paciente }: { paciente: Paciente }) {
               {error}
             </div>
           )}
-          <div className="flex-1 p-4 sm:p-6">
+          <div className="flex-1 p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-4 min-h-0">
             <textarea
               value={draft}
               onChange={e => setDraft(e.target.value)}
@@ -589,6 +672,86 @@ function RoadmapSection({ paciente }: { paciente: Paciente }) {
               className="w-full h-full resize-none rounded-2xl p-4 sm:p-5 text-sm sm:text-base leading-relaxed outline-none"
               style={{ background: 'var(--card)', border: '1px solid var(--border)', color: 'var(--foreground)' }}
             />
+            <aside className="rounded-2xl p-4 overflow-y-auto" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'var(--text-subtle)' }}>Archivos</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>Adjuntos de esta hoja de ruta.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => roadmapFileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="h-9 px-3 rounded-xl text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
+                  style={{ background: 'rgba(62,201,201,0.08)', border: '1px solid rgba(62,201,201,0.15)', color: TEAL }}
+                >
+                  {uploading ? 'Subiendo...' : 'Cargar'}
+                </button>
+                <input
+                  ref={roadmapFileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  accept="image/*,.pdf,.doc,.docx"
+                  onChange={e => handleUploadFiles(e.target.files)}
+                />
+              </div>
+
+              {attachments.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => roadmapFileInputRef.current?.click()}
+                  className="w-full rounded-xl p-4 text-center transition-opacity hover:opacity-80"
+                  style={{ border: '1px dashed rgba(62,201,201,0.35)', background: 'rgba(62,201,201,0.03)' }}
+                >
+                  <p className="text-sm font-medium" style={{ color: TEAL }}>Cargar archivos</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>Imagenes, PDF o DOC.</p>
+                </button>
+              ) : (
+                <div className="space-y-2">
+                  {attachments.map(doc => (
+                    <div key={doc.id} className="rounded-xl p-3 flex items-start gap-2.5"
+                      style={{ background: 'var(--overlay-sm)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <span className="text-base flex-shrink-0">{tipoIcono[doc.tipo] ?? '📎'}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium truncate" style={{ color: 'var(--foreground-muted)' }}>{doc.nombre}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
+                          {fmtDate(doc.created_at)}{doc.archivo_tamanio ? ` · ${formatBytes(doc.archivo_tamanio)}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadAttachment(doc)}
+                          title="Abrir"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center hover:opacity-80"
+                          style={{ background: 'rgba(62,201,201,0.12)' }}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke={TEAL} strokeWidth="2" strokeLinecap="round"/>
+                            <polyline points="7,10 12,15 17,10" stroke={TEAL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <line x1="12" y1="15" x2="12" y2="3" stroke={TEAL} strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAttachment(doc)}
+                          disabled={deletingDocId === doc.id}
+                          title="Eliminar"
+                          className="w-7 h-7 rounded-lg flex items-center justify-center hover:opacity-80 disabled:opacity-40"
+                          style={{ background: 'rgba(248,113,113,0.12)' }}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                            <polyline points="3,6 5,6 21,6" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M19 6l-1 14H6L5 6" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </aside>
           </div>
         </div>
       )}
@@ -1410,6 +1573,29 @@ export function PatientDetailClient({
     }
     const ep = estadoPago[pay.estado] ?? estadoPago.pagado
     const nroRecibo = pay.id.replace(/-/g, '').slice(-8).toUpperCase()
+    const fileBase = `recibo-${nroRecibo}`
+    const pacienteNombre = `${p.apellido}, ${p.nombre}`
+    const obraSocial = p.obra_social ? `${p.obra_social}${p.numero_afiliado ? ' · ' + p.numero_afiliado : ''}` : ''
+    const reciboMensaje = `Hola ${p.nombre}, te enviamos el recibo de ${fmtMoney(pay.monto)}.`
+    const telefonoRecibo = p.telefono?.replace(/\D/g, '') ?? ''
+    const whatsappUrl = telefonoRecibo
+      ? `https://wa.me/549${telefonoRecibo}?text=${encodeURIComponent(reciboMensaje)}`
+      : `https://wa.me/?text=${encodeURIComponent(reciboMensaje)}`
+    const receiptData = {
+      status: ep,
+      amount: fmtMoney(pay.monto),
+      concept: pay.concepto || 'Consulta',
+      generated: fechaHoy,
+      rows: [
+        ['Paciente', pacienteNombre],
+        ...(p.dni ? [['DNI', p.dni]] : []),
+        ...(obraSocial ? [['Obra social', obraSocial]] : []),
+        ['Fecha', fechaEmision],
+        ['Medio de pago', tipoPagoLabel[pay.tipo] ?? pay.tipo],
+        ...(proName ? [['Profesional', proName]] : []),
+      ],
+    }
+    const receiptDataJson = JSON.stringify(receiptData).replace(/</g, '\\u003c')
 
     const html = `<!DOCTYPE html>
 <html lang="es">
@@ -1476,8 +1662,127 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
   </div>
 </div>
 </body></html>`
+    const receiptHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recibo ${escapeHtml(nroRecibo)}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@page{size:A4 portrait;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#001633;background:#eef2f7;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:18px}
+.receipt{background:#fff;width:9cm;height:14cm;overflow:hidden;box-shadow:0 10px 36px rgba(15,23,42,.14);display:flex;flex-direction:column}
+.print-copy{display:none}
+.status{background:${ep.bg};height:.78cm;padding:0 .78cm;display:flex;align-items:center;gap:.18cm}
+.dot{width:.13cm;height:.13cm;border-radius:50%;background:${ep.dot};flex-shrink:0}
+.status-txt{font-size:10px;font-weight:900;color:${ep.fg};letter-spacing:.14em}
+.body{padding:.72cm .58cm .28cm;flex:1}
+.importe{text-align:center;padding:.12cm 0 .58cm;border-bottom:1.5px dashed #DDE3EA;margin-bottom:.54cm}
+.importe-lbl{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#A4ACBA;margin-bottom:.18cm}
+.importe-val{font-size:34px;line-height:1;font-weight:900;color:#001633;letter-spacing:0}
+.concepto{background:#FBFCFE;border:1px solid #E2E8F0;border-radius:10px;padding:.22cm .34cm;margin-bottom:.48cm}
+.concepto-lbl{font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#A4ACBA;margin-bottom:.1cm}
+.concepto-val{font-size:13px;color:#001633;font-weight:800;line-height:1.18}
+.row{display:flex;justify-content:space-between;align-items:center;gap:.35cm;padding:.18cm 0;border-bottom:1px solid #EEF2F7}
+.row:last-child{border-bottom:none}
+.rl{font-size:11px;color:#536078;font-weight:500}
+.rv{font-size:11px;color:#001633;font-weight:800;text-align:right;max-width:58%;line-height:1.16}
+.footer{height:1.7cm;background:#FBFCFE;border-top:1px solid #E2E8F0;padding:.24cm .58cm;display:flex;justify-content:space-between;align-items:flex-end;gap:.45cm}
+.footer-txt{font-size:9px;color:#98A2B3;line-height:1.35}
+.signature{width:3.3cm;text-align:center;color:#667085;font-size:9px;font-weight:700}
+.signature-line{border-top:1px solid #98A2B3;margin-bottom:.12cm}
+.controls{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:9cm}
+.btn{background:#fff;color:#001633;border:1px solid #D9E0EA;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:800;box-shadow:0 3px 10px rgba(15,23,42,.08)}
+.btn.primary{background:linear-gradient(135deg,#3EC9C9,#2BA8A8);color:#fff;border:none;box-shadow:0 6px 16px rgba(43,168,168,.28)}
+.hint{font-size:11px;color:#667085;text-align:center;max-width:9cm;line-height:1.4}
+@media print{html,body{width:21cm;height:29.7cm;background:#fff;padding:0;display:block}.receipt{width:9cm;height:14cm;box-shadow:none;margin:.7cm auto 0}.print-copy{display:flex!important;margin-top:.4cm}.controls,.hint{display:none!important}}
+</style>
+</head>
+<body>
+<div class="receipt" id="receipt">
+  <div class="status">
+    <div class="dot"></div>
+    <span class="status-txt">${escapeHtml(ep.label)}</span>
+  </div>
+  <div class="body">
+    <div class="importe">
+      <div class="importe-lbl">Importe</div>
+      <div class="importe-val">${escapeHtml(fmtMoney(pay.monto))}</div>
+    </div>
+    <div class="concepto">
+      <div class="concepto-lbl">Concepto</div>
+      <div class="concepto-val">${escapeHtml(pay.concepto || 'Consulta')}</div>
+    </div>
+    <div class="row"><span class="rl">Paciente</span><span class="rv">${escapeHtml(pacienteNombre)}</span></div>
+    ${p.dni ? `<div class="row"><span class="rl">DNI</span><span class="rv">${escapeHtml(p.dni)}</span></div>` : ''}
+    ${obraSocial ? `<div class="row"><span class="rl">Obra social</span><span class="rv">${escapeHtml(obraSocial)}</span></div>` : ''}
+    <div class="row"><span class="rl">Fecha</span><span class="rv">${escapeHtml(fechaEmision)}</span></div>
+    <div class="row"><span class="rl">Medio de pago</span><span class="rv">${escapeHtml(tipoPagoLabel[pay.tipo] ?? pay.tipo)}</span></div>
+    ${proName ? `<div class="row"><span class="rl">Profesional</span><span class="rv">${escapeHtml(proName)}</span></div>` : ''}
+  </div>
+  <div class="footer">
+    <div class="footer-txt">Generado el ${escapeHtml(fechaHoy)}<br>Bounaprax · Gestion de pacientes</div>
+    <div class="signature"><div class="signature-line"></div>Firma</div>
+  </div>
+</div>
+<div class="receipt print-copy">
+  <div class="status">
+    <div class="dot"></div>
+    <span class="status-txt">${escapeHtml(ep.label)}</span>
+  </div>
+  <div class="body">
+    <div class="importe">
+      <div class="importe-lbl">Importe</div>
+      <div class="importe-val">${escapeHtml(fmtMoney(pay.monto))}</div>
+    </div>
+    <div class="concepto">
+      <div class="concepto-lbl">Concepto</div>
+      <div class="concepto-val">${escapeHtml(pay.concepto || 'Consulta')}</div>
+    </div>
+    <div class="row"><span class="rl">Paciente</span><span class="rv">${escapeHtml(pacienteNombre)}</span></div>
+    ${p.dni ? `<div class="row"><span class="rl">DNI</span><span class="rv">${escapeHtml(p.dni)}</span></div>` : ''}
+    ${obraSocial ? `<div class="row"><span class="rl">Obra social</span><span class="rv">${escapeHtml(obraSocial)}</span></div>` : ''}
+    <div class="row"><span class="rl">Fecha</span><span class="rv">${escapeHtml(fechaEmision)}</span></div>
+    <div class="row"><span class="rl">Medio de pago</span><span class="rv">${escapeHtml(tipoPagoLabel[pay.tipo] ?? pay.tipo)}</span></div>
+    ${proName ? `<div class="row"><span class="rl">Profesional</span><span class="rv">${escapeHtml(proName)}</span></div>` : ''}
+  </div>
+  <div class="footer">
+    <div class="footer-txt">Generado el ${escapeHtml(fechaHoy)}<br>Bounaprax · Gestion de pacientes</div>
+    <div class="signature"><div class="signature-line"></div>Firma</div>
+  </div>
+</div>
+<div class="controls">
+  <button class="btn primary" onclick="window.print()">Imprimir / PDF</button>
+  <button class="btn" onclick="shareImage()">WhatsApp imagen</button>
+  <button class="btn" onclick="sharePdf()">WhatsApp PDF</button>
+  <button class="btn" onclick="downloadImage()">Descargar imagen</button>
+  <button class="btn" onclick="downloadPdf()">Descargar PDF</button>
+</div>
+<div class="hint">WhatsApp no permite adjuntar archivos automaticamente desde un enlace. Si el navegador no abre el menu de compartir, se descarga el archivo y se abre WhatsApp para adjuntarlo manualmente.</div>
+<script>
+const FILE_BASE = '${escapeHtml(fileBase)}';
+const SHARE_TEXT = 'Recibo Bounaprax ${escapeHtml(nroRecibo)} - ${escapeHtml(pacienteNombre)}';
+const WHATSAPP_URL = '${escapeHtml(whatsappUrl)}';
+const RECEIPT = ${receiptDataJson};
+function bytesFromString(value){return new TextEncoder().encode(value)}
+function dataUrlToBytes(dataUrl){const binary=atob(dataUrl.split(',')[1]);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return bytes}
+function downloadBlob(blob,filename){const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url)}
+function xml(value){return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function clip(value,max){const text=String(value??'');return text.length>max?text.slice(0,max-1)+'…':text}
+function receiptSvg(){let rows='';let y=640;for(const row of RECEIPT.rows){rows+='<line x1="58" y1="'+(y+34)+'" x2="842" y2="'+(y+34)+'" stroke="#EEF2F7" stroke-width="2"/><text x="58" y="'+y+'" font-size="22" fill="#536078" font-weight="500">'+xml(row[0])+'</text><text x="842" y="'+y+'" font-size="22" fill="#001633" font-weight="800" text-anchor="end">'+xml(clip(row[1],28))+'</text>';y+=62}return '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1400" viewBox="0 0 900 1400"><rect width="900" height="1400" fill="#ffffff"/><rect width="900" height="78" fill="'+xml(RECEIPT.status.bg)+'"/><circle cx="82" cy="39" r="7" fill="'+xml(RECEIPT.status.dot)+'"/><text x="106" y="47" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="900" letter-spacing="3" fill="'+xml(RECEIPT.status.fg)+'">'+xml(RECEIPT.status.label)+'</text><text x="450" y="205" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="800" letter-spacing="4" fill="#A4ACBA">IMPORTE</text><text x="450" y="282" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="66" font-weight="900" fill="#001633">'+xml(RECEIPT.amount)+'</text><line x1="58" y1="366" x2="842" y2="366" stroke="#DDE3EA" stroke-width="3" stroke-dasharray="14 10"/><rect x="58" y="410" width="784" height="92" rx="16" fill="#FBFCFE" stroke="#E2E8F0" stroke-width="2"/><text x="90" y="450" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="800" letter-spacing="3" fill="#A4ACBA">CONCEPTO</text><text x="90" y="486" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="800" fill="#001633">'+xml(clip(RECEIPT.concept,31))+'</text><g font-family="Arial, Helvetica, sans-serif">'+rows+'</g><rect x="0" y="1230" width="900" height="170" fill="#FBFCFE"/><line x1="0" y1="1230" x2="900" y2="1230" stroke="#E2E8F0" stroke-width="2"/><text x="58" y="1300" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#98A2B3">Generado el '+xml(RECEIPT.generated)+'</text><text x="58" y="1330" font-family="Arial, Helvetica, sans-serif" font-size="18" fill="#98A2B3">Bounaprax · Gestion de pacientes</text><line x1="518" y1="1298" x2="842" y2="1298" stroke="#98A2B3" stroke-width="2"/><text x="680" y="1336" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#667085">Firma</text></svg>'}
+async function receiptCanvas(){const svg=receiptSvg();const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));try{const img=new Image();const loaded=new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject});img.src=url;await loaded;const canvas=document.createElement('canvas');canvas.width=900;canvas.height=1400;const ctx=canvas.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0);return canvas}finally{URL.revokeObjectURL(url)}}
+async function imageFile(){const canvas=await receiptCanvas();const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png',1));return new File([blob],FILE_BASE+'.png',{type:'image/png'})}
+async function pdfFile(){const canvas=await receiptCanvas();const jpegBytes=dataUrlToBytes(canvas.toDataURL('image/jpeg',.94));const widthPt=255.12;const heightPt=396.85;const chunks=[];const offsets=[];let size=0;const add=value=>{const bytes=value instanceof Uint8Array?value:bytesFromString(value);chunks.push(bytes);size+=bytes.length};const obj=(id,body)=>{offsets[id]=size;add(id+' 0 obj\\n'+body+'\\nendobj\\n')};add('%PDF-1.4\\n%binary\\n');obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');obj(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+widthPt+' '+heightPt+'] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');offsets[4]=size;add('4 0 obj\\n<< /Type /XObject /Subtype /Image /Width '+canvas.width+' /Height '+canvas.height+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpegBytes.length+' >>\\nstream\\n');add(jpegBytes);add('\\nendstream\\nendobj\\n');const content='q\\n'+widthPt+' 0 0 '+heightPt+' 0 0 cm\\n/Im0 Do\\nQ\\n';obj(5,'<< /Length '+bytesFromString(content).length+' >>\\nstream\\n'+content+'endstream');const xref=size;add('xref\\n0 6\\n0000000000 65535 f \\n');for(let i=1;i<=5;i++)add(String(offsets[i]).padStart(10,'0')+' 00000 n \\n');add('trailer\\n<< /Size 6 /Root 1 0 R >>\\nstartxref\\n'+xref+'\\n%%EOF');return new File(chunks,FILE_BASE+'.pdf',{type:'application/pdf'})}
+function openWhatsApp(){window.open(WHATSAPP_URL,'_blank','noopener,noreferrer')}
+async function shareFile(file){if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:SHARE_TEXT,text:SHARE_TEXT});return}downloadBlob(file,file.name);openWhatsApp()}
+async function shareImage(){try{await shareFile(await imageFile())}catch(error){alert('No se pudo generar la imagen. Usa Imprimir / PDF o intenta desde Chrome actualizado.');console.error(error)}}
+async function sharePdf(){try{await shareFile(await pdfFile())}catch(error){alert('No se pudo generar el PDF. Usa Imprimir / PDF o intenta desde Chrome actualizado.');console.error(error)}}
+async function downloadImage(){try{const file=await imageFile();downloadBlob(file,file.name)}catch(error){alert('No se pudo descargar la imagen.');console.error(error)}}
+async function downloadPdf(){try{const file=await pdfFile();downloadBlob(file,file.name)}catch(error){alert('No se pudo descargar el PDF.');console.error(error)}}
+</script>
+</body></html>`
     const w = window.open('', '_blank')
-    if (w) { w.document.write(html); w.document.close() }
+    if (w) { w.document.write(receiptHtml); w.document.close() }
   }
 
   async function handleDownloadAll() {
@@ -2008,7 +2313,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;c
           {/* ── Columna derecha ── */}
           <div className="lg:col-span-2 space-y-4">
 
-            <RoadmapSection paciente={p} />
+            <RoadmapSection paciente={p} initialDocs={docs} />
 
             {/* Sesiones */}
             <div className="rounded-2xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
