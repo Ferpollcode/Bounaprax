@@ -14,6 +14,8 @@ Buonaprax es una aplicación web pensada para profesionales de la salud que quie
 
 ### 🧑‍⚕️ Pacientes
 - Historia clínica digital completa
+- Hoja de ruta editable por paciente para seguimiento sesión a sesión
+- Vista previa de la hoja de ruta y editor en pantalla completa
 - Datos personales, DNI, obra social, número de afiliado
 - Diagnóstico y motivo de consulta
 - Estado del tratamiento: activo, inactivo, alta, derivado
@@ -25,16 +27,22 @@ Buonaprax es una aplicación web pensada para profesionales de la salud que quie
 
 ### 📝 Sesiones
 - Sesiones presenciales o virtuales
-- Registro de evolución, tratamiento, objetivos y próximos pasos
+- Registro de observaciones, honorarios y estado de cobro
+- Posibilidad de agregar el resumen de una sesión a la hoja de ruta del paciente
+- Eliminación de sesiones desde la ficha del paciente
 - Estados: programada, realizada, cancelada, inasistencia
 
 ### 💰 Pagos
 - Registro por sesión o independiente
+- Asociación opcional de pagos con una sesión específica
+- Sincronización del estado de cobro de la sesión cuando se registra un pago asociado
 - Tipos: efectivo, transferencia, tarjeta, obra social, otro
 - Estados: pagado, pendiente, devuelto
 
 ### 📎 Documentos
 - Adjuntar archivos al perfil del paciente
+- Actualización inmediata de la lista de documentos luego de subir un archivo
+- Descarga segura mediante URLs firmadas
 - Tipos: informe, foto, análisis, test, historia clínica, otro
 - Almacenamiento privado con acceso seguro
 
@@ -48,10 +56,10 @@ Buonaprax es una aplicación web pensada para profesionales de la salud que quie
 
 ### 📊 Reportes *(Plan Pro)*
 - Estadísticas mensuales: sesiones, asistencias, inasistencias
-- Contabilidad: ingresos por tipo de pago, comparativa mensual
+- Contabilidad: ingresos por tipo de pago, pagos asociados a sesiones y comparativa mensual
 
 ### 🧾 Exportaciones *(Plan Pro)*
-- Historia clínica en PDF por paciente
+- Hoja de ruta clínica en PDF por paciente
 - Planilla de asistencias mensual en PDF
 - Envío directo por WhatsApp
 
@@ -70,7 +78,7 @@ Buonaprax es una aplicación web pensada para profesionales de la salud que quie
 | Documentos y archivos | ✓ | ✓ |
 | Multi-consultorio | ✓ | ✓ |
 | Reportes y estadísticas | — | ✓ |
-| Historia clínica PDF | — | ✓ |
+| Hoja de ruta clínica PDF | — | ✓ |
 | Planilla de asistencias PDF | — | ✓ |
 | Envío por WhatsApp | — | ✓ |
 | Notas de voz en sesiones | — | ✓ |
@@ -216,7 +224,7 @@ Abrir [http://localhost:3000](http://localhost:3000)
 {
   id, professional_id, nombre, apellido, fecha_nacimiento, dni,
   email, telefono, obra_social, numero_afiliado,
-  motivo_consulta, diagnostico,
+  motivo_consulta, diagnostico, hoja_ruta,
   estado: 'activo' | 'inactivo' | 'alta' | 'derivado',
   consultorio_id, created_at, updated_at
 }
@@ -229,6 +237,7 @@ Abrir [http://localhost:3000](http://localhost:3000)
   fecha, hora_inicio, hora_fin,
   tipo: 'presencial' | 'virtual',
   estado: 'programada' | 'realizada' | 'cancelada' | 'inasistencia',
+  categoria,
   observaciones, tratamiento, objetivo, evolucion, proximos_pasos,
   monto, pagado, created_at
 }
@@ -268,7 +277,7 @@ Abrir [http://localhost:3000](http://localhost:3000)
 | Pagos y documentos | ✓ | ✓ |
 | Multi-consultorio | ✓ | ✓ |
 | Reportes y estadísticas | — | ✓ |
-| Historia clínica PDF | — | ✓ |
+| Hoja de ruta clínica PDF | — | ✓ |
 | Planilla de asistencias PDF | — | ✓ |
 | Envío por WhatsApp | — | ✓ |
 | Notas de voz en sesiones | — | ✓ |
