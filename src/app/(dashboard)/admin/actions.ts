@@ -124,6 +124,32 @@ export async function deleteUser(userId: string) {
   return { success: true }
 }
 
+export async function resetUserPassword(userId: string, password: string) {
+  await assertAdmin()
+
+  const temporaryPassword = password.trim()
+  if (!temporaryPassword || temporaryPassword.length < 8) {
+    return { error: 'La contraseña temporal debe tener al menos 8 caracteres.' }
+  }
+
+  const admin = getAdminClient()
+  const { data: currentUser, error: getUserError } = await admin.auth.admin.getUserById(userId)
+  if (getUserError || !currentUser.user) {
+    return { error: getUserError?.message ?? 'No se encontró el usuario.' }
+  }
+
+  const { error } = await admin.auth.admin.updateUserById(userId, {
+    password: temporaryPassword,
+    user_metadata: {
+      ...(currentUser.user.user_metadata ?? {}),
+      must_change_password: true,
+    },
+  })
+
+  if (error) return { error: error.message }
+  return { success: true }
+}
+
 export async function setAdminPermission(userId: string, isAdmin: boolean) {
   const currentUserId = await assertAdmin()
 

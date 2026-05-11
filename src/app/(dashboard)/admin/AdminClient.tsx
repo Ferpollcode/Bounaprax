@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { createUser, deleteUser, setAdminPermission, setUserAccessPlan } from './actions'
+import { createUser, deleteUser, resetUserPassword, setAdminPermission, setUserAccessPlan } from './actions'
 import { formatAccessDate, getAccessExpiresAt, hasOptimizaAccess, isOptimizaPlan } from '@/lib/access'
 
 type UserRow = {
@@ -190,6 +190,150 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
   )
 }
 
+function ResetPasswordModal({
+  user,
+  onClose,
+  onReset,
+}: {
+  user: UserRow
+  onClose: () => void
+  onReset: (user: UserRow, password: string) => Promise<boolean>
+}) {
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState('')
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError('')
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.')
+      return
+    }
+    if (password.length < 8) {
+      setError('La contraseña temporal debe tener al menos 8 caracteres.')
+      return
+    }
+    startTransition(async () => {
+      const ok = await onReset(user, password)
+      if (ok) onClose()
+      else setError('No se pudo cambiar la contraseña.')
+    })
+  }
+
+  const inputCls = 'w-full h-10 px-3.5 rounded-xl text-sm outline-none transition-colors'
+  const inputStyle: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid var(--border)',
+    color: 'var(--foreground)',
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}>
+      <div className="w-full max-w-sm rounded-2xl p-6 anim-fade-up"
+        style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="flex items-start justify-between gap-3 mb-5">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--text-subtle)' }}>
+              Contraseña
+            </p>
+            <h2 className="text-base font-bold truncate" style={{ color: 'var(--foreground)', fontFamily: 'var(--font-display)' }}>
+              {displayName(user.email)}
+            </h2>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70"
+            style={{ background: 'var(--overlay-sm)', color: 'var(--muted-foreground)' }}
+            aria-label="Cerrar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--muted-foreground)' }}>
+              Contraseña temporal
+            </p>
+            <div className="relative">
+              <input
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Mínimo 8 caracteres"
+                required
+                minLength={8}
+                autoComplete="new-password"
+                className={`${inputCls} pr-10`}
+                style={inputStyle}
+              />
+              <button type="button" onClick={() => setShowPassword(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-80"
+                style={{ color: 'var(--muted-foreground)' }}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                {showPassword ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    <line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--muted-foreground)' }}>
+              Confirmar contraseña
+            </p>
+            <input
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              type="password"
+              placeholder="Repetí la contraseña"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              className={inputCls}
+              style={inputStyle}
+            />
+            <p className="text-[10px] mt-1" style={{ color: 'var(--text-subtle)' }}>
+              Al ingresar, el usuario deberá elegir una contraseña propia.
+            </p>
+          </div>
+
+          {error && (
+            <div className="rounded-xl px-4 py-3 text-sm"
+              style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171' }}>
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-2 pt-1">
+            <button type="button" onClick={onClose}
+              className="flex-1 h-10 rounded-xl text-sm font-medium transition-opacity hover:opacity-70"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', color: 'var(--muted-foreground)' }}>
+              Cancelar
+            </button>
+            <button type="submit" disabled={pending}
+              className="flex-1 h-10 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg,#3EC9C9,#2BA8A8)', color: '#fff' }}>
+              {pending ? 'Guardando...' : 'Guardar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ── Componente principal ───────────────────────────────────────────────
 export function AdminClient({
   initialUsers,
@@ -205,6 +349,7 @@ export function AdminClient({
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<UserRow | null>(null)
+  const [resetPasswordUser, setResetPasswordUser] = useState<UserRow | null>(null)
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackRow | null>(null)
   const [adminError, setAdminError] = useState('')
 
@@ -248,6 +393,19 @@ export function AdminClient({
     setLoadingId(null)
   }
 
+  async function handleResetPassword(user: UserRow, password: string) {
+    setLoadingId(user.id + '_password')
+    setAdminError('')
+    const res = await resetUserPassword(user.id, password)
+    if (res.error) {
+      setAdminError(res.error)
+      setLoadingId(null)
+      return false
+    }
+    setLoadingId(null)
+    return true
+  }
+
   function handleCreated() {
     setShowCreate(false)
     router.refresh()
@@ -261,6 +419,13 @@ export function AdminClient({
   return (
     <>
       {showCreate && <CreateUserModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />}
+      {resetPasswordUser && (
+        <ResetPasswordModal
+          user={resetPasswordUser}
+          onClose={() => setResetPasswordUser(null)}
+          onReset={handleResetPassword}
+        />
+      )}
 
       {selectedFeedback && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -501,6 +666,21 @@ export function AdminClient({
                   </td>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2">
+                      <button onClick={() => setResetPasswordUser(u)}
+                        disabled={loadingId === u.id + '_password'}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70 disabled:opacity-40"
+                        style={{ background: 'rgba(62,201,201,0.1)', color: '#3EC9C9' }}
+                        title="Cambiar contraseña">
+                        {loadingId === u.id + '_password'
+                          ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                            </svg>
+                          : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                              <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2"/>
+                              <path d="M8 10V7a4 4 0 0 1 7.4-2.1M14 6l1.5-1.5L17 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        }
+                      </button>
                       <button onClick={() => handleSetAdmin(u, !u.is_admin)}
                         disabled={loadingId === u.id + '_admin' || (u.is_admin && u.id === currentUserId)}
                         className="w-7 h-7 rounded-lg flex items-center justify-center transition-opacity hover:opacity-70 disabled:opacity-40"
@@ -612,6 +792,21 @@ export function AdminClient({
                             ? <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                             : <path d="M9 12l2 2 4-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                           }
+                        </svg>
+                    }
+                  </button>
+                  <button onClick={() => setResetPasswordUser(u)}
+                    disabled={loadingId === u.id + '_password'}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center disabled:opacity-40"
+                    style={{ background: 'rgba(62,201,201,0.1)', color: '#3EC9C9' }}
+                    title="Cambiar contraseña">
+                    {loadingId === u.id + '_password'
+                      ? <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="60" strokeDashoffset="20"/>
+                        </svg>
+                      : <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                          <rect x="4" y="10" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2"/>
+                          <path d="M8 10V7a4 4 0 0 1 7.4-2.1M14 6l1.5-1.5L17 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     }
                   </button>
