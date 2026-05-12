@@ -9,6 +9,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
+  if (request.nextUrl.pathname === '/buonaprax-presentacion.html') {
+    return NextResponse.next()
+  }
+
   return await updateSession(request)
 }
 

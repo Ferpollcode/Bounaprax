@@ -2,10 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { BounapraxLogo } from '@/components/BounapraxLogo'
-
-const INTERNAL_DOMAIN = '@bounaprax.com'
+import { loginWithCredentials } from './actions'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,14 +17,12 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const supabase = createClient()
-    const email = username.trim().toLowerCase() + INTERNAL_DOMAIN
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
+    const res = await loginWithCredentials(username, password)
+    if (res.error) {
       setError('Usuario o contraseña incorrectos.')
       setLoading(false)
     } else {
-      const mustChange = data.user?.user_metadata?.must_change_password === true
+      const mustChange = res.mustChangePassword === true
       router.push(mustChange ? '/cambiar-contrasena' : '/inicio')
       router.refresh()
     }

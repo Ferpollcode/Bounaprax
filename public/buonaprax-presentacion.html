@@ -91,8 +91,10 @@
       color: var(--muted);
     }
     .nav-login {
-      grid-column: 1;
-      justify-self: start;
+      position: fixed;
+      top: 18px;
+      left: 40px;
+      z-index: 101;
       color: var(--text);
       font-size: 14px;
       font-weight: 700;
@@ -510,7 +512,7 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       nav { padding: 14px 16px; }
-      .nav-login { font-size: 13px; }
+      .nav-login { top: 17px; left: 16px; font-size: 13px; }
       .nav-logo-name { font-size: 26px; }
       .nav-logo-tagline { display: none; }
       .nav-cta { padding: 9px 14px; font-size: 12px; }
