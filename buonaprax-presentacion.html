@@ -37,6 +37,7 @@
       color: var(--text);
       line-height: 1.6;
       overflow-x: hidden;
+      min-width: 0;
     }
     body > section,
     body > footer {
@@ -271,7 +272,7 @@
     .features-bg { background: var(--white); }
     .features-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
       gap: 24px;
     }
     .features-grid + .features-grid { margin-top: 24px; }
@@ -355,7 +356,7 @@
     .pricing-bg { background: var(--white); }
     .pricing-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
       gap: 24px;
       max-width: 1060px;
       margin: 0 auto;
@@ -461,7 +462,7 @@
     .why-bg { background: linear-gradient(155deg, #F0F7FF, #F5F0FF); }
     .why-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
       gap: 20px;
     }
     .why-card {
@@ -524,53 +525,53 @@
         gap: 16px;
         padding: 14px 24px;
       }
-      .nav-logo { grid-column: 2; }
-      .nav-logo-name { font-size: 28px; }
+      .nav-logo {
+        grid-column: 2;
+        min-width: 0;
+      }
+      .nav-logo-name {
+        max-width: 100%;
+        font-size: clamp(26px, 6vw, 30px);
+        letter-spacing: 0;
+      }
       .nav-cta {
         max-width: 190px;
         white-space: normal;
         line-height: 1.15;
       }
-      .features-grid {
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 760px) {
       nav {
-        grid-template-columns: 1fr auto;
-        gap: 10px 14px;
+        grid-template-columns: auto 1fr auto;
+        gap: 12px;
         padding: 12px 16px;
       }
       .nav-login {
         grid-column: 1;
-        grid-row: 2;
         font-size: 13px;
       }
-      .nav-logo {
-        grid-column: 1 / -1;
-        grid-row: 1;
-        justify-self: center;
-      }
-      .nav-logo-name { font-size: 27px; }
       .nav-logo-tagline { display: none; }
       .nav-cta {
-        grid-column: 2;
-        grid-row: 2;
-        max-width: 168px;
+        grid-column: 3;
         padding: 9px 12px;
         font-size: 12px;
       }
-      .hero { min-height: auto; padding: 132px 20px 60px; }
-      .hero-badge {
-        justify-content: center;
-        border-radius: 18px;
-        padding: 8px 14px;
-        line-height: 1.35;
+      .hero {
+        min-height: auto;
+        padding: 112px 20px 68px;
       }
-      .hero h1 { font-size: clamp(38px, 12vw, 50px); }
-      .hero p { font-size: 16px; margin-bottom: 32px; }
-      .hero-actions { flex-direction: column; align-items: stretch; }
+      .hero h1 { font-size: clamp(36px, 12vw, 48px); }
+      .hero p {
+        font-size: 16px;
+        margin-bottom: 32px;
+      }
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+        max-width: 360px;
+        margin: 0 auto;
+      }
       .btn-primary,
       .btn-secondary,
       .btn-cta-white {
@@ -578,44 +579,131 @@
         max-width: 360px;
         margin-left: auto;
         margin-right: auto;
-        padding-left: 20px;
-        padding-right: 20px;
+        padding-inline: 20px;
+        text-align: center;
       }
-      section { padding: 64px 20px; }
-      .section-sub { margin-bottom: 36px; }
+      .hero-strip { margin-top: 40px; }
+      .hero-strip span {
+        flex: 1;
+        max-width: 48px;
+      }
+      section,
+      .cta-section {
+        padding: 64px 20px;
+      }
+      .section-title,
+      .cta-section h2 {
+        font-size: clamp(30px, 10vw, 40px);
+      }
+      .section-title br,
+      .cta-section h2 br {
+        display: none;
+      }
+      .section-sub {
+        font-size: 16px;
+        margin-bottom: 36px;
+      }
       .features-grid,
       .pricing-grid,
       .why-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
       }
       .feature-card,
       .pricing-card,
       .why-card {
         border-radius: 16px;
       }
-      .feature-card { padding: 26px 22px; }
-      .pricing-card { padding: 34px 24px; }
+      .feature-card { padding: 24px; }
+      .steps { max-width: none; }
+      .step {
+        gap: 16px;
+        padding-bottom: 32px;
+      }
+      .step:not(:last-child)::after {
+        left: 19px;
+        top: 46px;
+      }
+      .step-num {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+      .step-body h3 { padding-top: 6px; }
+      .pro-section-label {
+        margin: 40px 0 24px;
+        white-space: normal;
+      }
+      .pricing-card { padding: 34px 24px 28px; }
+      .pricing-price { font-size: clamp(42px, 13vw, 52px); }
       .pricing-features li { font-size: 14px; }
-      .step { gap: 16px; padding-bottom: 32px; }
-      .cta-section { padding: 72px 20px; }
-      .cta-section p { font-size: 16px; }
+      .why-card { padding: 24px 20px; }
+      .cta-section p {
+        font-size: 16px;
+        margin-bottom: 32px;
+      }
+      .cta-note { overflow-wrap: anywhere; }
       footer { padding: 28px 20px; }
     }
 
-    @media (max-width: 420px) {
-      nav { gap: 9px 10px; }
-      .nav-logo-name { font-size: 25px; }
-      .nav-login { font-size: 12px; }
-      .nav-cta { max-width: 148px; padding: 8px 10px; font-size: 11px; }
+    @media (max-width: 430px) {
+      nav {
+        grid-template-columns: 1fr auto;
+        gap: 6px 10px;
+        padding: 10px 14px;
+      }
+      .nav-login {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+        font-size: 12px;
+      }
+      .nav-logo {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: start;
+        align-items: flex-start;
+      }
+      .nav-logo-name { font-size: 28px; }
+      .nav-cta {
+        grid-column: 2;
+        grid-row: 1;
+        max-width: 148px;
+        padding: 8px 10px;
+        font-size: 11px;
+      }
       .hero { padding: 128px 16px 52px; }
-      .hero-badge { font-size: 12px; }
+      .hero-badge {
+        max-width: 100%;
+        border-radius: 18px;
+        padding: 8px 14px;
+        font-size: 12px;
+        line-height: 1.35;
+        text-align: left;
+      }
       .hero h1 { font-size: 36px; }
-      .hero-strip { gap: 6px; margin-top: 40px; }
+      .blob {
+        filter: blur(44px);
+        opacity: .38;
+      }
+      .blob-1 { width: 260px; height: 260px; top: -90px; left: -100px; }
+      .blob-2 { width: 220px; height: 220px; right: -110px; }
+      .blob-3 { width: 220px; height: 220px; left: 20%; }
+      .blob-4 { width: 180px; height: 180px; left: -80px; }
+      .hero-strip {
+        gap: 6px;
+        margin-top: 40px;
+      }
       section { padding: 56px 16px; }
       .feature-card,
       .pricing-card {
         padding-left: 20px;
         padding-right: 20px;
+      }
+      .feature-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 22px;
       }
     }
   </style>
