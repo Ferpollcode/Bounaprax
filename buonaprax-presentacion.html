@@ -64,6 +64,7 @@
       backdrop-filter: blur(14px);
       border-bottom: 1px solid rgba(0,0,0,0.06);
     }
+    nav a { min-width: 0; }
     .nav-logo {
       grid-column: 2;
       display: flex;
@@ -91,10 +92,8 @@
       color: var(--muted);
     }
     .nav-login {
-      position: fixed;
-      top: 18px;
-      left: 40px;
-      z-index: 101;
+      grid-column: 1;
+      justify-self: start;
       color: var(--text);
       font-size: 14px;
       font-weight: 700;
@@ -116,6 +115,8 @@
       cursor: pointer;
       transition: opacity .2s;
       text-decoration: none;
+      text-align: center;
+      white-space: nowrap;
     }
     .nav-cta:hover { opacity: .85; }
 
@@ -162,6 +163,7 @@
       color: var(--morado-d);
       margin-bottom: 28px;
       box-shadow: 0 2px 12px rgba(108,92,231,.1);
+      max-width: 100%;
     }
     .hero-badge .dot {
       width: 8px; height: 8px;
@@ -208,6 +210,7 @@
       display: inline-block;
       box-shadow: 0 8px 24px rgba(108,92,231,.35);
       transition: transform .2s, box-shadow .2s;
+      text-align: center;
     }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(108,92,231,.45); }
     .btn-secondary {
@@ -222,6 +225,7 @@
       text-decoration: none;
       display: inline-block;
       transition: border-color .2s;
+      text-align: center;
     }
     .btn-secondary:hover { border-color: var(--morado-d); color: var(--morado-d); }
 
@@ -235,6 +239,7 @@
       height: 4px;
       width: 48px;
       border-radius: 4px;
+      max-width: 14vw;
     }
 
     /* ── SECTION COMMONS ── */
@@ -269,6 +274,7 @@
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 24px;
     }
+    .features-grid + .features-grid { margin-top: 24px; }
     .feature-card {
       border-radius: var(--radius);
       padding: 32px;
@@ -352,6 +358,7 @@
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 24px;
       max-width: 1060px;
+      margin: 0 auto;
     }
     .pricing-card {
       border-radius: var(--radius);
@@ -381,15 +388,16 @@
     .pricing-label { font-size: 13px; font-weight: 600; opacity: .7; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .08em; }
     .pricing-price {
       font-family: 'Playfair Display', serif;
-      font-size: 52px;
+      font-size: clamp(40px, 8vw, 52px);
       font-weight: 900;
       line-height: 1;
       margin-bottom: 4px;
+      overflow-wrap: anywhere;
     }
     .pricing-price sup { font-size: 24px; vertical-align: top; margin-top: 8px; }
     .pricing-period { font-size: 14px; opacity: .7; margin-bottom: 28px; }
     .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
-    .pricing-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; }
+    .pricing-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; min-width: 0; }
     .pricing-features li .check { flex-shrink: 0; font-weight: 700; margin-top: 1px; }
     .pricing-card.featured .pricing-features li .check { color: var(--amarillo); }
     .pricing-card.free .pricing-features li .check { color: var(--verde-d); }
@@ -510,15 +518,105 @@
     footer strong { color: rgba(255,255,255,.85); }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav {
+        grid-template-columns: auto 1fr auto;
+        gap: 16px;
+        padding: 14px 24px;
+      }
+      .nav-logo { grid-column: 2; }
+      .nav-logo-name { font-size: 28px; }
+      .nav-cta {
+        max-width: 190px;
+        white-space: normal;
+        line-height: 1.15;
+      }
+      .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+    }
+
     @media (max-width: 640px) {
-      nav { padding: 14px 16px; }
-      .nav-login { top: 17px; left: 16px; font-size: 13px; }
-      .nav-logo-name { font-size: 26px; }
+      nav {
+        grid-template-columns: 1fr auto;
+        gap: 10px 14px;
+        padding: 12px 16px;
+      }
+      .nav-login {
+        grid-column: 1;
+        grid-row: 2;
+        font-size: 13px;
+      }
+      .nav-logo {
+        grid-column: 1 / -1;
+        grid-row: 1;
+        justify-self: center;
+      }
+      .nav-logo-name { font-size: 27px; }
       .nav-logo-tagline { display: none; }
-      .nav-cta { padding: 9px 14px; font-size: 12px; }
-      .hero { padding: 100px 20px 60px; }
-      .hero-actions { flex-direction: column; align-items: center; }
+      .nav-cta {
+        grid-column: 2;
+        grid-row: 2;
+        max-width: 168px;
+        padding: 9px 12px;
+        font-size: 12px;
+      }
+      .hero { min-height: auto; padding: 132px 20px 60px; }
+      .hero-badge {
+        justify-content: center;
+        border-radius: 18px;
+        padding: 8px 14px;
+        line-height: 1.35;
+      }
+      .hero h1 { font-size: clamp(38px, 12vw, 50px); }
+      .hero p { font-size: 16px; margin-bottom: 32px; }
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .btn-primary,
+      .btn-secondary,
+      .btn-cta-white {
+        width: 100%;
+        max-width: 360px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
       section { padding: 64px 20px; }
+      .section-sub { margin-bottom: 36px; }
+      .features-grid,
+      .pricing-grid,
+      .why-grid {
+        grid-template-columns: 1fr;
+      }
+      .feature-card,
+      .pricing-card,
+      .why-card {
+        border-radius: 16px;
+      }
+      .feature-card { padding: 26px 22px; }
+      .pricing-card { padding: 34px 24px; }
+      .pricing-features li { font-size: 14px; }
+      .step { gap: 16px; padding-bottom: 32px; }
+      .cta-section { padding: 72px 20px; }
+      .cta-section p { font-size: 16px; }
+      footer { padding: 28px 20px; }
+    }
+
+    @media (max-width: 420px) {
+      nav { gap: 9px 10px; }
+      .nav-logo-name { font-size: 25px; }
+      .nav-login { font-size: 12px; }
+      .nav-cta { max-width: 148px; padding: 8px 10px; font-size: 11px; }
+      .hero { padding: 128px 16px 52px; }
+      .hero-badge { font-size: 12px; }
+      .hero h1 { font-size: 36px; }
+      .hero-strip { gap: 6px; margin-top: 40px; }
+      section { padding: 56px 16px; }
+      .feature-card,
+      .pricing-card {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
     }
   </style>
 </head>
